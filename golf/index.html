@@ -123,6 +123,19 @@ header .sp{flex:1}
 .resbtns .w{background:var(--surface); border:1.5px solid var(--line); color:var(--ink)}
 .resbtns .t{background:var(--gold-soft); color:var(--gold)}
 .resbtns .g{background:var(--green); color:#fff}
+.scrows{margin-top:12px; display:flex; flex-direction:column; gap:6px}
+.scrow{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:11px; background:var(--bg)}
+.scrow.G{background:var(--green-soft)}
+.scrow .nm{flex:1; min-width:0; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.scrow .val{width:58px; text-align:center; line-height:1.15}
+.scrow .val b{display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:19px; font-variant-numeric:tabular-nums}
+.scrow .val small{display:block; font-size:10.5px; color:var(--muted); font-weight:700}
+.scrow .stepbtn{background:var(--surface)}
+.scsum{display:flex; justify-content:space-around; margin-top:10px; font-size:13.5px; color:var(--muted)}
+.scsum b{font-family:"Jua",sans-serif; font-weight:400; font-size:17px; color:var(--ink); font-variant-numeric:tabular-nums}
+.resbtn{width:100%; margin-top:10px}
+.resbtn.T{background:var(--gold-soft); color:var(--gold)}
+.tot .sc{font-size:11.5px; color:var(--muted); font-weight:700; font-variant-numeric:tabular-nums}
 .stake{margin-top:10px; text-align:center; font-size:13px; color:var(--muted)}
 .stake b{color:var(--flag); font-variant-numeric:tabular-nums}
 
@@ -215,12 +228,10 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
       <div class="team W"><h3>흰팀</h3><div class="mem" id="memW"></div></div>
       <div class="team G"><h3>녹팀</h3><div class="mem" id="memG"></div></div>
     </div>
+    <div class="scrows" id="scRows"></div>
+    <div class="scsum" id="scSum"></div>
+    <button class="btn main resbtn" id="resBtn"></button>
     <div class="stake" id="stakeLine"></div>
-    <div class="resbtns">
-      <button class="btn w" id="winW">흰팀 승</button>
-      <button class="btn t" id="winT">동점</button>
-      <button class="btn g" id="winG">녹팀 승</button>
-    </div>
   </div>
 </section>
 
@@ -341,7 +352,7 @@ $('dmSeg').addEventListener('click',e=>{
 function syncDmUI(){
   [...$('dmSeg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.dm===drawMode?'true':'false'));
   $('dmHint').textContent = drawMode==='app'
-    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 동점 홀은 다음 홀이 배판(×2, 연속되면 ×4…)이 됩니다.'
+    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 홀이 끝나면 각자 파 대비 ±를 넣으면 팀 합산이 많은 쪽이 진 팀으로 기록됩니다. 동점 홀은 다음 홀이 배판(×2, 연속되면 ×4…)이 됩니다.'
     : '뽑기는 현장에서 직접 하고, 홀마다 진 팀 두 명만 기록하면 배판까지 자동 정산됩니다.';
 }
 $('startBtn').onclick=()=>{
@@ -416,20 +427,43 @@ function showTeams(){
   $('memW').innerHTML=W.join('<br>'); $('memG').innerHTML=G.join('<br>');
   const m=curMult();
   $('stakeLine').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (배판 ×'+m+')':'');
+  draw.scores=[0,0,0,0];
+  renderScoreInput();
   $('teamsArea').hidden=false;
 }
+/* 타수 입력: 파 대비 ± , 팀 합산이 적은 팀 승 */
+const SCNAME={'-3':'알바트로스','-2':'이글','-1':'버디','0':'파','1':'보기','2':'더블','3':'트리플'};
+const sgn=v=>v>0?'+'+v:v<0?'−'+(-v):'0';
+function teamSum(h,color){ return teamOf(h,color).reduce((a,p)=>a+h.scores[p],0); }
+function scoreResult(h){ const w=teamSum(h,'W'), g=teamSum(h,'G'); return w<g?'W':g<w?'G':'T'; }
+function renderScoreInput(){
+  const h={colors:draw.colors, scores:draw.scores};
+  $('scRows').innerHTML=['W','G'].flatMap(c=>teamOf(h,c).map(p=>
+    '<div class="scrow '+c+'">'+ballHTML(draw.colors[p])+'<span class="nm">'+esc(names[p])+'</span>'+
+    '<button class="stepbtn" data-p="'+p+'" data-d="-1" aria-label="'+esc(names[p])+' 한 타 줄이기">−</button>'+
+    '<span class="val"><b>'+sgn(draw.scores[p])+'</b><small>'+(SCNAME[draw.scores[p]]||'')+'</small></span>'+
+    '<button class="stepbtn" data-p="'+p+'" data-d="1" aria-label="'+esc(names[p])+' 한 타 늘리기">＋</button></div>')).join('');
+  const w=teamSum(h,'W'), g=teamSum(h,'G'), r=scoreResult(h);
+  $('scSum').innerHTML='<span>흰팀 <b>'+sgn(w)+'</b></span><span>녹팀 <b>'+sgn(g)+'</b></span>';
+  const b=$('resBtn');
+  b.textContent='결과 확정 · '+(r==='T'?'동점':(r==='W'?'흰팀':'녹팀')+' 승');
+  b.classList.toggle('T', r==='T');
+}
+$('scRows').addEventListener('click',e=>{
+  const b=e.target.closest('[data-p]'); if(!b||!draw||!draw.scores) return;
+  const p=+b.dataset.p; draw.scores[p]=Math.max(-3,Math.min(10,draw.scores[p]+(+b.dataset.d)));
+  renderScoreInput();
+});
 function memHTML(p,h){
   const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
   return esc(names[p])+(h.colors[p]==='J'?'<span class="jk">JOKER</span>':'');
 }
 function finishHole(result){
   const jk=draw.colors.indexOf('J');
-  history.push({colors:draw.colors, joker:jk>=0?jk:null, result});
+  history.push({colors:draw.colors, joker:jk>=0?jk:null, result, scores:[...draw.scores]});
   draw=null; save(); render();
 }
-$('winW').onclick=()=>finishHole('W');
-$('winG').onclick=()=>finishHole('G');
-$('winT').onclick=()=>finishHole('T');
+$('resBtn').onclick=()=>{ if(draw&&draw.scores) finishHole(scoreResult({colors:draw.colors, scores:draw.scores})); };
 
 /* ---------- 기록 모드 ---------- */
 function renderRec(){
@@ -460,9 +494,15 @@ $('recTie').onclick=()=>{
 };
 
 /* ---------- 스코어보드 ---------- */
-function totalsHTML(t,nm){
+function scoreTotals(hist){
+  if(!hist.some(h=>h.scores)) return null;
+  const s=[0,0,0,0]; hist.forEach(h=>{ if(h.scores) h.scores.forEach((v,p)=>s[p]+=v); }); return s;
+}
+function totalsHTML(t,nm,hist){
+  const sc=scoreTotals(hist||[]);
   return t.map((v,i)=>
-    '<div class="tot"><div class="n">'+esc(nm[i])+'</div><div class="v'+(v>0?' pay':'')+'">'+fmt(v)+'</div></div>').join('');
+    '<div class="tot"><div class="n">'+esc(nm[i])+'</div><div class="v'+(v>0?' pay':'')+'">'+fmt(v)+'</div>'+
+    (sc?'<div class="sc">'+sgn(sc[i])+'</div>':'')+'</div>').join('');
 }
 function histRows(hist,fe,nm){
   return hist.map((h,i)=>{
@@ -471,6 +511,11 @@ function histRows(hist,fe,nm){
     if(h.result==='T'){ res='동점'; }
     else{
       res=h.result==='W'?'흰팀 승':h.result==='G'?'녹팀 승':'승부';
+    }
+    if(h.scores && h.colors){
+      res+=' <small>('+sgn(teamSum(h,'W'))+':'+sgn(teamSum(h,'G'))+')</small>';
+    }
+    if(h.result!=='T'){
       paid=fmt(fe*m);
       who=losersOf(h).map(p=>esc(nm[p])).join('·');
     }
@@ -479,7 +524,7 @@ function histRows(hist,fe,nm){
 }
 function renderScore(){
   const t=totals();
-  $('totals').innerHTML=totalsHTML(t,names);
+  $('totals').innerHTML=totalsHTML(t,names,history);
   $('potSum').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
   $('histBody').innerHTML=histRows(history,fee,names);
   $('histTable').hidden=!history.length;
@@ -515,7 +560,7 @@ function renderArch(){
     const title=esc(roundTitle(r.date,r.course)||'일자 없음');
     const sub=r.history.length+'홀 · 총 '+fmt(pot)+'원 · '+r.names.map(esc).join(', ');
     return '<details class="arch" data-id="'+r.id+'"><summary><b>'+title+'</b><small>'+sub+'</small></summary>'+
-      '<div class="body"><div class="totals">'+totalsHTML(t,r.names)+'</div>'+
+      '<div class="body"><div class="totals">'+totalsHTML(t,r.names,r.history)+'</div>'+
       '<div class="potline"><span>홀당 '+fmt(r.fee)+'원</span><b>총 '+fmt(pot)+'원</b></div>'+
       '<div class="histwrap" style="margin-top:8px"><table><thead><tr><th>홀</th><th>배</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead><tbody>'+
       histRows(r.history,r.fee,r.names)+'</tbody></table></div>'+
