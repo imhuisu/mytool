@@ -504,7 +504,7 @@ $('dmSeg').addEventListener('click',e=>{
 function syncDmUI(){
   [...$('dmSeg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.dm===drawMode?'true':'false'));
   $('dmHint').textContent = drawMode==='app'
-    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 홀이 끝나면 각자 파 대비 ±를 넣으면 팀 합산이 많은 쪽이 진 팀으로 기록됩니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).'
+    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편이고, 팀 계산에선 타수와 상관없이 무조건 +1입니다. 홀이 끝나면 각자 파 대비 ±를 넣으면 팀 합산이 많은 쪽이 진 팀으로 기록됩니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).'
     : '뽑기는 현장에서 직접 하고, 홀마다 진 팀 두 명만 기록하면 이월까지 자동 정산됩니다.';
 }
 $('startBtn').onclick=()=>{
@@ -586,14 +586,18 @@ function showTeams(){
 /* 타수 입력: 파 대비 ± , 팀 합산이 적은 팀 승 */
 const SCNAME={'-3':'알바트로스','-2':'이글','-1':'버디','0':'파','1':'보기','2':'더블','3':'트리플'};
 const sgn=v=>v>0?'+'+v:v<0?'−'+(-v):'0';
-function teamSum(h,color){ return teamOf(h,color).reduce((a,p)=>a+h.scores[p],0); }
+/* 조커는 실제 타수와 상관없이 팀 계산에서 무조건 +1 (스코어카드에는 실제 ± 그대로) */
+const JOKER_VAL=1;
+function teamVal(h,p){ return h.colors[p]==='J' ? JOKER_VAL : h.scores[p]; }
+function teamSum(h,color){ return teamOf(h,color).reduce((a,p)=>a+teamVal(h,p),0); }
+function scLabel(colors,p,v){ return colors[p]==='J' ? '팀엔 +1' : (SCNAME[v]||''); }
 function scoreResult(h){ const w=teamSum(h,'W'), g=teamSum(h,'G'); return w<g?'W':g<w?'G':'T'; }
 function renderScoreInput(){
   const h={colors:draw.colors, scores:draw.scores};
   $('scRows').innerHTML=['W','G'].flatMap(c=>teamOf(h,c).map(p=>
     '<div class="scrow '+c+'">'+ballHTML(draw.colors[p])+'<span class="nm">'+esc(names[p])+'</span>'+
     '<button class="stepbtn" data-p="'+p+'" data-d="-1" aria-label="'+esc(names[p])+' 한 타 줄이기">−</button>'+
-    '<span class="val"><b>'+sgn(draw.scores[p])+'</b><small>'+(SCNAME[draw.scores[p]]||'')+'</small></span>'+
+    '<span class="val"><b>'+sgn(draw.scores[p])+'</b><small>'+scLabel(draw.colors,p,draw.scores[p])+'</small></span>'+
     '<button class="stepbtn" data-p="'+p+'" data-d="1" aria-label="'+esc(names[p])+' 한 타 늘리기">＋</button></div>')).join('');
   const w=teamSum(h,'W'), g=teamSum(h,'G'), r=scoreResult(h);
   $('scSum').innerHTML='<span>흰팀 <b>'+sgn(w)+'</b></span><span>녹팀 <b>'+sgn(g)+'</b></span>';
@@ -738,7 +742,7 @@ function renderEdit(){
     let html='<div class="scrows">'+['W','G'].flatMap(c=>teamOf(hh,c).map(p=>
       '<div class="scrow '+c+'">'+ballHTML(h.colors[p])+'<span class="nm">'+esc(names[p])+'</span>'+
       '<button class="stepbtn" data-ep="'+p+'" data-d="-1" aria-label="'+esc(names[p])+' 한 타 줄이기">−</button>'+
-      '<span class="val"><b>'+sgn(edit.scores[p])+'</b><small>'+(SCNAME[edit.scores[p]]||'')+'</small></span>'+
+      '<span class="val"><b>'+sgn(edit.scores[p])+'</b><small>'+scLabel(h.colors,p,edit.scores[p])+'</small></span>'+
       '<button class="stepbtn" data-ep="'+p+'" data-d="1" aria-label="'+esc(names[p])+' 한 타 늘리기">＋</button></div>')).join('')+'</div>';
     const r=editResult();
     html+='<div class="scsum"><span>흰팀 <b>'+sgn(teamSum(hh,'W'))+'</b></span><span>녹팀 <b>'+sgn(teamSum(hh,'G'))+'</b></span></div>';
@@ -973,7 +977,7 @@ function renderRoom(){
         const v=myScore.v;
         html+='<div class="mybox"><div class="scrow '+(teamOf(h,'W').includes(me)?'W':'G')+'">'+ballHTML(colors[me])+'<span class="nm">'+esc(nm[me])+'</span>'+
           '<button class="stepbtn" data-my="-1" aria-label="한 타 줄이기">−</button>'+
-          '<span class="val"><b>'+sgn(v)+'</b><small>'+(SCNAME[v]||'')+'</small></span>'+
+          '<span class="val"><b>'+sgn(v)+'</b><small>'+scLabel(colors,me,v)+'</small></span>'+
           '<button class="stepbtn" data-my="1" aria-label="한 타 늘리기">＋</button></div>'+
           '<button class="btn main resbtn" id="scoreBtn">내 ± 확정</button></div>';
       }

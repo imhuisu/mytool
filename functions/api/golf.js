@@ -76,7 +76,8 @@ async function tryFinish(db, code, hole) {
   if (!plays.every(x => x.drawn && x.done)) return;
   const colors = poolFor(room.seed, hole).slice(0, 4);
   const scores = plays.map(x => x.score | 0);
-  const sum = c => teamOf(colors, c).reduce((a, p) => a + scores[p], 0);
+  // 조커는 실제 타수와 상관없이 팀 계산에서 무조건 +1
+  const sum = c => teamOf(colors, c).reduce((a, p) => a + (colors[p] === 'J' ? 1 : scores[p]), 0);
   const w = sum('W'), g = sum('G');
   const jk = colors.indexOf('J');
   const data = room.data;
