@@ -30,6 +30,7 @@ header{display:flex; align-items:center; gap:10px; margin-bottom:12px}
 h1{font-family:"Jua",sans-serif; font-weight:400; font-size:25px; margin:0; letter-spacing:.5px; white-space:nowrap}
 .holechip,.multchip{white-space:nowrap}
 header{flex-wrap:wrap; row-gap:6px}
+.ver{font-size:11px; color:var(--muted); font-weight:700; align-self:flex-end; margin:0 0 4px -4px}
 .chips{margin-left:auto; display:flex; gap:8px}
 .holechip{font-family:"Jua",sans-serif; font-size:17px; background:var(--green); color:#fff;
   border-radius:999px; padding:4px 12px; letter-spacing:.5px}
@@ -227,7 +228,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1>
+  <h1>골프 뽑기</h1><span class="ver">v10</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
@@ -402,7 +403,6 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div class="label">지난 기록</div>
   <div id="archList"></div>
 </section>
-<div class="hintline" style="text-align:center;opacity:.6">버전 2026-10-01 · 9</div>
 </div>
 
 <script>
