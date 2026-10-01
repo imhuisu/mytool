@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><link rel="manifest" href="../manifest.webmanifest"><link rel="apple-touch-icon" href="../icons/apple-touch-icon.png"><meta name="theme-color" content="#1f3b33"><script src="../hub.js" defer></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>병기고 계산기</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAE60lEQVR42u3dsW4cRRjA8d2RoUoTUUQIOooQxV2E8gJQU7hAcucnoHCDIGUUpXHBE1iisJTCRerwAgilMxIp6IIQlR8ACVMhnaI753Z3dmd2vt+vTWydd7//zmxuz+m7ShyfX910hHFxctjX8Dp6A0/kIHpDT+QYekNP5Bh6g0/kEPqaBv/s6L4zHcDp5ZtqQuhLDb9hZ2wUOSPolxx8Q0/OGHKE0C8x/AafuUKYGkE/5/AbfJYIYUoEvcEncgjJ8LMW75utMf8CmQw/kSPocwy/wae2LdG+26E0d5FQajXIFsCuq7/hp9YI9t0KJcNP5AiS4SdyBMmhI7Lk6k/kVSAZfiJHkKZ+Y1hLBHsF4JNctGrbbKfcRcGaVoHk6k/kVSDlKgnWuAp4H6CwR08uHYSC0m3bH1f/+Yf/zx+/EcHCq8DmrFsBsAJQ7urfdZ1VoKDe9qfs8G/65NsX3eunR6v5OR4+/3rvv/vbdy+LvtZtH565ODnsD4wjcw7+u19TOgRboEqv/rZCAgg9/GuJYMzVP+fXZw/Au79EdXx+dbN1BXADXObqbys0n10zbQtU2fCLwD0ACCDy1d8qIIDwwy8CAYAAIl/9rQICCD/8IhAAzMbDcCu4+m+uAnM8Mbr04wk1PUUqgMBqey7nttc4Vwi2QLgHwNU/6usVAFYAEAAIAAQAAgABgABAACAAEABNqO1XFJZ6vQIgNI9DWwWqfjDO5wGoashyxFLT9ssWCDfBIAAQAAgABAACAAGAAEAAIABCm/oYg/8oGyriYThGX8Vr+i3PAmB12yFbIBAACAAEAAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAACAABQFx+Oe6GIb/teKc7XffRDz/N9yLvdN3D59O/fwu/2FYANQ3+Sn/m6CHYAiEAV38/vwBAACAAEAAIoHFfnv1iAoIfhwMnnM1j8vPpYytAJB9/8L2f3xbI1Z+Yx8ejEBtXwb/+eTbfleaPLwZ/zb+f/erKL4D1bwf+/v3V6Gjuff6VE2MLtF5jhz/X1yMAEAAIAAQAAgABgAAQAAgAAqr2UYhHTy5n+b53737qrBc69q+fHlkBSp4AnNfqA5j7IF1fvzWJBY9PbRGkSMNfwtSnOVt8GrSm85wiHpTr67eLrgRjh3jJ4V/6mNQSQejPAyx5wj+898B2rUL+GRQBgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQwTY0fmKb9850cFCKf5+TgEPn8JgeJyOf1wMHCTTAIAAQAAji9fOPI0JRdM50uTg57h4eILk4Oe1sgbIFAABA1gG33AW6EafkG+P+ZtwJgBYDwAdgGEW37YwXACjCmIFjr1f/WALwrTOvenfGUqyRY29V/awBWAaJc/QfdBFsFaO3qvzOAXauACFjr8O+a6TRkuRABLQ3/oC0QtCgNvWmwCtDK1X+vFUAEtDr8e2+BRECLw5/lHkAE1Db8Qwx60+v4/Ormtj8/O7rvrFB88Ie8mTtoBXjfN7YasKbhH7UFEgGtDP/gLZAtEa0MfpYA9olACMx5kzv14c0sT37uE4EQyDn4OYY/WwBDQxADU+4dcz6yn/3Z/yERiMKwD5X78yqzffhlSggw9+DPHoAQqHnwFwtADNQ29MUCEAM1DH0VAQjCwNfwOv4DCcwPQvVzuAYAAAAASUVORK5CYII=">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAE60lEQVR42u3dsW4cRRjA8d2RoUoTUUQIOooQxV2E8gJQU7hAcucnoHCDIGUUpXHBE1iisJTCRerwAgilMxIp6IIQlR8ACVMhnaI753Z3dmd2vt+vTWydd7//zmxuz+m7ShyfX910hHFxctjX8Dp6A0/kIHpDT+QYekNP5Bh6g0/kEPqaBv/s6L4zHcDp5ZtqQuhLDb9hZ2wUOSPolxx8Q0/OGHKE0C8x/AafuUKYGkE/5/AbfJYIYUoEvcEncgjJ8LMW75utMf8CmQw/kSPocwy/wae2LdG+26E0d5FQajXIFsCuq7/hp9YI9t0KJcNP5AiS4SdyBMmhI7Lk6k/kVSAZfiJHkKZ+Y1hLBHsF4JNctGrbbKfcRcGaVoHk6k/kVSDlKgnWuAp4H6CwR08uHYSC0m3bH1f/+Yf/zx+/EcHCq8DmrFsBsAJQ7urfdZ1VoKDe9qfs8G/65NsX3eunR6v5OR4+/3rvv/vbdy+LvtZtH565ODnsD4wjcw7+u19TOgRboEqv/rZCAgg9/GuJYMzVP+fXZw/Au79EdXx+dbN1BXADXObqbys0n10zbQtU2fCLwD0ACCDy1d8qIIDwwy8CAYAAIl/9rQICCD/8IhAAzMbDcCu4+m+uAnM8Mbr04wk1PUUqgMBqey7nttc4Vwi2QLgHwNU/6usVAFYAEAAIAAQAAgABgABAACAAEABNqO1XFJZ6vQIgNI9DWwWqfjDO5wGoashyxFLT9ssWCDfBIAAQAAgABAACAAGAAEAAIABCm/oYg/8oGyriYThGX8Vr+i3PAmB12yFbIBAACAAEAAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAACAABQFx+Oe6GIb/teKc7XffRDz/N9yLvdN3D59O/fwu/2FYANQ3+Sn/m6CHYAiEAV38/vwBAACAAEAAIoHFfnv1iAoIfhwMnnM1j8vPpYytAJB9/8L2f3xbI1Z+Yx8ejEBtXwb/+eTbfleaPLwZ/zb+f/erKL4D1bwf+/v3V6Gjuff6VE2MLtF5jhz/X1yMAEAAIAAQAAgABgAAQAAgAAqr2UYhHTy5n+b53737qrBc69q+fHlkBSp4AnNfqA5j7IF1fvzWJBY9PbRGkSMNfwtSnOVt8GrSm85wiHpTr67eLrgRjh3jJ4V/6mNQSQejPAyx5wj+898B2rUL+GRQBgABAACAAEAAIAAQAAgABgABAACAAEAAIAAQwTY0fmKb9850cFCKf5+TgEPn8JgeJyOf1wMHCTTAIAAQAAji9fOPI0JRdM50uTg57h4eILk4Oe1sgbIFAABA1gG33AW6EafkG+P+ZtwJgBYDwAdgGEW37YwXACjCmIFjr1f/WALwrTOvenfGUqyRY29V/awBWAaJc/QfdBFsFaO3qvzOAXauACFjr8O+a6TRkuRABLQ3/oC0QtCgNvWmwCtDK1X+vFUAEtDr8e2+BRECLw5/lHkAE1Db8Qwx60+v4/Ormtj8/O7rvrFB88Ie8mTtoBXjfN7YasKbhH7UFEgGtDP/gLZAtEa0MfpYA9olACMx5kzv14c0sT37uE4EQyDn4OYY/WwBDQxADU+4dcz6yn/3Z/yERiMKwD5X78yqzffhlSggw9+DPHoAQqHnwFwtADNQ29MUCEAM1DH0VAQjCwNfwOv4DCcwPQvVzuAYAAAAASUVORK5CYII=">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="병기고 계산기">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a6ea8">
+<meta name="application-name" content="병기고 계산기">
+<style>
+:root{
+  --bg:#e7f2fb; --panel:#ffffff; --panel2:#f2f8fd;
+  --edge:#5a9fd4; --line:#5a9fd455; --line2:#5a9fd42e;
+  --ink:#16293a; --dim:#5d7387; --head:#1a6ea8;
+  --hit:#127a4a; --warn:#c85a1c; --cool:#2b7fc4;
+  --sel:#cfe6f8; --selhi:#d2eede;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; padding:9px; background:var(--bg); color:var(--ink);
+  font-family:"Courier New",Consolas,monospace; font-size:16px; line-height:1.55;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+h1{font-size:18px;letter-spacing:1px;margin:0 0 10px;color:var(--head);font-weight:bold}
+h1 small{display:block;font-size:12.5px;letter-spacing:0;color:var(--dim);margin-top:3px;font-weight:normal}
+.wrap{max-width:1180px;margin:0 auto}
+.panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:4px;
+  padding:10px; margin-bottom:9px; box-shadow:0 1px 3px #5a9fd433;
+}
+.panel > .ttl{
+  font-size:14px; letter-spacing:1px; color:var(--head); font-weight:bold;
+  border-bottom:1px dashed var(--line); padding-bottom:6px; margin-bottom:9px;
+}
+
+/* --- 그리드 --- */
+.chipblk{margin-bottom:8px}
+.chipblk > label,.fld label{
+  display:block;font-size:12.5px;color:var(--dim);letter-spacing:.5px;margin-bottom:4px;
+}
+.chips{display:grid;gap:3px}
+#cat{grid-template-columns:repeat(11,1fr);gap:2px}
+#item{grid-template-columns:repeat(3,1fr)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:3px}
+.numg{margin-bottom:8px}
+.skpick{grid-template-columns:repeat(4,1fr);margin-top:4px}
+.skpick .chip{min-height:36px;font-size:13px}
+.topbar{margin-bottom:9px;padding-bottom:9px;border-bottom:1px dashed var(--line)}
+
+/* --- 컨트롤 --- */
+.chip,.btn,input{
+  display:flex;align-items:center;justify-content:center;
+  width:100%; min-height:46px; margin:0;
+  background:#fff; color:var(--ink);
+  border:1px solid var(--edge); border-radius:3px;
+  font-family:inherit; font-size:14px; line-height:1.2;
+  padding:4px 2px; text-align:center; outline:none;
+  -webkit-appearance:none; appearance:none;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.chip,.btn{cursor:pointer;color:#4a6478;word-break:keep-all}
+.chip:active,.btn:active{background:#d9ebf9}
+.chip.on{background:var(--sel);border-color:var(--head);color:#0f4468;font-weight:bold}
+#cat .chip{
+  min-height:40px; padding:4px 0;
+  font-size:clamp(10px,2.8vw,15px); letter-spacing:-1px; white-space:nowrap;
+}
+#item .chip{flex-direction:column;justify-content:center;gap:0;font-size:13px;line-height:1.25;min-height:52px}
+#grade .chip.on,.chip.gr.on{background:var(--selhi);border-color:var(--hit);color:#0d4a2c}
+.btn.save{background:#dff2e7;border-color:var(--hit);color:#0d4a2c;font-weight:bold}
+.btn.save.done{background:var(--hit);color:#fff}
+.btn.reg{background:#e0eefb;border-color:var(--cool);color:#0f4468;font-weight:bold}
+input{font-size:19px;color:var(--ink);font-weight:bold}
+input:focus{border-color:var(--head);background:#f7fcff;box-shadow:0 0 0 2px #bcdcf5}
+.fld{display:block}
+
+/* --- 오프라인 수입 --- */
+.odim{margin-bottom:9px;border:1px solid var(--edge);border-radius:3px;overflow:hidden}
+.odh{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 8px;background:#e6f2fb;cursor:pointer;
+  font-weight:bold;font-size:14px;color:#0f4468;
+}
+.odh .tw{font-size:12px;color:var(--cool)}
+.odh .osum{margin-left:auto;font-weight:normal;font-size:12px;color:var(--dim);white-space:nowrap}
+.orow{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 8px;border-top:1px solid var(--line);
+}
+.orow .onm{flex:1 1 auto;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orow .ogt{font-size:10px;color:#fff;background:var(--cool);border-radius:2px;padding:1px 4px;margin-right:3px}
+.ost{display:flex;gap:3px;flex:0 0 auto}
+.ost .sc{
+  min-width:30px;min-height:32px;padding:0 5px;font-size:13px;
+  border:1px solid var(--edge);border-radius:3px;background:#fff;color:#4a6478;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-family:inherit;-webkit-appearance:none;appearance:none;
+}
+.ost .sc.off{min-width:34px;font-size:12px}
+.ost .sc.on{background:var(--sel);border-color:var(--head);color:#0f4468;font-weight:bold}
+.ost .sc.off.on{background:#f0e2e2;border-color:#c98a8a;color:#8a3a3a}
+.oval{display:none}
+#offTbl td{white-space:nowrap}
+/* --- 오프라인 기록 --- */
+.lrow{display:flex;align-items:center;gap:6px;padding:4px 0}
+.lrow .onm{flex:1 1 auto;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow input{flex:0 0 110px;width:110px;min-height:38px;font-size:16px}
+.lgt{width:100%;border-collapse:collapse;table-layout:auto}
+.lgt td{padding:5px 4px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+.lgt td.lv{text-align:right;white-space:nowrap;font-size:15px}
+.lgt td.l:first-child{color:var(--dim);white-space:nowrap;width:1%}
+.hitv{color:#8a3a3a}
+.lgbars{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line)}
+.lgb{display:flex;align-items:center;gap:6px;padding:3px 0}
+.lgbn{flex:0 0 96px;width:96px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lgbw{flex:1 1 auto;height:12px;background:#e6f2fb;border-radius:2px;overflow:hidden}
+.lgbw i{display:block;height:100%;background:var(--cool)}
+.lgbv{flex:0 0 96px;width:96px;text-align:right;font-size:12px;white-space:nowrap}
+.lgbv em{font-style:normal;color:var(--dim);margin-left:5px}
+.lgrow{
+  display:flex;align-items:center;gap:7px;cursor:pointer;
+  padding:7px 8px;border:1px solid var(--edge);border-radius:3px;margin-bottom:5px;background:#fff;
+}
+.lgrow:active{background:#d9ebf9}
+.lgd{flex:0 0 auto;font-size:13px;white-space:nowrap}
+.lgd em{font-style:normal;display:block;font-size:10px;color:var(--dim)}
+.lgm{flex:1 1 auto;min-width:0;font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lgm2{flex:0 0 auto;font-size:12px;color:var(--cool);white-space:nowrap}
+.lgx{
+  flex:0 0 28px;width:28px;height:28px;padding:0;border:1px solid var(--edge);
+  background:#fff;color:#a06060;border-radius:3px;font-size:15px;cursor:pointer;font-family:inherit;
+}
+
+
+/* --- 표 --- */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nsc{overflow:visible}
+#monTbl thead th,#gntTbl thead th{
+  position:-webkit-sticky;position:sticky;top:0;z-index:5;
+  box-shadow:0 1px 0 var(--edge), 0 2px 6px #5a9fd433;
+}
+table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
+th,td{border:1px solid var(--line2);padding:6px 4px;text-align:center}
+th{background:#daebf8;color:#14577f;font-size:12.5px;font-weight:bold;white-space:nowrap}
+td.l{text-align:left;word-break:keep-all;overflow-wrap:break-word;line-height:1.3}
+#optTbl{min-width:540px}
+#stepTbl{min-width:640px}
+.cb:disabled{opacity:1;cursor:default}
+.optrow input{max-width:82px}
+td.mainc{font-size:13px;white-space:nowrap}
+td.subc{color:var(--cool)}
+tbody tr:nth-child(even){background:#f5fafe}
+tr.off{opacity:.42}
+.optrow input{width:100%;min-width:56px;text-align:right;font-size:15px;padding:4px 4px;min-height:34px}
+td.tdc{padding:4px 3px}
+.obtn{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;min-height:36px;margin:0;padding:0;
+  border:2px solid;border-radius:5px;
+  font-family:inherit;font-size:18px;font-weight:bold;line-height:1;
+  -webkit-appearance:none;appearance:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.obtn.on{background:var(--hit);border-color:var(--hit);color:#fff}
+.obtn.off{background:#fff;border-color:#c3d4e0;color:#c3d4e0}
+.obtn.off:active{background:#eef5fb}
+.obtn.lock{background:#dff2e7;border-color:var(--hit);color:var(--hit);cursor:default}
+.tag{display:inline-block;white-space:nowrap;font-size:12px;padding:1px 5px;border:1px solid;border-radius:3px}
+.tag.m{color:var(--warn);border-color:var(--warn);background:#fdeee2}
+.tag.v{color:var(--cool);border-color:var(--cool);background:#e4f0fb}
+.tag.c{color:var(--hit);border-color:var(--hit);background:#e3f4ea}
+.delx{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;margin-left:4px;padding:0;
+  border:1px solid #d8a99a;border-radius:3px;background:#fff;color:#c0392b;
+  font-family:inherit;font-size:13px;cursor:pointer;vertical-align:middle;
+}
+.nmin{
+  width:100%;max-width:none;min-width:0;min-height:32px;font-size:14px;text-align:left;
+  padding:3px 6px;font-weight:normal;justify-content:flex-start;
+}
+.hidesm{display:none}
+.vb{display:block;font-size:10.5px;letter-spacing:0;margin-top:2px;font-weight:normal}
+.vb.y{color:var(--hit)}
+.vb.n{color:var(--warn)}
+.chip.on .vb.y{color:#0d6b3c}
+.chip.unv{border-style:dashed}
+.vhead{font-size:12.5px;color:var(--dim);letter-spacing:.5px;margin-bottom:6px}
+.vrow{
+  display:grid;grid-template-columns:62px 1fr;gap:6px;align-items:start;
+  padding:6px 8px;margin-bottom:3px;background:var(--panel2);
+  border:1px solid var(--line2);border-left:4px solid var(--warn);border-radius:3px;
+}
+.vcat{font-size:13px;color:var(--head);font-weight:bold}
+.vrow.part{border-left-color:var(--cool)}
+.vsub{font-size:11.5px;color:var(--dim)}
+.vb.p{color:var(--cool)}
+.ov{
+  display:inline-block;min-width:16px;text-align:center;
+  font-size:11.5px;line-height:1.5;border-radius:3px;border:1px solid;
+}
+.ov.y{color:var(--hit);border-color:var(--hit);background:#e6f4ec}
+.ov.n{color:var(--warn);border-color:var(--warn);background:#fdeee2}
+.ov{white-space:nowrap;vertical-align:1px}
+.onm{white-space:nowrap;font-size:14px}
+#optTbl td{padding:6px 3px}
+.optrow input{font-size:14px}
+#optTbl td.cF,#optTbl td.cT,#optTbl td.cD{font-size:13.5px}
+#errBox{
+  display:block;margin:0 0 9px;padding:10px 12px;border-radius:4px;
+  background:#fdeee2;border:1px solid var(--warn);color:#7a3410;
+  font-size:13.5px;line-height:1.6;word-break:break-all;
+}
+#errBox b{color:#c0392b}
+.tabbar{margin-bottom:10px}
+.chip.tb{min-height:48px;font-size:15px;font-weight:bold}
+.chip.tb.on{background:var(--head);border-color:var(--head);color:#fff}
+#dimPick{grid-template-columns:repeat(4,1fr)}
+#dimPick .chip{min-height:40px;font-size:11.5px;letter-spacing:-.5px;padding:4px 1px;white-space:nowrap}
+.chip.sb{min-height:40px;font-size:13.5px}
+.chip.sb.on{background:var(--sel);border-color:var(--head);color:#0f4468;font-weight:bold}
+.mn{font-weight:bold;font-size:14.5px}
+.men{display:block;font-size:11px;color:var(--dim);letter-spacing:0;font-weight:normal}
+.mdim{font-size:12.5px;color:var(--dim);line-height:1.35}
+.cnum{color:#a6741c;font-weight:bold}
+.snum{color:var(--cool);font-weight:bold}
+tr.has{cursor:pointer}
+tr.has:active{background:#e7f2fb}
+.tw{display:inline-block;width:14px;color:var(--head)}
+tr.erow{background:#eef6fc}
+tr.erow td{font-size:13px;padding:5px 3px}
+.est{color:var(--head);font-size:12px;margin-right:2px}
+.ty{display:inline-block;font-size:11.5px;padding:1px 4px;border:1px solid;border-radius:3px;white-space:nowrap}
+.ty.f{color:var(--cool);border-color:var(--cool);background:#e4f0fb}
+.ty.g{color:#7a5a2a;border-color:#c0a06a;background:#f7efe0}
+.ty.x{color:var(--hit);border-color:var(--hit);background:#e6f4ec}
+.mn{font-weight:bold;font-size:14px;line-height:1.3}
+.men{display:block;font-size:10.5px;color:var(--dim);letter-spacing:0;font-weight:normal;line-height:1.4}
+.mdim{font-size:11.5px;color:var(--dim);line-height:1.35;word-break:keep-all}
+.ty2{display:inline-block;font-size:10px;padding:0 3px;border:1px solid;border-radius:2px;vertical-align:1px}
+.ty2.f{color:var(--cool);border-color:var(--cool)}
+.ty2.g{color:#7a5a2a;border-color:#c0a06a}
+.ty2.x{color:var(--hit);border-color:var(--hit)}
+tr.erow{background:#eef6fc}
+tr.erow td{font-size:12.5px;padding:4px 2px}
+tr.grp td{background:#dceafa;border-bottom:0}
+td.gtd{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
+.gmeta{font-size:9.5px;color:#3f6a8c;margin-left:6px;letter-spacing:-.3px}
+.seprow td{background:#eaf3fb;color:var(--head);font-size:11px;text-align:left;padding:6px 8px;border-top:2px solid var(--edge)}
+.ulk{display:block;font-size:10px;color:#4d6a83;line-height:1.5;margin-top:1px;word-break:keep-all}
+.ucost{color:#a6741c}
+.ccost{font-size:11px;color:#8a5d10;white-space:nowrap;letter-spacing:-.3px}
+.obsv{border-bottom:1.5px solid var(--hit);padding-bottom:1px}
+.unk{color:#b0563a}
+.gmeta2{display:block;font-size:11px;color:#3f6a8c;white-space:nowrap;line-height:1.5}
+tr.grp .mn{font-size:14.5px}
+.gcnt{font-size:11px;color:var(--dim);margin-left:6px}
+.estep{display:inline-block;font-size:10px;color:#fff;background:var(--head);border-radius:2px;padding:0 4px;margin-right:3px;vertical-align:1px}
+#monTbl td,#gntTbl td{padding:5px 2px}
+#monTbl th,#gntTbl th{font-size:11px;padding:5px 2px}
+#monTbl,#gntTbl{min-width:0;font-size:13px;table-layout:fixed}
+#monTbl td.l,#gntTbl td.l{word-break:break-word}
+.el{display:inline-block;font-size:11.5px;padding:1px 5px;border:1.5px solid;border-radius:3px;white-space:nowrap;font-weight:bold;letter-spacing:-.5px}
+.el.fi{color:#a3210f;border-color:#d9342a;background:#ffd9d2}
+.el.ic{color:#0b4b72;border-color:#2e8dc4;background:#cfe8f8}
+.el.et{color:#5a4400;border-color:#c9a000;background:#ffe27a}
+.el.dk{color:#fff;border-color:#4b3a72;background:#6b57a3}
+.el.qq{color:var(--dim);border-color:#b9c6d2;background:#f2f5f8}
+.elrow{
+  display:grid;grid-template-columns:52px minmax(0,1fr);gap:7px;align-items:start;
+  padding:7px 8px;margin-bottom:4px;background:var(--panel2);
+  border:1px solid var(--line2);border-left:4px solid var(--edge);border-radius:3px;
+}
+.elrow.fi{border-left-color:#d9342a}
+.elrow.ic{border-left-color:#4a9fd0}
+.elrow.et{border-left-color:#e0b400}
+.elrow.dk{border-left-color:#8577b0}
+.elrow.qq{border-left-color:#b9c6d2}
+.elv{display:flex;flex-wrap:wrap;gap:3px;min-width:0;font-size:13.5px}
+.elitem{display:inline-block;flex:0 0 auto;background:#fff;border:1px solid var(--line2);border-radius:3px;padding:1px 6px;margin:0 3px 3px 0;white-space:nowrap;font-size:12.5px}
+.elitem b{color:var(--cool);margin-left:2px}
+.elrow.fi .elitem{background:#fdeae6;border-color:#e59c8c;color:#8f2a18}
+.elrow.fi .elitem b{color:#c0261a}
+.elrow.ic .elitem{background:#e4f2fb;border-color:#8cc3e2;color:#14567d}
+.elrow.ic .elitem b{color:#1272a8}
+.elrow.et .elitem{background:#fdf4d2;border-color:#ddbc4a;color:#6b5200}
+.elrow.et .elitem b{color:#8a6a10}
+.elrow.dk .elitem{background:#efecf8;border-color:#a99ccc;color:#413063}
+.elrow.dk .elitem b{color:#5b4890}
+.elrow.qq .elitem{background:#f2f5f8;border-color:#c3d0da;color:#5d7387}
+.elrow{border-left-width:6px}
+.elk{padding-top:1px}
+#dimTbl{min-width:0}
+#dimTbl th,#dimTbl td{padding:5px 3px;font-size:13px}
+#dimTbl th{font-size:11px;white-space:normal;line-height:1.2}
+#dimTbl td.l{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iobox{margin-top:6px;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:3px}
+.ionote{font-size:12.5px;color:var(--dim);margin-bottom:5px;line-height:1.5}
+#ioText{
+  width:100%;min-height:96px;margin-bottom:5px;padding:6px 7px;
+  font-family:inherit;font-size:12px;line-height:1.4;color:var(--ink);
+  background:#fff;border:1px solid var(--edge);border-radius:3px;resize:vertical;
+  -webkit-appearance:none;appearance:none;
+}
+.vstat{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  margin:-2px 0 9px;padding-bottom:8px;border-bottom:1px dashed var(--line);
+}
+.vstat .vb{display:inline-block;margin:0;font-size:12px;padding:2px 7px;border:1px solid;border-radius:3px;white-space:nowrap}
+.vstat .vb.y{border-color:var(--hit);background:#e6f4ec}
+.vstat .vb.n{border-color:var(--warn);background:#fdeee2}
+.vstat .vb.p{border-color:var(--cool);background:#e4f0fb}
+.vmiss{flex:1 1 100%;font-size:12.5px;color:var(--dim);word-break:keep-all;line-height:1.5}
+.vitems{font-size:13.5px;word-break:keep-all;line-height:1.35}
+
+/* --- 요약 --- */
+.big{font-size:16px;color:var(--hit);letter-spacing:-.5px;font-weight:bold;white-space:nowrap}
+.mid{font-size:14.5px;color:var(--ink);font-weight:bold;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+#cards4{grid-template-columns:repeat(4,1fr)}
+.card{
+  background:var(--panel2); border:1px solid var(--line); border-radius:3px; padding:6px 4px;
+  display:flex; flex-direction:column; justify-content:space-between; min-height:60px;
+  text-align:center;
+}
+.card .k{font-size:10.5px;color:var(--dim);letter-spacing:0;margin-bottom:2px;line-height:1.25}
+.note{font-size:13px;color:var(--dim);margin-top:8px;line-height:1.7}
+.gain{color:var(--hit);font-weight:bold}
+.del{color:var(--warn);font-weight:bold}
+.mat-sb{color:var(--cool)}
+.mat-ds{color:var(--warn)}
+.statwrap{margin-top:9px;border-top:1px dashed var(--line);padding-top:8px}
+.statwrap .h{font-size:12.5px;color:var(--dim);letter-spacing:.5px;margin-bottom:6px}
+
+/* 능력치 줄: 모바일은 2단 */
+.sline{
+  display:grid; grid-template-columns:1fr auto auto auto;
+  grid-template-areas:"nm nm nm nm" "fr ar to dl";
+  align-items:center; gap:3px 5px;
+  padding:6px 8px; margin-bottom:3px; background:var(--panel2);
+  border:1px solid var(--line2); border-left:4px solid var(--cool); border-radius:3px;
+}
+.sline.main{border-left-color:var(--warn)}
+.sline .nm{grid-area:nm;font-size:14px;word-break:keep-all;line-height:1.35}
+.sline .fr{grid-area:fr;color:var(--dim);font-size:15px;text-align:right;white-space:nowrap}
+.sline .ar{grid-area:ar;color:var(--head);text-align:center}
+.sline .to{grid-area:to;color:var(--hit);font-size:18px;font-weight:bold;text-align:right;white-space:nowrap}
+.sline .dl{grid-area:dl;font-size:13px;color:var(--dim);text-align:right;white-space:nowrap}
+.rng{font-size:13px;color:var(--hit);letter-spacing:0;font-weight:bold}
+
+/* --- 세팅 슬롯 --- */
+.slots{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-bottom:9px}
+.slot{
+  border:1px solid var(--line); border-radius:3px; background:var(--panel2);
+  padding:6px 7px; font-size:13px; text-align:left; min-height:74px;
+  display:flex; flex-direction:column; gap:1px;
+}
+.slot.empty{opacity:.5;border-style:dashed;justify-content:center;align-items:center;text-align:center}
+.slot .sc{font-size:11.5px;color:var(--dim);letter-spacing:.5px}
+.slot .si{font-size:13.5px;color:var(--ink);font-weight:bold;word-break:keep-all;line-height:1.25}
+.slot .sv{font-size:13px;color:var(--head)}
+.slot .sk{font-size:12px;color:var(--warn);word-break:keep-all;line-height:1.25}
+#skill{justify-content:flex-start;padding-left:10px;font-weight:normal}
+.slot .sbtns{display:flex;gap:3px;margin-top:auto;padding-top:4px}
+.slot .sbtns button{
+  flex:1;min-height:30px;font-size:11.5px;padding:2px;border-radius:2px;
+  border:1px solid var(--line);background:#fff;color:var(--dim);
+  font-family:inherit;cursor:pointer;
+}
+.empty-msg{color:var(--dim);font-size:13px;padding:5px 0;line-height:1.7}
+
+/* ============ 폴드6 펼친 화면 / 태블릿 ============ */
+@media(min-width:560px){
+  body{padding:14px;font-size:17px}
+  h1{font-size:21px;letter-spacing:2px}
+  h1 small{font-size:14px}
+  .panel{padding:13px;margin-bottom:11px}
+  .panel > .ttl{font-size:15px}
+  .chips,.grid3,.grid4,.grid2{gap:5px}
+  #cat{gap:4px}
+  .chip,.btn,input{min-height:48px;font-size:16px}
+  #cat .chip{min-height:46px;font-size:15px;letter-spacing:-.5px}
+  #item .chip{font-size:15px}
+  table{font-size:16px}
+  th{font-size:14px}
+  th,td{padding:8px 8px}
+  td.mainc{font-size:14.5px}
+  .optrow input{font-size:16px;min-height:38px}
+  .hidesm{display:table-cell}
+  .cards{gap:6px}
+  .card{min-height:78px;padding:9px 10px;text-align:left}
+  .card .k{font-size:13px;letter-spacing:.5px}
+  .big{font-size:25px;letter-spacing:0}
+  .mid{font-size:19px}
+  .slots{grid-template-columns:repeat(4,1fr);gap:6px}
+  #monTbl,#gntTbl{font-size:15px}
+  .gmeta{font-size:12px;letter-spacing:0;margin-left:8px}
+  .ulk{font-size:12px}
+  .gmeta2{font-size:12px}
+  #monTbl td,#gntTbl td{padding:7px 5px}
+  .mn{font-size:15px}
+  .men,.mdim{font-size:13px}
+  .slot{font-size:14px;min-height:82px;padding:8px 9px}
+  .slot .si{font-size:15px}
+  .sline{
+    grid-template-columns:1fr 88px 18px 100px 88px;
+    grid-template-areas:"nm fr ar to dl";
+    padding:8px 10px;gap:6px;
+  }
+  .sline .nm{font-size:16px}
+  .sline .to{font-size:19px}
+  .note{font-size:14px}
+  .rng{font-size:15px}
+  .odh{font-size:15px;padding:8px 10px}
+  .odh .osum{font-size:13px}
+  .orow{padding:6px 10px;gap:7px}
+  .orow .onm{font-size:15px}
+  .ost .sc{min-width:36px;min-height:36px;font-size:14px}
+  .ost .sc.off{min-width:42px;font-size:13px}
+  .oval{display:block;flex:0 0 auto;font-size:13px;width:104px;text-align:right;white-space:nowrap}
+  #offTbl{font-size:15px}
+  #offTbl td{padding:7px 5px}
+  .lrow{padding:5px 0;gap:8px}
+  .lrow .onm{font-size:15px}
+  .lrow input{flex:0 0 130px;width:130px;min-height:42px;font-size:18px}
+  .lgt td{padding:7px 5px;font-size:14px}
+  .lgt td.lv{font-size:17px}
+  .lgbn{flex:0 0 120px;width:120px;font-size:13px}
+  .lgbv{flex:0 0 112px;width:112px;font-size:13px}
+  .lgd{font-size:15px}
+  .lgm,.lgm2{font-size:13px}
+}
+
+/* ============ 데스크탑 ============ */
+@media(min-width:1000px){
+  body{padding:18px;font-size:18px}
+  .big{font-size:29px}
+  .mid{font-size:22px}
+}
+</style>
+<script>
+/* 선행 감시: 본 스크립트가 문법 오류로 통째로 안 읽혀도 여기서 잡힌다 */
+(function(){
+  var shown=false;
+  function box(){
+    var el=document.getElementById('errBox');
+    if(!el){ el=document.createElement('div'); el.id='errBox';
+      (document.body||document.documentElement).insertBefore(el,(document.body||document.documentElement).firstChild); }
+    return el;
+  }
+  window.__armErr=function(txt){
+    if(shown) return; shown=true;
+    try{
+      var el=box(); el.style.display='block';
+      el.innerHTML='<b>오류로 화면이 비었습니다.</b><br>아래 내용을 캡처해서 보내주세요.<br><br>'
+        + String(txt).replace(/[<>]/g,'') + '<br><br>' + navigator.userAgent;
+    }catch(e){ alert('오류: '+txt); }
+  };
+  window.onerror=function(m,src,line,col){ window.__armErr(m+'  @'+line+':'+col); };
+  window.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      var c=document.querySelectorAll('#cat .chip').length;
+      if(c===0) window.__armErr('스크립트가 실행되지 않았습니다 (부위 목록 0개). 파일이 끝까지 받아지지 않았거나 브라우저가 스크립트를 막았을 수 있습니다.');
+    },1200);
+  });
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+<div id="errBox" style="display:none"></div>
+
+<h1>IDLE SLAYER 도구상자
+  <small>병기고 · 몬스터 · 오프라인 · 기록 <span style="color:var(--cool)">· build 88</span></small>
+</h1>
+
+<div class="grid4 tabbar">
+  <button type="button" class="chip tb on" data-t="calc">병기고</button>
+  <button type="button" class="chip tb" data-t="mon">몬스터</button>
+  <button type="button" class="chip tb" data-t="off">오프라인</button>
+  <button type="button" class="chip tb" data-t="log">기록·분석</button>
+</div>
+
+<div id="tab-calc">
+
+<div class="panel">
+  <div class="ttl">장비 선택</div>
+
+  <div class="grid4 topbar">
+    <button type="button" class="chip gr on" data-v="0">기본</button>
+    <button type="button" class="chip gr" data-v="1">우수</button>
+    <button type="button" class="btn save" id="saveBtn">저장</button>
+    <button type="button" class="btn" id="clearAll">초기화</button>
+  </div>
+
+  <div class="chipblk">
+    <label>부위</label>
+    <div class="chips" id="cat"></div>
+  </div>
+  <div class="chipblk">
+    <label>장비</label>
+    <div class="chips" id="item"></div>
+  </div>
+
+  <div class="chipblk" id="skillBlk" style="display:none">
+    <label>스킬 <span style="color:var(--dim)">— 이 장비에 붙은 스킬을 적어두세요 (계산에는 반영 안 됨)</span></label>
+    <input type="text" id="skill" placeholder="스킬 이름" style="text-align:left;font-size:16px">
+    <div class="chips skpick" id="skillPick"></div>
+  </div>
+  <div class="grid3">
+    <div class="fld">
+      <label>현재 강화</label>
+      <input type="number" id="from" value="0" min="0" max="30">
+    </div>
+    <div class="fld">
+      <label>목표 강화</label>
+      <input type="number" id="to" value="13" min="0" max="30">
+    </div>
+    <div class="fld">
+      <label>업적 수</label>
+      <input type="number" id="ach" value="621" min="0" max="5000">
+    </div>
+  </div>
+
+  <div class="grid2">
+    <button type="button" class="btn reg" id="regBtn">내 세팅에 등록</button>
+    <button type="button" class="btn" id="unregBtn">이 부위 빼기</button>
+  </div>
+
+  <div class="grid2" style="margin-top:6px">
+    <button type="button" class="btn" id="expBtn">설정 내보내기</button>
+    <button type="button" class="btn" id="impBtn">설정 가져오기</button>
+  </div>
+  <div id="ioBox" class="iobox" style="display:none">
+    <div class="ionote" id="ioNote"></div>
+    <textarea id="ioText" spellcheck="false"></textarea>
+    <div class="grid2">
+      <button type="button" class="btn" id="ioGo">적용</button>
+      <button type="button" class="btn" id="ioClose">닫기</button>
+    </div>
+  </div>
+  <div class="note">
+    <span id="saveInd" style="color:var(--dim)">자동 저장 켜짐</span>
+    &nbsp;· 숫자칸은 누르면 전체 선택되어 바로 덮어쓸 수 있습니다. 값을 바꾸면 자동 저장됩니다. <b>초기화</b>는 등록한 세팅과 수정한 기준값까지 전부 지웁니다.
+  </div>
+</div>
+
+<div class="panel">
+  <div class="ttl">옵션 수치</div>
+  <div id="vStat" class="vstat"></div>
+  <div class="scroll">
+    <table id="optTbl">
+      <thead>
+        <tr>
+          <th style="width:44px">적용</th>
+          <th style="width:48px">구분</th>
+          <th class="l" style="min-width:170px">옵션</th>
+          <th style="width:68px">0강 기준</th>
+          <th class="hidesm" style="width:62px" id="thFrom">현재</th>
+          <th style="width:66px" id="thTo">목표</th>
+          <th style="width:66px">증가분</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <button type="button" class="btn reg" id="addOpt" style="margin-top:8px">+ 옵션 직접 추가</button>
+  <div class="note">
+    메인·변동 옵션 모두 <b>0강 기준값 × (강화단계+1)</b>로 증가하고, 우수 등급이면 전체에 ×1.25가 붙습니다.
+    적용 칸의 &#10003;(초록)이 반영, &#10005;(회색)이 미반영입니다. 메인 옵션은 항상 적용이라 잠겨 있고, 변동 옵션은 장비마다 붙는 게 다르므로 <b>내 장비에 실제로 붙은 것만 체크</b>하세요. 체크한 것만 요약·단계별 상세·합산에 반영됩니다. 목록에 없는 옵션은 <b>+ 옵션 직접 추가</b>로 이름과 0강 기준값을 넣으면 장비별로 저장됩니다.
+  </div>
+</div>
+
+<div class="panel">
+  <div class="ttl">요약 <span class="rng" id="rngTxt"></span></div>
+  <div class="cards">
+    <div class="card"><div class="k">필요 DP</div><div class="big" id="oDp">-</div></div>
+    <div class="card"><div class="k">스피릿(SB)</div><div class="mid mat-sb" id="oSb">-</div></div>
+    <div class="card"><div class="k">드래곤(DS)</div><div class="mid mat-ds" id="oDs">-</div></div>
+    <div class="card"><div class="k">요구 Lv</div><div class="mid" id="oLv">-</div></div>
+    <div class="card"><div class="k">강화 횟수</div><div class="mid" id="oCnt">-</div></div>
+  </div>
+  <div class="note" id="matNote"></div>
+  <div id="statSum"></div>
+</div>
+
+<div class="panel">
+  <div class="ttl">단계별 상세</div>
+  <div class="scroll">
+    <table id="stepTbl">
+      <thead>
+        <tr>
+          <th style="width:76px">강화</th>
+          <th style="width:90px">DP</th>
+          <th style="width:112px">누적 DP</th>
+          <th style="width:104px">재료</th>
+          <th style="width:96px">요구 레벨</th>
+          <th class="l" style="min-width:150px">메인 옵션</th>
+          <th class="l" style="min-width:150px">변동 옵션</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="ttl">내 장비 세팅 <span class="rng" id="loadCnt"></span></div>
+  <div class="slots" id="slots"></div>
+  <div class="cards" id="cards4">
+    <div class="card"><div class="k">총 필요 DP</div><div class="big" id="tDp">-</div></div>
+    <div class="card"><div class="k">스피릿(SB)</div><div class="mid mat-sb" id="tSb">-</div></div>
+    <div class="card"><div class="k">드래곤(DS)</div><div class="mid mat-ds" id="tDs">-</div></div>
+    <div class="card"><div class="k">등록 부위</div><div class="mid" id="tCnt">-</div></div>
+  </div>
+  <div id="totalStat"></div>
+</div>
+
+<div class="panel">
+  <div class="ttl">검증 현황 <span class="rng" id="vCnt"></span></div>
+  <div id="vList"></div>
+  <div class="note">
+옵션 하나하나 기준으로 셉니다. 변동 옵션은 장비마다 일부만 붙으므로, 같은 장비를 여러 번 캡처해야 전부 확인됩니다.
+    옵션표의 <span class="ov y">&#10003;</span> 는 실측 대조를 마친 값, <span class="ov n">?</span> 는 제보받은 표 값만 들어 있어 실제와 다를 수 있는 값입니다.
+    아래 목록의 옵션이 붙은 장비를 얻으면 캡처를 올려 확인해 주세요.
+  </div>
+</div>
+
+<div class="panel">
+  <div class="ttl">규칙 요약</div>
+  <div class="note" style="color:var(--ink)">
+    <b>능력치</b> = 0강 기준값 × <b>(강화단계 + 1)</b>, 우수 등급은 여기에 ×1.25<br>
+    &nbsp;&nbsp;→ 아드라노스 검 영혼 2% 기준: 0강 2% / +1 4% / +5 12% / +15 32% (우수 +15는 40%)<br>
+    <b>DP 비용</b> = 20 × N + 60 &nbsp;(N강에 도달할 때) → +1은 80, +2는 100 … +13은 320<br>
+    <b>재료</b> = +1~+6 없음 / +7~+9 스피릿부스트(SB) 4개 / +10 이상 SB 4 + 드래곤스케일(DS) 4<br>
+    <b>요구 레벨</b> = 기본 요구레벨 + 50 × N &nbsp;(반지만 40 × N)<br>
+    <b>지팡이 업적당 옵션</b> = 기준값 × (N+1) × 업적 수 &nbsp;· <b>마법서 레벨당 옵션</b>은 계수 자체가 표시되므로 책 레벨을 곱하지 않습니다<br>
+    <span style="color:var(--hit)">실제 장비 캡처 <b>24종</b> 전수 검증 완료 (2026-09-20) — 대검·칼날 / 원형 방패·방패 / 방어구 / 투구 / 신발 / 반지 / 단검 / 도끼 / 지팡이 / 활 / 마법서, 일반·우수, 0강~13강 전 구간에서 옵션·요구레벨 모두 일치.<br>예) 우수 아드라노스 지팡이 +13 → 2.1×14×1.25 = 36.75% (게임 36.8) · 보레아스 신발 +1 → 6.8×2 = 13.6% (게임 13.6)</span>
+  </div>
+</div>
+</div>
+
+<div id="tab-mon" style="display:none">
+
+  <div class="panel">
+    <div class="ttl">차원 선택</div>
+    <div class="chips" id="dimPick"></div>
+    <div class="grid4" style="margin-top:6px">
+      <button type="button" class="chip sb on" data-s="s">소울순</button>
+      <button type="button" class="chip sb" data-s="c">코인순</button>
+      <button type="button" class="chip sb" data-s="n">이름순</button>
+      <button type="button" class="chip sb" data-s="d">지역순</button>
+    </div>
+    <div class="note" style="margin-top:6px">소울순·코인순은 <b>최종 진화형 기준</b>으로 정렬합니다.</div>
+    <div class="chipblk" style="margin-top:8px;margin-bottom:0">
+      <label>진화 비용 할인 <span id="discInfo" style="color:var(--hit)"></span></label>
+      <div class="chips grid2" id="discPick">
+        <button type="button" class="chip dc on" data-v="0.5">어둠의 염가 −50%</button>
+        <button type="button" class="chip dc on" data-v="0.75">공포 포용 −25%</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">소형 적 <span class="rng" id="mCnt"></span></div>
+    <div class="nsc">
+      <table id="monTbl">
+        <thead><tr>
+          <th class="l">이름</th>
+          <th style="width:42px">속성</th>
+          <th style="width:30px">HP</th>
+          <th style="width:34px">방어</th>
+          <th style="width:42px">코인</th>
+          <th style="width:42px">소울</th>
+          <th style="width:70px">진화 비용</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="note">회색 줄이 묶음 제목, 그 아래 <b>1번이 기본형</b>이고 2번부터가 진화형입니다. 묶음 제목을 누르면 접힙니다.
+    지역과 드롭은 묶음 제목 줄에 적었습니다 — 진화 여부와 무관하게 같습니다.
+    <b>여기 적힌 코인·소울은 보너스 적용 전 기본값</b>입니다. 실제로는 승천, 소울 리퍼, 베스티어리 마스터리 등이 곱해져 더 커집니다.<br><b>진화 비용</b>은 코인으로 사는 값입니다. 거인은 기본형에도 <b>출현 해금 비용</b>이 붙습니다. 위 버튼으로 <b>어둠의 염가(−50%)</b>와 <b>공포 포용(−25%)</b> 할인을 켜고 끌 수 있습니다 — 두 개는 곱연산이라 둘 다 켜면 정가의 37.5%입니다. 초승천 업그레이드 Generations가 있으면 여기서 더 깎입니다. <span style="border-bottom:1.5px solid var(--hit)">밑줄</span> 친 값은 게임에서 직접 확인한 실측가이고, 나머지는 위키 자료입니다. 자료가 없으면 미확인으로 표시됩니다.</div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">거인 <span class="rng" id="gCnt"></span></div>
+    <div class="nsc">
+      <table id="gntTbl">
+        <thead><tr>
+          <th class="l">이름</th>
+          <th style="width:42px">속성</th>
+          <th style="width:30px">HP</th>
+          <th style="width:34px">방어</th>
+          <th style="width:42px">코인</th>
+          <th style="width:42px">소울</th>
+          <th style="width:70px">진화 비용</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="note">
+      <b>방어</b>가 있는 거인은 방어도를 다 깎기 전까지 화살이 관통하지 않습니다. 진화하면 체력과 방어가 크게 늘지만 소울 보상도 몇 배로 뜁니다 — 얼음 페어리 퀸은 체력 450에 소울 380, 각성한 탱크는 방어 150에 소울 640입니다.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">원소별 몬스터</div>
+    <div id="elList"></div>
+    <div class="note">
+      괄호 안은 소울 값입니다. 장비의 <b>불·얼음·전기·어둠 유형 영혼</b> 옵션은 여기 적힌 몬스터를 잡을 때만 붙습니다.
+      원소는 대부분 진화로 생기므로, 해당 진화를 해금하지 않았다면 그 옵션은 사실상 놀고 있는 셈입니다.
+      <span style="color:var(--warn)">물음표 표시는 자료가 엇갈려 확인이 필요한 항목입니다.</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">차원별 합계</div>
+    <div class="scroll">
+      <table id="dimTbl">
+        <thead><tr>
+          <th class="l">차원</th>
+          <th style="width:40px">적</th>
+          <th style="width:50px">평균<br>코인</th>
+          <th style="width:50px">평균<br>소울</th>
+          <th class="l" style="width:106px">최고 소울</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="note">
+      기본형 기준 평균입니다. 진화한 적이 섞여 나오면 실제 획득량은 이보다 높습니다.
+      체스트 헌트 보상도 그 차원 소형 적 평균값을 따라갑니다.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">출처</div>
+    <div class="note">
+      Idle Slayer Wiki(Fandom)의 Enemies · Giants 문서 기준입니다.
+      한글 이름은 제가 옮긴 것이라 게임 표기와 다를 수 있습니다. 영문 이름을 같이 적어뒀으니 대조하세요.
+      틀린 수치나 이름을 발견하시면 알려주시면 고치겠습니다.
+    </div>
+  </div>
+
+</div>
+
+<div id="tab-off" style="display:none">
+
+  <div class="panel">
+    <div class="ttl">처치 속도 · 배율</div>
+    <div class="grid3 numg">
+      <div class="fld">
+        <label>조우 간격 (초)</label>
+        <input type="text" inputmode="decimal" id="oSec" value="1">
+      </div>
+      <div class="fld">
+        <label>검 데미지</label>
+        <input type="text" id="oDmg" placeholder="비우면 1타">
+      </div>
+      <div class="fld">
+        <label>거인 스폰 (%)</label>
+        <input type="text" inputmode="decimal" id="oGPct" value="2.5">
+      </div>
+    </div>
+    <div class="grid3 numg">
+      <button type="button" class="chip" id="oGp25">기본 2.5%</button>
+      <button type="button" class="chip" id="oGp35">오버킬 3.5%</button>
+      <button type="button" class="chip ar" id="oArm">방어 포함</button>
+    </div>
+    <div class="grid2 numg">
+      <div class="fld">
+        <label>코인 배율 (×)</label>
+        <input type="text" inputmode="decimal" id="oCm" value="1">
+      </div>
+      <div class="fld">
+        <label>소울 배율 (×)</label>
+        <input type="text" inputmode="decimal" id="oSm" value="1">
+      </div>
+    </div>
+    <div class="grid2">
+      <button type="button" class="chip og on" id="oGOn">거인 포함</button>
+      <button type="button" class="btn save" id="oSave">저장</button>
+    </div>
+    <div class="note">
+      <b>처치 간격</b>은 소형 적 한 마리 잡는 데 걸리는 시간입니다. 1초면 초당 1마리.<br>
+      <b>거인 스폰</b>은 적이 뜰 때 거인일 확률입니다 — 기본 <b>2.5%</b>, 오버킬 노드를 찍으면 <b>3.5%</b>. 장비의 거인 출현 옵션이 여기 더해집니다.<br>
+      <b>검 데미지</b>를 넣으면 적마다 <u>몇 번 마주쳐야 잡히는지</u>를 HP·방어로 계산해서 차원별로 따로 적용합니다.
+      한 방에 못 죽이면 넉백돼서 다시 만나야 하고, 그 사이 다른 적이 스폰되므로 <b>단단한 적일수록 잡은 마리 수가 줄어듭니다</b>.<br>
+      실측 사례: 소형 78,000마리 도는 동안 거인 <b>2,000마리</b>(=스폰 2.5%)를 잡던 사람이
+      <b>전기 성체 예티</b>(HP 200·방어 50)로 진화한 뒤 <b>248마리</b>로 떨어졌습니다 — 248 × 8 = 1,984, 즉 <b>8타</b>짜리가 된 겁니다.<br>
+      <b>방어 포함</b> 버튼은 타수 공식을 (HP+방어)÷데미지와 HP÷데미지 사이에서 바꿉니다. 어느 쪽이 맞는지는 <b>기록·분석</b> 탭에서 실측과 대조하세요.
+      데미지를 비우면 전부 1타로 계산합니다.<br>
+      <b>배율</b>은 승천·소울 리퍼·베스티어리 마스터리·장비 옵션이 다 곱해진 최종 배수입니다. <b>183 Spd</b>처럼 단위째 넣어도 됩니다 —
+      모르면 1로 두고 차원끼리 상대 비교만 하거나, <b>기록·분석</b> 탭에서 실측해서 자동으로 채우세요.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">차원별 오프라인 수입 <span class="rng" id="oRng"></span></div>
+    <div class="scroll">
+      <table id="offTbl" style="min-width:330px">
+        <thead><tr>
+          <th class="l" style="min-width:78px">차원</th>
+          <th style="width:32px">적</th>
+          <th style="width:52px">거인<br>소울</th>
+          <th style="width:40px">거인<br>타수</th>
+          <th style="width:56px">코인/초</th>
+          <th style="width:56px">소울/초</th>
+          <th style="width:72px">시간당<br>소울</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="note">
+      스폰 한 자리를 놓고 소형 적들이 균등하게 나오고, 그중 <b>거인 스폰%</b>만큼이 거인입니다. 적마다 타수가 다르므로 단단한 적은 그만큼 덜 잡힙니다.<br>
+      <b>거인 소울</b>과 <b>거인 타수</b>를 나란히 놨습니다 — <u>낮은 차원의 1타 거인과 높은 차원의 여러 타 거인 중 뭐가 나은지</u>가 여기서 갈립니다.
+      소울이 10배라도 타수가 10배면 본전이고, 타수가 그보다 덜 늘면 이득입니다.<br>
+      <b class="snum">소울/초</b>가 높은 차원이 오프라인으로 돌리기 좋은 곳입니다. 미니게임·포털 스테이지는 오프라인 진행이 없어 뺐습니다.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">해금 상태 <span class="rng" id="oCnt"></span></div>
+    <div class="grid3" style="margin-bottom:8px">
+      <button type="button" class="btn" id="oAllMax">전부 최종진화</button>
+      <button type="button" class="btn" id="oAllBase">전부 기본형</button>
+      <button type="button" class="btn" id="oAllOff">전부 끄기</button>
+    </div>
+    <div id="oList"></div>
+    <div class="note">
+      적마다 <b>내가 지금 해금한 단계</b>를 고르세요. 진화는 이전 형태를 덮어쓰므로 <b>가장 높은 단계 하나만</b> 켜면 됩니다.
+      아직 못 만나는 적은 <b>끔</b>으로 두면 평균에서 빠집니다.
+      숫자는 그 단계의 코인/소울 기본값입니다.
+    </div>
+  </div>
+
+</div>
+
+<div id="tab-log" style="display:none">
+
+  <div class="panel">
+    <div class="ttl">측정 입력</div>
+    <div class="chipblk">
+      <label>차원</label>
+      <div class="chips" id="lgDim"></div>
+    </div>
+    <div class="grid2 numg">
+      <div class="fld">
+        <label>검 데미지</label>
+        <input type="text" id="lgD" placeholder="예: 250">
+      </div>
+      <div class="fld">
+        <label>처치 간격 (초)</label>
+        <input type="text" inputmode="decimal" id="lgSec" value="1">
+      </div>
+    </div>
+    <div class="chipblk">
+      <label>진화 단계 · 처치 수 <span class="rng" id="lgTot"></span></label>
+      <div id="lgKills"></div>
+    </div>
+    <div class="grid2">
+      <button type="button" class="btn reg" id="lgAdd">기록 저장</button>
+      <button type="button" class="btn" id="lgWipe">처치 수 비우기</button>
+    </div>
+    <div class="note">
+      게임 <b>Enemies Slayed</b> 창 숫자를 그대로 넣으세요. 시간은 필요 없습니다 — 비율만으로 타수가 나옵니다.<br>
+      진화 단계는 <b>오프라인 수입 탭과 같은 값</b>이라 여기서 바꾸면 거기도 같이 바뀝니다.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">분석</div>
+    <div id="lgAnal"></div>
+    <div class="note">
+      <b>역산 타수</b>는 거인 스폰률(오프라인 탭 설정값, 기본 2.5%)을 기준으로 <u>실제 잡힌 거인 수에서 거꾸로 계산한</u> 실측값입니다 — 데미지 공식을 몰라도 나옵니다.<br>
+      그 아래는 검 데미지로 계산한 <b>후보 공식</b>들입니다. 게임이 방어를 어떻게 처리하는지 공개된 게 없어서 두 가지를 같이 띄웁니다.
+      기록이 쌓이면 어느 쪽이 실측과 맞는지 드러납니다.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ttl">저장된 기록 <span class="rng" id="lgCnt"></span></div>
+    <div id="lgList"></div>
+    <div class="note">줄을 누르면 그 기록이 위 입력칸으로 올라옵니다. 데미지를 올린 전후로 재면 타수가 실제로 얼마나 떨어졌는지 보입니다.</div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- 데이터 ---------- */
+const DATA = {
+  "검": { lv:200, items:{
+    "아드라노스 칼날":{ main:[["영혼 보너스",2]], sub:[["CpS",1.1],["전기 영혼",2],["오프라인 CpS",2]] },
+    "보레아스 칼날":{ main:[["불 속성 영혼",15]], sub:[["보너스 CpS",1],["영혼 보너스",0.2],["불 영혼",2]] },
+    "키샤르 대검":{ main:[["코인 획득 CpS",15]], sub:[["CpS",0.3],["에메랄드",0.4],["소형 몬스터 출현",1],["체헌 영혼",10]] }
+  }},
+  "방패": { lv:200, items:{
+    "아드라노스 원형 방패":{ main:[["영혼 보너스",1.8]], sub:[["자재 드롭",0.2],["치명타 영혼",0.5],["거인 영혼",1.7]] },
+    "보레아스 방패":{ main:[["치명타 영혼 보너스",4.8]], sub:[["정령 부스트 확률",0.4],["사파이어",0.3],["불 영혼",0.8]] },
+    "키샤르 방패":{ main:[["치명타 영혼 보너스",5.5]], sub:[["거인 영혼",1.5],["인게임 영혼",0.3],["정령 부스트 확률",0.4]] }
+  }},
+  "갑옷": { lv:150, lvOver:{"아드라노스 방어구":200}, items:{
+    "아드라노스 방어구":{ main:[["오프라인 CpS",7]], sub:[["부스트 최대속도",0.2],["인게임 영혼",0.7],["거인 영혼",0.25]] },
+    "보레아스 방어구":{ main:[["오프라인 CpS",6]], sub:[["코인에서 CpS",3],["CpS 보너스",0.5],["자석 범위",1]] },
+    "키샤르 방어구":{ main:[["오프라인 CpS",5]], sub:[["소형 몬스터 출현(적)",0.5],["적에게서 코인",3],["코인에서 CpS",3]] }
+  }},
+  "헬멧": { lv:150, lvOver:{"아드라노스 투구":200}, items:{
+    "아드라노스 투구":{ main:[["오프라인 영혼",2]], sub:[["거인 출현",0.4],["코인 획득 보너스",2.1],["CpS",0.8],["랜덤 이벤트 확률",0.05]] },
+    "보레아스 투구":{ main:[["오프라인 영혼",1.8]], sub:[["거인 출현",0.4],["코인 획득 보너스",2.1],["CpS",0.6],["랜덤 이벤트 확률",0.05]] },
+    "키샤르 투구":{ main:[["오프라인 영혼",2.2]], sub:[["거인 출현",0.4],["코인 획득 보너스",2.5],["CpS",0.4],["랜덤 이벤트 확률",0.05]] }
+  }},
+  "신발": { lv:150, items:{
+    "아드라노스 신발":{ main:[["CpS",2.2],["불 영혼",4.5]], sub:[["코인당 부스트 쿨",-0.4],["오프라인 영혼",0.3],["코인 획득 보너스",7]] },
+    "보레아스 신발":{ main:[["CpS",1.7],["얼어붙은 들판 영혼",6.8]], sub:[["코인당 부스트 쿨",-0.32],["오프라인 영혼",0.38],["코인 획득 보너스",11.2]] },
+    "키샤르 신발":{ main:[["CpS",1.9],["전기 영혼",4.5]], sub:[["코인당 부스트 쿨",-0.25],["오프라인 영혼",0.55],["코인 획득 보너스",9]] }
+  }},
+  "반지": { lv:100, ringStep:true, items:{
+    "빅터의 반지":{ main:[["치명타 영혼 보너스",1]], sub:[["활 공격속도",1],["치명타",0.2],["임시 아이템 지속",2]] },
+    "윌 스컬 반지":{ main:[["영혼 보너스",0.8]], sub:[["어둠 영혼",3.1],["윈드 대시 영혼",0.2],["분노 모드 영혼(배)",0.1]] },
+    "소울 스톤 반지":{ main:[["치명타 영혼 보너스",1],["치명타 확률",0.1],["활 사용 시 영혼",0.2]], sub:[["활 공격속도",1],["치명타",0.4],["임시 아이템 지속",2],["보스 대상 활 데미지",0.4],["영혼 보너스",0.5]] }
+  }},
+  "단검": { lv:200, items:{
+    "아드라노스 단검":{ main:[["CpS + 영혼",0.45]], sub:[["영혼",0.8],["치명타 영혼",0.35],["불 영혼",2.2]] },
+    "보레아스 단검":{ main:[["CpS + 영혼",0.42]], sub:[["얼어붙은 들판 영혼",3.5],["치명타 영혼",0.4],["보너스 CpS",1.2]] },
+    "키샤르 단검":{ main:[["CpS + 영혼",0.39]], sub:[["거인 대상 활 데미지",2.8],["에메랄드",0.3],["치명타 영혼",0.45]] }
+  }},
+  "도끼": { lv:200, items:{
+    "아드라노스 도끼":{ main:[["거인 대상 검 데미지",3.6]], sub:[["보너스 CpS",0.4],["영혼",0.5],["불 영혼",0.6],["보너스 스테이지 보상",0.4]] },
+    "보레아스 도끼":{ main:[["거인 대상 검 데미지",3.4]], sub:[["CpS",0.5],["영혼",0.6],["얼음 영혼",0.6],["보너스 스테이지",0.4]] },
+    "키샤르 도끼":{ main:[["거인 대상 검 데미지",3.3]], sub:[["CpS",0.5],["영혼",0.5],["전기 영혼",0.2],["어둠 영혼",0.4],["보너스 스테이지",0.4]] }
+  }},
+  "지팡이": { lv:150, items:{
+    "아드라노스 지팡이":{ main:[["영혼",2.1],["영혼 (업적당)",0.015]], sub:[["오프라인 영혼",1.2],["윈드 대시 영혼",1.6],["불 영혼",1.6],["신비의 계곡 영혼",3]] },
+    "보레아스 지팡이":{ main:[["영혼",1.8],["영혼 (업적당)",0.015]], sub:[["오프라인 영혼",1.5],["윈드 대시 영혼",1.6],["얼음 영혼",1.6],["신비의 계곡 영혼",2.8]] },
+    "키샤르 지팡이":{ main:[["영혼",2],["영혼 (업적당)",0.015]], sub:[["오프라인 영혼",1.6],["윈드 대시 영혼",1.6],["전기 영혼",1.6],["신비의 계곡 영혼",2.5]] }
+  }},
+  "활": { lv:200, items:{
+    "아드라노스 활":{ main:[["거인 대상 활 데미지",20]], sub:[["활로 얻는 영혼",3],["거인 활 데미지",0.3]] },
+    "보레아스 활":{ main:[["거인 대상 활 데미지",20]], sub:[["활 영혼",2.4],["거인 활 데미지",0.5],["소형 적 활 데미지",0.2]] },
+    "키샤르 활":{ main:[["거인 대상 활 데미지",20]], sub:[["활 영혼",1.6],["거인 활 데미지",0.9]] }
+  }},
+  "책": { lv:50, items:{
+    "희생의 책":{ main:[["영혼 (마법서 레벨당)",0.004],["미니언 슬레이어 포인트",0.5]], sub:[["상자 사냥 영혼",0.2],["영혼 보너스",0.2],["오프라인 영혼",0.2]] },
+    "황금 죽음의 마법서":{ main:[["CpS (마법서 레벨당)",0.004],["적으로부터 얻는 코인",0.4]], sub:[["어둠 영혼",0.05],["오프라인 CpS",0.2],["CpS 보너스",0.2]] },
+    "보호의 책":{ main:[["CpS (마법서 레벨당)",0.002],["영혼 (마법서 레벨당)",0.002]], sub:[["영혼 보너스",0.15],["CpS 보너스",0.15],["얼음 영혼",0.12]] }
+  }}
+};
+
+const VERIFIED = {
+  "아드라노스 칼날":["영혼 보너스","전기 영혼","오프라인 CpS"],
+  "키샤르 대검":["코인 획득 CpS","체헌 영혼"],
+  "아드라노스 원형 방패":["영혼 보너스","자재 드롭","거인 영혼"],
+  "키샤르 방패":["치명타 영혼 보너스","거인 영혼","정령 부스트 확률"],
+  "보레아스 방패":["치명타 영혼 보너스","사파이어","불 영혼"],
+  "보레아스 방어구":["오프라인 CpS","자석 범위"],
+  "키샤르 방어구":["오프라인 CpS","소형 몬스터 출현(적)"],
+  "아드라노스 투구":["오프라인 영혼","코인 획득 보너스","랜덤 이벤트 확률"],
+  "보레아스 투구":["오프라인 영혼","코인 획득 보너스"],
+  "보레아스 신발":["CpS","얼어붙은 들판 영혼","코인당 부스트 쿨","코인 획득 보너스"],
+  "키샤르 신발":["CpS","전기 영혼","코인당 부스트 쿨","오프라인 영혼","코인 획득 보너스"],
+  "빅터의 반지":["치명타 영혼 보너스","활 공격속도","치명타","임시 아이템 지속"],
+  "소울 스톤 반지":["치명타 영혼 보너스","치명타 확률","활 사용 시 영혼","치명타","영혼 보너스"],
+  "윌 스컬 반지":["영혼 보너스","어둠 영혼","분노 모드 영혼(배)"],
+  "아드라노스 단검":["CpS + 영혼","영혼","치명타 영혼"],
+  "보레아스 단검":["CpS + 영혼","얼어붙은 들판 영혼"],
+  "키샤르 도끼":["거인 대상 검 데미지","전기 영혼","어둠 영혼","보너스 스테이지"],
+  "아드라노스 지팡이":["영혼","영혼 (업적당)"],
+  "보레아스 지팡이":["영혼","영혼 (업적당)","신비의 계곡 영혼"],
+  "키샤르 활":["거인 대상 활 데미지","활 영혼","거인 활 데미지"],
+  "희생의 책":["영혼 (마법서 레벨당)","미니언 슬레이어 포인트","상자 사냥 영혼"],
+  "황금 죽음의 마법서":["CpS (마법서 레벨당)","적으로부터 얻는 코인","어둠 영혼"]
+};
+const optOK = (it,nm) => (VERIFIED[it]||[]).includes(nm);
+function itemStat(cat,it){
+  const d = DATA[cat].items[it];
+  const all = [...d.main,...d.sub].map(x=>x[0]);
+  const ok = all.filter(n=>optOK(it,n));
+  return { n:ok.length, total:all.length, miss:all.filter(n=>!optOK(it,n)) };
+}
+
+const SKILLS = { "활":["평행 사격","관통 사격","전기 사격"], "책":["불꽃 요정"] };
+
+
+/* ---------- 공식 ---------- */
+const dpFor = n => 20*n + 60;
+const sbFor = n => (n>=7 ? 4 : 0);
+const dsFor = n => (n>=10 ? 4 : 0);
+const lvFor = (base,n,ring) => base + (ring?40:50)*n;
+const isAchOpt  = nm => /업적당/.test(nm);
+const optMul  = (nm,ach) => isAchOpt(nm) ? ach : 1;
+const optNote = (nm,ach) => isAchOpt(nm) ? `업적 ${ach}` : '';
+const lvlMul = n => n + 1;   // 0강 = 기준값 1배, +N = (N+1)배
+const matTxt = n => {
+  const p=[];
+  if(sbFor(n)) p.push(`<span class="mat-sb">SB ${sbFor(n)}</span>`);
+  if(dsFor(n)) p.push(`<span class="mat-ds">DS ${dsFor(n)}</span>`);
+  return p.length ? p.join(' + ') : '-';
+};
+
+function costRange(f,t){
+  let dp=0,sb=0,ds=0;
+  for(let n=f+1;n<=t;n++){ dp+=dpFor(n); sb+=sbFor(n); ds+=dsFor(n); }
+  return {dp,sb,ds};
+}
+function baseOpts(cat,item){
+  const it = DATA[cat].items[item];
+  return [
+    ...it.main.map(([n,v])=>({type:'m',name:n,base:v})),
+    ...it.sub .map(([n,v])=>({type:'v',name:n,base:v}))
+  ];
+}
+
+/* ---------- 상태 ---------- */
+const $ = id => document.getElementById(id);
+const catS = $('cat'), itemS = $('item');
+let curCat  = Object.keys(DATA)[0];
+let curItem = Object.keys(DATA[curCat].items)[0];
+let curOpts = [];
+let exc = false;
+
+const KEY = 'armory_calc_v2';
+let ST = { ach:621, from:0, to:13, exc:false, cat:null, item:null, ov:{}, on:{}, load:{}, sk:{}, cust:{} };
+let canSave = true;
+
+function loadST(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw) ST = Object.assign(ST, JSON.parse(raw));
+  }catch(e){ canSave = false; }
+  ST.ov = ST.ov||{}; ST.on = ST.on||{}; ST.load = ST.load||{}; ST.sk = ST.sk||{}; ST.cust = ST.cust||{};
+  ST.off = ST.off||null; ST.lg = ST.lg||null; ST.logs = ST.logs||null;
+  migrateDims();
+}
+/* 차원 이름 변경 이관 — 저장된 측정 기록의 옛 이름을 새 이름으로 (게임 노드 설명 표기 기준) */
+const DIM_RENAME = {"\uC2E0\uBE44\uD55C \uACC4\uACE1":"신비의 계곡"};   /* 신비한 계곡 → 신비의 계곡 */
+function migrateDims(){
+  const fix = d => DIM_RENAME[d] || d;
+  let changed = false;
+  if(ST.lg && ST.lg.dim && fix(ST.lg.dim)!==ST.lg.dim){ ST.lg.dim = fix(ST.lg.dim); changed = true; }
+  if(Array.isArray(ST.logs)) ST.logs.forEach(L=>{ if(L && L.dim && fix(L.dim)!==L.dim){ L.dim = fix(L.dim); changed = true; } });
+  if(changed){ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){} }
+}
+function saveST(){
+  if(!canSave) return;
+  try{
+    ST.ach  = parseInt($('ach').value)||0;
+    ST.from = parseInt($('from').value)||0;
+    ST.to   = parseInt($('to').value)||0;
+    ST.exc  = exc; ST.cat = curCat; ST.item = curItem;
+    if(hasSkill(curCat)) ST.sk[skKey()] = $('skill').value.trim();
+    localStorage.setItem(KEY, JSON.stringify(ST));
+    flash();
+  }catch(e){ canSave=false; markNoSave(); }
+}
+let fTmr=null;
+function flash(){
+  const el=$('saveInd'); if(!el) return;
+  el.textContent='저장됨'; el.style.color='var(--hit)';
+  clearTimeout(fTmr); fTmr=setTimeout(()=>{ el.textContent='자동 저장 켜짐'; el.style.color='var(--dim)'; },1200);
+}
+function markNoSave(){
+  const el=$('saveInd'); if(el){ el.textContent='이 환경에서는 저장 불가'; el.style.color='var(--warn)'; }
+}
+const ovKey = i => `${curCat}|${curItem}|${i}`;
+const skKey = () => `${curCat}|${curItem}`;
+const custList = () => (ST.cust[skKey()] = ST.cust[skKey()] || []);
+const hasSkill = c => (c==='활' || c==='책');
+
+/* ---------- 표시 ---------- */
+function num(x){
+  if(!isFinite(x)) return '-';
+  const s = Math.abs(x)>=100 ? x.toFixed(1) : (Math.abs(x)>=10 ? x.toFixed(2) : x.toFixed(3));
+  return s.replace(/\.?0+$/,'');
+}
+const pct = x => (x>=0?'+':'') + num(x) + '%';
+
+/* ---------- 선택 UI ---------- */
+function fillCat(){
+  catS.innerHTML = Object.keys(DATA).map(c=>
+    `<button type="button" class="chip${c===curCat?' on':''}" data-v="${c}">${c}</button>`).join('');
+  catS.querySelectorAll('.chip').forEach(b=>{
+    b.onclick = ()=>{ curCat=b.dataset.v; curItem=Object.keys(DATA[curCat].items)[0]; fillCat(); saveST(); };
+  });
+  fillItem();
+}
+function fillItem(){
+  const list = Object.keys(DATA[curCat].items);
+  if(!list.includes(curItem)) curItem = list[0];
+  itemS.innerHTML = list.map(i=>{
+    const st = itemStat(curCat,i);
+    const cls = st.n===0 ? 'n' : (st.n===st.total ? 'y' : 'p');
+    const txt = st.n===0 ? '? 미검증' : (st.n===st.total ? '&#10003; 검증' : `&#9680; ${st.n}/${st.total}`);
+    return `<button type="button" class="chip${i===curItem?' on':''}${cls==='y'?'':' unv'}" data-v="${i}">${i}<span class="vb ${cls}">${txt}</span></button>`;
+  }).join('');
+  itemS.querySelectorAll('.chip').forEach(b=>{
+    b.onclick = ()=>{ curItem=b.dataset.v; fillItem(); saveST(); };
+  });
+  loadOpts();
+}
+function loadOpts(){
+  curOpts = baseOpts(curCat,curItem);
+  curOpts.forEach((o,i)=>{
+    const k = ovKey(i);
+    if(ST.ov[k]!==undefined) o.base = ST.ov[k];
+    o.on = (o.type==='m') ? true : (ST.on[k]!==undefined ? !!ST.on[k] : false);
+  });
+  custList().forEach((c,ci)=>{
+    curOpts.push({type:'c', name:c.name||'', base:+c.base||0, on:c.on!==false, ci:ci});
+  });
+  const show = hasSkill(curCat);
+  $('skillBlk').style.display = show ? '' : 'none';
+  if(show){
+    $('skill').value = ST.sk[skKey()] || '';
+    $('skillPick').innerHTML = (SKILLS[curCat]||[]).map(k=>
+      `<button type="button" class="chip skp">${k}</button>`).join('') +
+      '<button type="button" class="chip skp" data-clear="1">없음</button>';
+    $('skillPick').querySelectorAll('.skp').forEach(b2=>{
+      b2.onclick = ()=>{ $('skill').value = b2.dataset.clear ? '' : b2.textContent; saveST(); renderLoadout(); };
+    });
+  }
+  const st = itemStat(curCat,curItem);
+  const badge = st.n===st.total
+    ? '<span class="vb y">&#10003; 전부 검증</span>'
+    : (st.n===0 ? '<span class="vb n">? 전부 미검증</span>'
+                : `<span class="vb p">&#9680; ${st.n}/${st.total} 검증</span>`);
+  $('vStat').innerHTML = badge +
+    (st.miss.length ? `<span class="vmiss">미확인 ${st.miss.join(' · ')}</span>` : '');
+  renderOpts();
+  calc();
+}
+function renderOpts(){
+  const tb = $('optTbl').querySelector('tbody');
+  tb.innerHTML = curOpts.map((o,i)=>`
+    <tr class="optrow${o.on?'':' off'}">
+      <td class="tdc">${o.type==='m' ? '<span class="obtn lock" title="메인 옵션은 항상 적용">&#10003;</span>' : `<button type="button" class="obtn ${o.on?'on':'off'}" data-c="${i}">${o.on?'&#10003;':'&#10005;'}</button>`}</td>
+      <td>${o.type==='c'
+        ? `<span class="tag c">추가</span><button type="button" class="delx" data-d="${o.ci}" title="삭제">&#10005;</button>`
+        : `<span class="tag ${o.type}">${o.type==='m'?'메인':'변동'}</span>`}</td>
+      <td class="l">${o.type==='c'
+        ? `<input type="text" class="nmin" data-n="${o.ci}" value="${(o.name||'').replace(/"/g,'&quot;')}" placeholder="옵션 이름">`
+        : `<span class="onm">${o.name} <span class="ov ${optOK(curItem,o.name)?'y':'n'}">${optOK(curItem,o.name)?'&#10003;':'?'}</span></span>`}</td>
+      <td><input type="number" step="0.001" data-i="${i}" value="${o.base}"></td>
+      <td class="cF hidesm"></td><td class="cT"></td><td class="cD"></td>
+    </tr>`).join('');
+  tb.querySelectorAll('input[data-i]').forEach(inp=>{
+    inp.oninput = e=>{
+      const i=+e.target.dataset.i, v=parseFloat(e.target.value)||0;
+      curOpts[i].base=v;
+      if(curOpts[i].type==='c') custList()[curOpts[i].ci].base=v;
+      else ST.ov[ovKey(i)]=v;
+      calc(); saveST();
+    };
+  });
+  tb.querySelectorAll('input[data-n]').forEach(inp=>{
+    inp.oninput = e=>{
+      const ci=+e.target.dataset.n, v=e.target.value;
+      custList()[ci].name=v;
+      const o=curOpts.find(x=>x.type==='c'&&x.ci===ci); if(o) o.name=v;
+      calc(); saveST();
+    };
+  });
+  tb.querySelectorAll('button[data-d]').forEach(bt=>{
+    bt.onclick = e=>{ custList().splice(+e.currentTarget.dataset.d,1); loadOpts(); saveST(); };
+  });
+  tb.querySelectorAll('button[data-c]').forEach(bt=>{
+    bt.onclick = e=>{
+      const el=e.currentTarget, i=+el.dataset.c;
+      const v = !curOpts[i].on;
+      curOpts[i].on = v;
+      if(curOpts[i].type==='c') custList()[curOpts[i].ci].on = v;
+      else ST.on[ovKey(i)] = v;
+      el.classList.toggle('on', v); el.classList.toggle('off', !v);
+      el.innerHTML = v ? '&#10003;' : '&#10005;';
+      el.closest('tr').classList.toggle('off', !v);
+      calc(); saveST();
+    };
+  });
+}
+
+/* ---------- 계산 ---------- */
+function calc(){
+  const cat = DATA[curCat], ring = !!cat.ringStep;
+  const lvBase = (cat.lvOver && cat.lvOver[curItem]) || cat.lv;
+  const mul = exc ? 1.25 : 1;
+  let f = Math.max(0, parseInt($('from').value)||0);
+  let t = Math.max(0, parseInt($('to').value)||0);
+  if(t<f) t=f;
+  const ach = Math.max(0, parseInt($('ach').value)||0);
+
+  $('rngTxt').textContent = `+${f} → +${t}`;
+  $('thFrom').textContent = `+${f}`;
+  $('thTo').textContent   = `+${t}`;
+
+  const c = costRange(f,t);
+  $('oDp').textContent  = c.dp.toLocaleString();
+  $('oSb').textContent  = c.sb ? c.sb+' 개' : '없음';
+  $('oDs').textContent  = c.ds ? c.ds+' 개' : '없음';
+  $('oLv').textContent  = 'Lv ' + lvFor(lvBase,t,ring).toLocaleString();
+  $('oCnt').textContent = (t-f) + ' 회';
+
+  const parts=[];
+  if(t>f){
+    if(f<6) parts.push(`+${f+1}~+${Math.min(t,6)} 구간은 DP만 소모`);
+    if(t>=7) parts.push(`+${Math.max(f+1,7)}~+${Math.min(t,9)} 구간은 스피릿부스트 4개씩`);
+    if(t>=10) parts.push(`+${Math.max(f+1,10)}~+${t} 구간은 스피릿부스트 4 + 드래곤스케일 4개씩`);
+  }
+  $('matNote').innerHTML = parts.join(' · ') +
+    (t>=14 ? '<br><span style="color:var(--warn)">+14 이상은 시무르그 깃털 등 추가 재료가 요구될 수 있습니다.</span>' : '');
+
+  // 옵션 표
+  const rows = $('optTbl').querySelectorAll('tbody tr');
+  curOpts.forEach((o,i)=>{
+    const r=rows[i]; if(!r) return;
+    const k = optMul(o.name,ach), per=o.base*mul;
+    const vf=per*lvlMul(f)*k, vt=per*lvlMul(t)*k, dv=vt-vf;
+    const nt = optNote(o.name,ach);
+    r.querySelector('.cF').textContent = pct(vf);
+    r.querySelector('.cT').innerHTML   = `<b>${pct(vt)}</b>`;
+    r.querySelector('.cD').innerHTML   = `<span class="${dv>=0?'gain':'del'}">${pct(dv)}</span>` +
+      (nt ? `<div style="font-size:13px;color:var(--dim)">${nt}</div>` : '');
+  });
+
+  // 능력치 변화
+  const usable = curOpts.filter(o=>o.on);
+  const ss = usable.map(o=>{
+    const k=optMul(o.name,ach), per=o.base*mul;
+    const vf=per*lvlMul(f)*k, vt=per*lvlMul(t)*k, dv=vt-vf;
+    const nt=optNote(o.name,ach);
+    return `<div class="sline ${o.type==='m'?'main':''}">
+      <span class="nm">${o.name}${nt?` <span style="font-size:13px;color:var(--dim)">(${nt})</span>`:''}</span>
+      <span class="fr">${pct(vf)}</span><span class="ar">&#9654;</span>
+      <span class="to">${pct(vt)}</span>
+      <span class="dl">(<span class="${dv>=0?'gain':'del'}">${pct(dv)}</span>)</span>
+    </div>`;
+  }).join('');
+  $('statSum').innerHTML = (t>f && usable.length)
+    ? `<div class="statwrap"><div class="h">능력치 변화 &nbsp;+${f} &#9654; +${t}${exc?' · 우수 ×1.25':''}</div>${ss}</div>`
+    : '';
+
+  // 단계 표
+  let acc=0, html='';
+  const mainOpts = curOpts.filter(o=>o.type==='m');
+  const subOpts  = curOpts.filter(o=>o.type!=='m' && o.on);
+  for(let n=0;n<=Math.max(t,13);n++){
+    if(n>0) acc += dpFor(n);
+    const inR = n>f && n<=t;
+    const fmtOpt = o=>`${o.name} ${pct(o.base*mul*lvlMul(n)*optMul(o.name,ach))}`;
+    const mainTxt = mainOpts.length ? mainOpts.map(fmtOpt).join(' / ') : '-';
+    const subTxt  = subOpts.length ? subOpts.map(fmtOpt).join(' / ') : '-';
+    html += `<tr style="${inR?'background:#dcedfb':(n<=f?'opacity:.45':'opacity:.7')}">
+      <td><b>+${n}</b></td>
+      <td>${n?dpFor(n):'-'}</td>
+      <td>${n?acc.toLocaleString():'-'}</td>
+      <td style="white-space:nowrap">${n?matTxt(n):'-'}</td>
+      <td>${lvFor(lvBase,n,ring).toLocaleString()}</td>
+      <td class="l mainc">${mainTxt}</td>
+      <td class="l mainc subc">${subTxt}</td>
+    </tr>`;
+  }
+  $('stepTbl').querySelector('tbody').innerHTML = html;
+
+  renderLoadout();
+}
+
+/* ---------- 내 장비 세팅 ---------- */
+function renderLoadout(){
+  const ach = Math.max(0, parseInt($('ach').value)||0);
+  const keys = Object.keys(DATA);
+  let dp=0, sb=0, ds=0, cnt=0;
+  const agg = {}; // name -> {f,t,type}
+
+  const cells = keys.map(cat=>{
+    const L = ST.load[cat];
+    if(!L || !DATA[cat].items[L.item]){
+      return `<div class="slot empty" data-cat="${cat}">
+        <div class="sc">${cat}</div><div style="font-size:13px">비어 있음</div></div>`;
+    }
+    cnt++;
+    const c = costRange(L.from, L.to);
+    dp+=c.dp; sb+=c.sb; ds+=c.ds;
+    const mul = L.exc?1.25:1;
+    (L.opts||[]).forEach(o=>{
+      if(!o.on) return;
+      const k = optMul(o.name,ach);
+      const a = agg[o.name] || (agg[o.name] = {f:0,t:0,type:o.type});
+      a.f += o.base*mul*lvlMul(L.from)*k;
+      a.t += o.base*mul*lvlMul(L.to)*k;
+      if(o.type==='m') a.type='m';
+    });
+    return `<div class="slot" data-cat="${cat}">
+      <div class="sc">${cat}${L.exc?' · 우수':''}</div>
+      <div class="si">${L.item}</div>
+      <div class="sv">+${L.from} → +${L.to}</div>
+      ${L.skill ? `<div class="sk">&#9733; ${L.skill}</div>` : ''}
+      <div class="sbtns">
+        <button type="button" data-act="load" data-cat="${cat}">불러오기</button>
+        <button type="button" data-act="del" data-cat="${cat}">빼기</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('slots').innerHTML = cells;
+  $('slots').querySelectorAll('button[data-act]').forEach(b=>{
+    b.onclick = ()=>{
+      const cat=b.dataset.cat;
+      if(b.dataset.act==='del'){ delete ST.load[cat]; saveST(); renderLoadout(); return; }
+      const L=ST.load[cat];
+      curCat=cat; curItem=L.item; exc=!!L.exc;
+      $('from').value=L.from; $('to').value=L.to;
+      if(L.skill!==undefined) ST.sk[`${cat}|${L.item}`] = L.skill;
+      (L.opts||[]).forEach((o,i)=>{ ST.ov[`${cat}|${L.item}|${i}`]=o.base; ST.on[`${cat}|${L.item}|${i}`]=o.on; });
+      paintGrade(); fillCat(); saveST();
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+  });
+
+  $('tDp').textContent  = dp.toLocaleString();
+  $('tSb').textContent  = sb ? sb+' 개' : '없음';
+  $('tDs').textContent  = ds ? ds+' 개' : '없음';
+  $('tCnt').textContent = cnt + ' / ' + keys.length;
+  $('loadCnt').textContent = cnt ? `${cnt}부위 등록됨` : '';
+
+  const names = Object.keys(agg).sort((a,b)=>
+    (agg[b].type==='m') - (agg[a].type==='m') || agg[b].t - agg[a].t);
+  if(!names.length){
+    $('totalStat').innerHTML = `<div class="empty-msg">위에서 장비를 설정한 뒤 <b>내 세팅에 등록</b>을 누르면 부위별로 저장되고, 여기에 전체 합산 능력치가 표시됩니다.</div>`;
+    return;
+  }
+  const lines = names.map(nm=>{
+    const a=agg[nm], dv=a.t-a.f;
+    return `<div class="sline ${a.type==='m'?'main':''}">
+      <span class="nm">${nm}</span>
+      <span class="fr">${pct(a.f)}</span><span class="ar">&#9654;</span>
+      <span class="to">${pct(a.t)}</span>
+      <span class="dl">(<span class="${dv>=0?'gain':'del'}">${pct(dv)}</span>)</span>
+    </div>`;
+  }).join('');
+  $('totalStat').innerHTML =
+    `<div class="statwrap"><div class="h">전체 합산 능력치 &nbsp;현재 &#9654; 목표</div>${lines}</div>`;
+}
+
+/* ---------- 입력칸: 탭하면 전체 선택 ---------- */
+function autoSelect(el){
+  const sel = ()=>{ try{ el.select(); el.setSelectionRange(0, el.value.length); }catch(e){} };
+  el.addEventListener('focus', ()=> setTimeout(sel,0));
+  el.addEventListener('click', ()=>{ if(el.selectionStart===el.selectionEnd) sel(); });
+}
+document.addEventListener('focusin', e=>{
+  const el=e.target;
+  if(el.tagName==='INPUT' && el.type==='number' && !el.dataset.asel){
+    el.dataset.asel='1'; autoSelect(el); setTimeout(()=>{ try{el.select();}catch(_){} },0);
+  }
+});
+
+function renderVerify(){
+  let okN=0, allN=0, html='';
+  for(const cat of Object.keys(DATA)){
+    for(const it of Object.keys(DATA[cat].items)){
+      const st = itemStat(cat,it);
+      okN += st.n; allN += st.total;
+      if(!st.miss.length) continue;
+      const cls = st.n===0 ? 'none' : 'part';
+      const lab = st.n===0 ? '전부 미확인' : `${st.n}/${st.total} 확인`;
+      html += `<div class="vrow ${cls}">
+        <span class="vcat">${cat}</span>
+        <span class="vitems"><b>${it}</b> <span class="vsub">${lab}</span><br>${st.miss.join(' · ')}</span>
+      </div>`;
+    }
+  }
+  $('vCnt').textContent = `옵션 ${okN} / ${allN} 검증`;
+  $('vList').innerHTML = html
+    ? `<div class="vhead">아직 실물로 확인하지 못한 옵션</div>${html}`
+    : '<div class="empty-msg">모든 옵션이 실측 검증되었습니다.</div>';
+}
+
+/* ---------- 이벤트 ---------- */
+['from','to','ach'].forEach(id => $(id).oninput = ()=>{ calc(); saveST(); });
+$('skill').oninput = ()=>{ saveST(); renderLoadout(); };
+$('addOpt').onclick = ()=>{
+  custList().push({name:'', base:1, on:true});
+  loadOpts(); saveST();
+  const ins = $('optTbl').querySelectorAll('input.nmin');
+  if(ins.length) ins[ins.length-1].focus();
+};
+
+const gradeEls = document.querySelectorAll('.chip.gr');
+function paintGrade(){ gradeEls.forEach(b=> b.classList.toggle('on', (b.dataset.v==='1')===exc)); }
+gradeEls.forEach(b=>{ b.onclick = ()=>{ exc = b.dataset.v==='1'; paintGrade(); calc(); saveST(); }; });
+
+$('regBtn').onclick = e=>{
+  ST.load[curCat] = {
+    item: curItem, exc: exc,
+    skill: hasSkill(curCat) ? $('skill').value.trim() : '',
+    from: Math.max(0,parseInt($('from').value)||0),
+    to:   Math.max(0,parseInt($('to').value)||0),
+    opts: curOpts.map(o=>({name:o.name, base:o.base, type:o.type, on:o.on}))
+  };
+  saveST(); renderLoadout();
+  const b=e.target, t0=b.textContent;
+  b.textContent='등록 완료'; setTimeout(()=>{ b.textContent=t0; },1100);
+};
+$('unregBtn').onclick = ()=>{ delete ST.load[curCat]; saveST(); renderLoadout(); };
+
+$('saveBtn').onclick = e=>{
+  saveST();
+  if(!canSave){ alert('이 브라우저에서는 저장이 막혀 있습니다.\n시크릿 모드이거나 사이트 데이터가 차단된 상태일 수 있습니다.'); return; }
+  const b=e.target, t0=b.textContent;
+  b.textContent='저장 완료'; b.classList.add('done');
+  setTimeout(()=>{ b.textContent=t0; b.classList.remove('done'); },1200);
+};
+let ioMode='';
+function ioOpen(mode){
+  ioMode=mode;
+  $('ioBox').style.display='';
+  if(mode==='exp'){
+    $('ioNote').innerHTML='아래 내용을 전부 복사해 메모장이나 카톡 내게쓰기에 보관하세요. 나중에 <b>가져오기</b>로 되돌릴 수 있습니다.';
+    $('ioText').value = JSON.stringify(ST);
+    $('ioGo').textContent='복사';
+    setTimeout(()=>{ $('ioText').focus(); $('ioText').select(); },0);
+  }else{
+    $('ioNote').innerHTML='보관해 둔 내용을 붙여넣고 <b>적용</b>을 누르세요. 지금 설정은 덮어써집니다.';
+    $('ioText').value=''; $('ioGo').textContent='적용';
+    setTimeout(()=>$('ioText').focus(),0);
+  }
+}
+$('expBtn').onclick = ()=>ioOpen('exp');
+$('impBtn').onclick = ()=>ioOpen('imp');
+$('ioClose').onclick = ()=>{ $('ioBox').style.display='none'; };
+$('ioGo').onclick = e=>{
+  if(ioMode==='exp'){
+    $('ioText').select();
+    try{
+      if(navigator.clipboard) navigator.clipboard.writeText($('ioText').value);
+      else document.execCommand('copy');
+      const b0=e.target; b0.textContent='복사됨'; setTimeout(()=>b0.textContent='복사',1200);
+    }catch(_){ alert('자동 복사가 막혀 있습니다. 내용을 길게 눌러 직접 복사하세요.'); }
+    return;
+  }
+  let o;
+  try{ o = JSON.parse($('ioText').value.trim()); }
+  catch(_){ alert('내용을 읽을 수 없습니다. 복사한 전체를 그대로 붙여넣었는지 확인해 주세요.'); return; }
+  if(!o || typeof o!=='object'){ alert('올바른 설정 내용이 아닙니다.'); return; }
+  ST = Object.assign({ach:621,from:0,to:13,exc:false,cat:null,item:null,ov:{},on:{},load:{},sk:{},cust:{}}, o);
+  try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(_){}
+  alert('불러왔습니다.');
+  location.reload();
+};
+
+$('clearAll').onclick = ()=>{
+  if(!confirm('등록한 세팅과 수정한 기준값을 처음 상태로 되돌릴까요?\n\n기록·분석 탭의 측정 기록은 그대로 둡니다.')) return;
+  let keep = null;
+  try{ const r = localStorage.getItem(KEY); if(r){ const o = JSON.parse(r); if(Array.isArray(o.logs) && o.logs.length) keep = o.logs; } }catch(e){}
+  try{
+    localStorage.removeItem(KEY);
+    if(keep) localStorage.setItem(KEY, JSON.stringify({logs:keep}));
+  }catch(e){}
+  location.reload();
+};
+
+/* ---------- 오류 표시 ---------- */
+function showErr(msg){ if(window.__armErr) window.__armErr(msg); }
+
+/* ---------- 시작 ---------- */
+try{
+loadST();
+if(!canSave) markNoSave();
+if(ST.cat && DATA[ST.cat]){
+  curCat = ST.cat;
+  if(ST.item && DATA[curCat].items[ST.item]) curItem = ST.item;
+}
+$('ach').value=ST.ach; $('from').value=ST.from; $('to').value=ST.to;
+exc = !!ST.exc;
+paintGrade();
+fillCat();
+renderVerify();
+}catch(err){ showErr((err && err.message) ? err.message : err); }
+try{
+/* ================= 몬스터 데이터 ================= */
+const DIMS = ["언덕","현대 도시","정글","얼어붙은 들판","유령 성","보너스 스테이지","신비의 계곡","공장","뜨거운 사막","펑키 스페이스","승천 고지"];
+
+/* {n 이름, en 키, d 지역[], t 유형, hp, ar 방어, el 속성, c 코인, s 소울, dr 드롭,
+    ev:[[이름, 키, hp, ar, el, c, s]]}  — 속성 ""는 일반 */
+const MON = [
+ {n:"말벌", en:"Wasp", d:["언덕","정글"], t:"비행", hp:1, ar:0, el:"", c:3, s:2, dr:"-",
+  ev:[["호넷","Hornet",1,0,"",4,3],["블랙 호넷","Black Hornet",1,0,"",7,6],["다크 호넷","Dark Hornet",1,1,"어둠",35,35]]},
+ {n:"웜", en:"Worm", d:["언덕","현대 도시","유령 성"], t:"지상", hp:1, ar:0, el:"", c:3, s:3, dr:"-",
+  ev:[["블라이트 웜","Blight Worm",1,0,"",4,4],["샌드 웜","Sand Worm",1,0,"",6,5],["마그마 웜","Magma Worm",1,0,"불",6,8],["볼티지 웜","Voltage Worm",1,0,"전기",10,12],["프로스트 웜","Frost Worm",5,0,"얼음",13,16]]},
+ {n:"젤리", en:"Jelly", d:["현대 도시","얼어붙은 들판","공장"], t:"지상", hp:1, ar:0, el:"", c:4, s:1, dr:"슬라임",
+  ev:[["레드 젤리","Red Jelly",1,0,"",7,2],["블루 젤리","Blue Jelly",1,0,"",30,8]]},
+ {n:"박쥐", en:"Bat", d:["현대 도시","유령 성"], t:"비행", hp:1, ar:0, el:"", c:2, s:1, dr:"박쥐 날개",
+  ev:[["불 박쥐","Fire Bat",1,0,"불",8,12],["얼음 박쥐","Ice Bat",1,0,"얼음",12,16]]},
+ {n:"버섯", en:"Mushroom", d:["정글","신비의 계곡"], t:"지상", hp:1, ar:0, el:"", c:6, s:3, dr:"-",
+  ev:[["독버섯","Poison Mushroom",1,0,"",10,5],["블루 밀크 버섯","Blue Milk Mushroom",2,0,"",46,16],["잉키 캡 버섯","Inky Cap Mushroom",40,0,"",122,65]]},
+ {n:"육식식물", en:"Carniplant", d:["정글"], t:"지상", hp:1, ar:0, el:"", c:5, s:4, dr:"뿌리",
+  ev:[["비너스 육식식물","Venus Carniplant",1,0,"",12,6],["다크 육식식물","Dark Carniplant",1,0,"어둠",20,27]]},
+ {n:"어린 예티", en:"Young Yeti", d:["얼어붙은 들판"], t:"지상", hp:1, ar:0, el:"", c:1, s:4, dr:"-",
+  ev:[["전기 예티","Electric Yeti",1,0,"전기",5,16]]},
+ {n:"얼음 망령", en:"Ice Wraith", d:["얼어붙은 들판"], t:"비행", hp:1, ar:0, el:"얼음", c:4, s:3, dr:"-",
+  ev:[["다크 망령","Dark Wraith",2,0,"어둠",20,30]]},
+ {n:"악마", en:"Demon", d:["유령 성"], t:"지상", hp:1, ar:0, el:"", c:15, s:7, dr:"-",
+  ev:[["블랙 데몬","Black Demon",1,0,"",15,16],["타락한 악마","Corrupted Demon",18,0,"어둠",42,78]]},
+ {n:"소울 고블린", en:"Soul Goblin", d:["보너스 스테이지"], t:"지상", hp:1, ar:0, el:"", c:3, s:8, dr:"고블린 천",
+  ev:[["소울 홉고블린","Soul Hobgoblin",1,0,"",8,15],["소울 고블린 족장","Soul Goblin Chief",1,0,"",10,30],["소울 고블린 장군","Soul Goblin General",1,0,"",45,60]]},
+ {n:"저주받은 나무", en:"Cursed Tree", d:["신비의 계곡"], t:"지상", hp:1, ar:0, el:"", c:2, s:6, dr:"목재",
+  ev:[["저주받은 참나무","Cursed Oak Tree",1,0,"",4,11],["저주받은 버드나무","Cursed Willow Tree",10,10,"",20,80]]},
+ {n:"들불", en:"Wildfire", d:["신비의 계곡"], t:"비행", hp:1, ar:0, el:"", c:1, s:7, dr:"-",
+  ev:[["블루 들불","Blue Wildfire",1,0,"",2,16],["미스틱 들불","Mystic Wildfire",1,0,"",20,70]]},
+ {n:"소울 배럴", en:"Soul Barrel", d:["공장"], t:"지상", hp:1, ar:0, el:"", c:0, s:19, dr:"-",
+  ev:[["골든 소울 배럴","Golden Soul Barrel",1,0,"",35,25],["라지 소울 배럴","Large Soul Barrel",30,0,"",35,75]]},
+ {n:"독성 가스", en:"Toxic Gas", d:["공장"], t:"비행", hp:1, ar:0, el:"", c:3, s:12, dr:"-",
+  ev:[["유독 가스","Poisonous Gas",2,0,"",10,28],["아이스 가스","Ice Gas",1,0,"얼음",15,42]]},
+ {n:"코브라", en:"Cobra", d:["뜨거운 사막"], t:"지상", hp:1, ar:0, el:"", c:10, s:15, dr:"-",
+  ev:[["황금 코브라","Golden Cobra",1,0,"",30,22]]},
+ {n:"전갈", en:"Scorpion", d:["뜨거운 사막"], t:"지상", hp:1, ar:0, el:"", c:5, s:12, dr:"집게",
+  ev:[["메탈 스콜피온","Metal Scorpion",5,5,"",34,45]]},
+ {n:"독수리", en:"Vulture", d:["뜨거운 사막"], t:"비행", hp:1, ar:0, el:"", c:8, s:9, dr:"-",
+  ev:[["고대 독수리","Elder Vulture",10,0,"",36,65]]},
+ {n:"펑클라우드", en:"Funkloud", d:["펑키 스페이스"], t:"지상", hp:1, ar:0, el:"", c:25, s:38, dr:"-",
+  ev:[["크리스탈 펑클라우드","Crystal Funkloud",30,0,"",40,80],["펑클라우드 스타","Funkloud Star",40,0,"",100,90]]},
+ {n:"스타 노트", en:"Star Note", d:["펑키 스페이스"], t:"비행", hp:1, ar:0, el:"", c:15, s:56, dr:"-",
+  ev:[["골든 스타 노트","Golden Star Note",14,0,"",42,78],["트윈 노트","Twin Note",20,0,"",76,112]]},
+ {n:"얼어붙은 코인", en:"Frozen Coins", d:["승천 고지"], t:"특수", hp:null, ar:0, el:"얼음", c:45, s:0, dr:"프로즌 샤드", ev:[]},
+ {n:"얼어붙은 소울", en:"Frozen Souls", d:["승천 고지"], t:"특수", hp:null, ar:0, el:"얼음", c:0, s:45, dr:"프로즌 샤드", ev:[]},
+ {n:"얼어붙은 영혼", en:"Frozen Spirit", d:["승천 고지"], t:"특수", hp:null, ar:0, el:"얼음", c:65, s:110, dr:"프로즌 샤드", ev:[]}
+];
+const GNT = [
+ {n:"언덕의 거인", en:"Hills' Giant", d:"언덕", hp:30, ar:0, el:"", c:30, s:50, dr:"티타늄",
+  ev:[["비취 언덕의 거인","Jade Hills' Giant",140,40,"",75,330]]},
+ {n:"웨어랫", en:"Wererat", d:"현대 도시", hp:110, ar:0, el:"", c:25, s:320, dr:"-", ev:[]},
+ {n:"자이언트 고릴라", en:"Giant Gorilla", d:"정글", hp:120, ar:50, el:"", c:80, s:230, dr:"-", ev:[]},
+ {n:"성체 예티", en:"Adult Yeti", d:"얼어붙은 들판", hp:25, ar:0, el:"", c:50, s:74, dr:"예티 송곳니",
+  ev:[["전기 성체 예티","Charged Adult Yeti",200,50,"전기",200,400]]},
+ {n:"아크데몬", en:"Archdemon", d:"유령 성", hp:70, ar:0, el:"", c:100, s:275, dr:"-",
+  ev:[["다크 아크데몬","Dark Archdemon",120,10,"",150,355]]},
+ {n:"고블린 킹", en:"Goblin King", d:"보너스 스테이지", hp:1, ar:0, el:"", c:15, s:85, dr:"고블린 천",
+  ev:[["고블린 황제","Goblin Emperor",1,1,"",26,120]]},
+ {n:"페어리 퀸", en:"Fairy Queen", d:"신비의 계곡", hp:80, ar:0, el:"", c:75, s:150, dr:"페어리 천",
+  ev:[["아이스 페어리 퀸","Ice Fairy Queen",450,0,"얼음",120,380]]},
+ {n:"소울 탱크", en:"Souls Tank", d:"공장", hp:200, ar:100, el:"", c:50, s:550, dr:"-",
+  ev:[["각성한 탱크","Awakened Tank",250,150,"",80,640]]},
+ {n:"아누비스 워리어", en:"Anubis Warrior", d:"뜨거운 사막", hp:90, ar:0, el:"", c:250, s:310, dr:"-",
+  ev:[["아누비스 가디언","Anubis Guardian",190,60,"",300,430]]},
+ {n:"펑키 스피커", en:"Funky Speaker", d:"펑키 스페이스", hp:130, ar:10, el:"", c:25, s:380, dr:"-",
+  ev:[["펑키 서브우퍼","Funky Subwoofer",180,20,"",38,480]]}
+];
+
+
+/* 진화 해금 정보 — [퀘스트/조건, 코인 비용]  "" = 자료 없음, "-" = 비용 없음 */
+const UNLOCK = {
+ "소울 탱크":["공장에 출현","25.6 Dv","obs"],
+ "호넷":["성난 말벌","1.20e24"], "블랙 호넷":["다크 허니",""], "다크 호넷":["호넷 의식","2.80e52"],
+ "블라이트 웜":["박쥐 사냥꾼","1.50e24"], "샌드 웜":["위험한 환형동물",""],
+ "마그마 웜":["핫 탑 볼케이노","7.50e37"], "볼티지 웜":["마을의 크리스티노와 대화",""], "프로스트 웜":["",""],
+ "레드 젤리":["저건 루비가 아니야!","7.50e34"], "블루 젤리":["진한 피","7.49e49"],
+ "불 박쥐":["다크 나이트","1.00e40"], "얼음 박쥐":["",""],
+ "독버섯":["머쉬룸 스매시",""], "블루 밀크 버섯":["머쉬룸 수확","7.50e50"], "잉키 캡 버섯":["",""],
+ "비너스 육식식물":["나쁜 잡초","7.00e28"], "다크 육식식물":["제작 퀘스트","2.00e57"],
+ "전기 예티":["마을 선술집의 에밀리와 대화","37.5 Vg","obs"],
+ "다크 망령":["다크 블리자드","1.50e63"],
+ "블랙 데몬":["데몬 소울","1.50e32"], "타락한 악마":["데몬 슬레이어","187 St","obs"],
+ "소울 홉고블린":["소울 캐리어","1.50e29"], "소울 고블린 족장":["고블린 에스컬레이션",""], "소울 고블린 장군":["",""],
+ "저주받은 참나무":["인챈티드 우드 제작","5.00e32"], "저주받은 버드나무":["오크 파밍","3.27e59"],
+ "블루 들불":["블루 스펙터","8.00e35"], "미스틱 들불":["",""],
+ "골든 소울 배럴":["진행도 달성","8.00e60"], "라지 소울 배럴":["케미컬 플랜트 존","5.00e65"],
+ "유독 가스":["페이스 마스크","5.00e50"], "아이스 가스":["",""],
+ "황금 코브라":["골든 아이돌","3.50e32"],
+ "메탈 스콜피온":["그린 스위치","1.96e61"],
+ "고대 독수리":["",""],
+ "크리스탈 펑클라우드":["더 크리스탈 샤드","2.40e59"], "펑클라우드 스타":["",""],
+ "골든 스타 노트":["",""], "트윈 노트":["",""],
+ "비취 언덕의 거인":["록 스매시","4.20e61"],
+ "전기 성체 예티":["잇츠 어바웃 패밀리","1.00e67"],
+ "다크 아크데몬":["","1.5 Uv","obs"], "고블린 황제":["",""], "아이스 페어리 퀸":["",""],
+ "각성한 탱크":["",""], "아누비스 가디언":["","187 Uv","obs"], "펑키 서브우퍼":["",""]
+};
+const UNITS = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc","Ud","Dd","Td",
+  "Qad","Qid","Sxd","Spd","Od","Nd","Vg","Uv","Dv","Tv","Qav","Qiv","Sxv","Spv","Ov","Nv","Tg"];
+function num2str(v){
+  let n = v >= 100 ? v.toFixed(0) : (v >= 10 ? v.toFixed(1) : v.toFixed(2));
+  if(n.indexOf('.')>=0) n = n.replace(/0+$/,'').replace(/\.$/,'');
+  return n;
+}
+function fmtCoin(str, mult){
+  mult = mult || 1;
+  const t = String(str).trim();
+  let e = /^([\d.]+)e(\d+)$/i.exec(t);
+  if(e){
+    const man = parseFloat(e[1]), exp = parseInt(e[2]);
+    let g = Math.floor(exp/3);
+    let v = man * Math.pow(10, exp - g*3) * mult;
+    while(v < 1 && g > 0){ v *= 1000; g--; }
+    while(v >= 1000 && UNITS[g+1]){ v /= 1000; g++; }
+    return num2str(v) + ' ' + (UNITS[g] || ('e'+exp));
+  }
+  let u = /^([\d.]+)\s*([A-Za-z]+)$/.exec(t);
+  if(u){
+    let v = parseFloat(u[1]) * mult, unit = u[2];
+    let g = UNITS.indexOf(unit);
+    if(g > 0){
+      while(v < 1 && g > 0){ v *= 1000; g--; }
+      while(v >= 1000 && UNITS[g+1]){ v /= 1000; g++; }
+      unit = UNITS[g];
+    }
+    return num2str(v) + ' ' + unit;
+  }
+  return t;
+}
+function costOf(nm){
+  const u = UNLOCK[nm];
+  if(!u || !u[1]) return '<span class="unk">미확인</span>';
+  // "obs" = 실측값(어둠의 염가+공포 포용 적용가). 기준 0.375 대비 현재 할인 비율로 환산
+  const mult = u[2]==='obs' ? discMult()/0.375 : discMult();
+  const txt = fmtCoin(u[1], mult);
+  return u[2]==='obs' ? `<span class="obsv">${txt}</span>` : txt;
+}
+function unlockLine(nm){
+  const u = UNLOCK[nm];
+  if(!u || (!u[0] && !u[1])) return '<span class="unk">해금 정보 미확인</span>';
+  const q = u[0] ? u[0] : '조건 미확인';
+  const c = u[1] ? '코인 '+fmtCoin(u[1]) : '비용 미확인';
+  return `${q} <span class="ucost">· ${c}</span>`;
+}
+
+/* ================= 몬스터 탭 ================= */
+let monDim='전체', monSort='s';
+function discMult(){
+  let m = 1;
+  document.querySelectorAll('#discPick .dc.on').forEach(b=> m *= parseFloat(b.dataset.v));
+  return m;
+}
+const monOpen = {};
+MON.forEach(m=>{ if(m.ev.length) monOpen[m.en]=true; });
+GNT.forEach(x=>{ if((x.ev||[]).length) monOpen['G:'+x.en]=true; });
+const EL_CLS = {"불":"fi","얼음":"ic","전기":"et","어둠":"dk","?":"qq"};
+const elTag = e => e ? `<span class="el ${EL_CLS[e]||''}">${e}</span>` : '<span class="mdim">-</span>';
+
+function renderElem(){
+  const buckets = {"불":[],"얼음":[],"전기":[],"어둠":[],"?":[]};
+  MON.forEach(m=>{
+    if(m.el && buckets[m.el]) buckets[m.el].push({n:m.n, s:m.s, base:true, from:m.n});
+    (m.ev||[]).forEach(e=>{ if(e[4] && buckets[e[4]]) buckets[e[4]].push({n:e[0], s:e[6], base:false, from:m.n}); });
+    (m.ev||[]).forEach(()=>{});
+  });
+  GNT.forEach(x=>{
+    if(x.el && buckets[x.el]) buckets[x.el].push({n:x.n, s:x.s});
+    (x.ev||[]).forEach(e=>{ if(e[4] && buckets[e[4]]) buckets[e[4]].push({n:e[0], s:e[6]}); });
+  });
+  const html = Object.keys(buckets).map(k=>{
+    const arr = buckets[k]; if(!arr.length) return '';
+    arr.sort((a,b)=>b.s-a.s);
+    return `<div class="elrow ${EL_CLS[k]}">
+      <span class="elk">${elTag(k)}</span>
+      <span class="elv">${arr.map(x=>`<span class="elitem">${x.n} <b>${x.s}</b></span>`).join('')}</span>
+    </div>`;
+  }).join('');
+  $('elList').innerHTML = html;
+}
+
+function renderDimPick(){
+  const used = ['전체', ...DIMS.filter(d=>MON.some(m=>m.d.includes(d)))];
+  $('dimPick').innerHTML = used.map(d=>
+    `<button type="button" class="chip dp${d===monDim?' on':''}" data-d="${d}">${d}</button>`).join('');
+  $('dimPick').querySelectorAll('.dp').forEach(b=>{
+    b.onclick = ()=>{ monDim=b.dataset.d; renderDimPick(); renderMon(); };
+  });
+}
+const lastEv  = o => (o.ev && o.ev.length) ? o.ev[o.ev.length-1] : null;
+const finalC  = o => { const e=lastEv(o); return e ? e[5] : o.c; };
+const finalS  = o => { const e=lastEv(o); return e ? e[6] : o.s; };
+const dimIdx  = o => { const d = Array.isArray(o.d) ? o.d[0] : o.d;
+                       const i = DIMS.findIndex(x=> d.indexOf(x)===0); return i<0?99:i; };
+function cmp(a,b){
+  if(monSort==='n') return a.n.localeCompare(b.n,'ko');
+  if(monSort==='d') return dimIdx(a)-dimIdx(b) || finalS(b)-finalS(a);
+  if(monSort==='c') return finalC(b)-finalC(a);
+  return finalS(b)-finalS(a);
+}
+function sortFn(a,b){
+  const sa = a.t==='특수' ? 1 : 0, sb = b.t==='특수' ? 1 : 0;
+  if(sa!==sb) return sa-sb;                    // 승천 고지 특수 적은 항상 맨 아래
+  return cmp(a,b);
+}
+function renderMon(){
+  const list = MON.filter(m=> monDim==='전체' || m.d.includes(monDim)).sort(sortFn);
+  const COLS = 7;
+  const cells = (o,cost) => `<td>${elTag(o.el)}</td><td>${o.hp==null?'-':o.hp}</td>`
+    + `<td class="${o.ar?'del':''}">${o.ar||'-'}</td>`
+    + `<td class="cnum">${o.c}</td><td class="snum">${o.s}</td>`
+    + `<td class="ccost">${cost||'-'}</td>`;
+
+  function block(m, key, meta, ty){
+    const multi = (m.ev||[]).length>0;
+    if(!multi){
+      return `<tr class="mrow">
+        <td class="l"><span class="mn">${m.n}</span>${ty}<span class="gmeta2">${meta}</span></td>
+        ${cells(m, UNLOCK[m.n] ? costOf(m.n) : '')}
+      </tr>`;
+    }
+    const op = !!monOpen[key];
+    let h = `<tr class="mrow grp has" data-k="${key}">
+      <td class="l gtd" colspan="${COLS}">
+        <span class="mn"><span class="tw">${op?'▾':'▸'}</span>${m.n}</span>${ty}
+        <span class="gmeta">${meta}</span>
+        <span class="gcnt">${op?'':`${m.ev.length+1}단계`}</span>
+      </td>
+    </tr>`;
+    if(op){
+      h += `<tr class="erow"><td class="l"><span class="estep">1</span>${m.n}</td>`
+         + cells(m, UNLOCK[m.n] ? costOf(m.n) : '') + `</tr>`;
+      m.ev.forEach((e,j)=>{
+        h += `<tr class="erow"><td class="l"><span class="estep">${j+2}</span>${e[0]}</td>`
+           + cells({el:e[4], hp:e[2], ar:e[3], c:e[5], s:e[6]}, costOf(e[0])) + `</tr>`;
+      });
+    }
+    return h;
+  }
+
+  const dm = discMult();
+  $('discInfo').textContent = dm===1 ? '정가 표시' : `정가 × ${dm} 적용`;
+  $('mCnt').textContent = `${list.length}종`;
+  let sepDone=false;
+  $('monTbl').querySelector('tbody').innerHTML = list.map(m=>{
+    let sep='';
+    if(m.t==='특수' && !sepDone){ sepDone=true;
+      sep = `<tr class="seprow"><td colspan="6">승천 고지 특수 적 — 진화 없음</td></tr>`; }
+    const ty = ` <span class="ty2 ${m.t==='비행'?'f':(m.t==='특수'?'x':'g')}">${m.t}</span>`;
+    const meta = `${m.d.join(' · ')} · 드롭 ${m.dr==='-'?'없음':m.dr}`;
+    return sep + block(m, m.en, meta, ty);
+  }).join('');
+
+  const g = GNT.filter(x=> monDim==='전체' || x.d.indexOf(monDim)===0).sort(cmp);
+  $('gCnt').textContent = `${g.length}종`;
+  $('gntTbl').querySelector('tbody').innerHTML = g.map(x=>
+    block(x, 'G:'+x.en, `${x.d} · 드롭 ${x.dr==='-'?'없음':x.dr}`, '')).join('');
+
+  document.querySelectorAll('#monTbl tr.has, #gntTbl tr.has').forEach(tr=>{
+    tr.onclick = ()=>{ monOpen[tr.dataset.k]=!monOpen[tr.dataset.k]; renderMon(); };
+  });
+
+  const rows = DIMS.filter(d=>MON.some(m=>m.d.includes(d))).map(d=>{
+    const ms = MON.filter(m=>m.d.includes(d));
+    const ac = ms.reduce((a,m)=>a+m.c,0)/ms.length;
+    const as = ms.reduce((a,m)=>a+m.s,0)/ms.length;
+    const top = ms.slice().sort((a,b)=>b.s-a.s)[0];
+    return {d, n:ms.length, ac, as, top};
+  }).sort((a,b)=> b.as-a.as);
+  $('dimTbl').querySelector('tbody').innerHTML = rows.map(r=>`
+    <tr${r.d===monDim?' style="background:#dcedfb"':''}>
+      <td class="l"><b>${r.d}</b></td><td>${r.n}</td>
+      <td class="cnum">${r.ac.toFixed(1)}</td><td class="snum">${r.as.toFixed(1)}</td>
+      <td class="l mdim">${r.top.n} <b class='snum'>${r.top.s}</b></td>
+    </tr>`).join('');
+}
+
+document.querySelectorAll('#discPick .dc').forEach(b=>{
+  b.onclick = ()=>{ b.classList.toggle('on'); renderMon(); };
+});
+document.querySelectorAll('.chip.sb').forEach(b=>{
+  b.onclick = ()=>{
+    monSort=b.dataset.s;
+    document.querySelectorAll('.chip.sb').forEach(x=>x.classList.toggle('on',x===b));
+    renderMon();
+  };
+});
+/* ================= 오프라인 수입 ================= */
+const NOOFF = ["승천 고지","보너스 스테이지"];   /* 미니게임·포털 스테이지 — 오프라인 진행 없음 */
+const OFFDIMS = DIMS.filter(d=> MON.some(m=>m.d.includes(d)) && NOOFF.indexOf(d)<0);
+const stagesOf = o => [{n:o.n, c:o.c, s:o.s, hp:o.hp||1, ar:o.ar||0}]
+  .concat((o.ev||[]).map(e=>({n:e[0], c:e[5], s:e[6], hp:e[2]||1, ar:e[3]||0})));
+function offEntries(d){
+  const a = MON.filter(m=>m.d.includes(d)).map(m=>({o:m, k:m.en, g:false}));
+  GNT.filter(x=>x.d===d).forEach(x=> a.push({o:x, k:'G:'+x.en, g:true}));
+  return a;
+}
+let OFF = Object.assign({sec:1, gpct:2.5, dmg:'', armor:true, cm:1, sm:1, gon:true, pick:{}}, (ST.off||{}));
+if(!(OFF.gpct>=0)) OFF.gpct = 2.5;
+if(OFF.armor===undefined) OFF.armor = true;
+if(typeof OFF.dmg !== 'string') OFF.dmg = '';
+OFF.pick = OFF.pick || {};
+const pickOf = k => (OFF.pick[k]===undefined ? 1 : OFF.pick[k]);
+function stageAt(o,p){ const s=stagesOf(o); return s[Math.min(p, s.length)-1]; }
+
+function big(v){
+  if(!isFinite(v)) return '-';
+  if(v<1000) return num2str(v);
+  let g=0; while(v>=1000 && g<UNITS.length-1){ v/=1000; g++; }
+  return num2str(v)+' '+UNITS[g];
+}
+function offDmg(){ const d = parseBig(OFF.dmg); return d>0 ? d : 0; }
+function hitsFor(st){
+  const d = offDmg(); if(!d) return 1;
+  const need = (st.hp||1) + (OFF.armor ? (st.ar||0) : 0);
+  return Math.max(1, Math.ceil(need/d));
+}
+function offCalc(d){
+  const ents   = offEntries(d);
+  const smalls = ents.filter(e=> !e.g && pickOf(e.k));
+  const gEnt   = ents.find(e=> e.g && pickOf(e.k));
+  const n = smalls.length;
+  const t = OFF.sec>0 ? OFF.sec : 1;
+  const spawn = 1/t;                                   /* 스폰(조우)/초 */
+  const p = (OFF.gon && gEnt) ? OFF.gpct/100 : 0;      /* 그중 거인 비율 */
+  let cps=0, sps=0, avgC=0, avgS=0, kills=0, maxH=1;
+  smalls.forEach(e=>{
+    const st = stageAt(e.o, pickOf(e.k));
+    const h  = hitsFor(st);
+    if(h>maxH) maxH = h;
+    const k  = n ? spawn*(1-p)/n/h : 0;                /* 이 적 처치/초 */
+    kills += k; cps += k*st.c; sps += k*st.s;
+    avgC += st.c/n; avgS += st.s/n;
+  });
+  let gk=0, gh=0, gst=null;
+  if(p && gEnt){
+    gst = stageAt(gEnt.o, pickOf(gEnt.k));
+    gh  = hitsFor(gst);
+    gk  = spawn*p/gh;
+    cps += gk*gst.c; sps += gk*gst.s;
+  }
+  return {n, gn:gEnt?1:0, avgC, avgS, kills, gk, gh, gst, maxH,
+          cps:cps*OFF.cm, sps:sps*OFF.sm};
+}
+const offOpen = {}; OFFDIMS.forEach(d=> offOpen[d]=true);
+
+function renderOff(){
+  /* 해금 상태 목록 */
+  let tot=0;
+  $('oList').innerHTML = OFFDIMS.map(d=>{
+    const ents = offEntries(d);
+    const r = offCalc(d);
+    tot += r.n + r.gn;
+    const op = !!offOpen[d];
+    let h = `<div class="odim"><div class="odh" data-d="${d}">
+      <span class="tw">${op?'▾':'▸'}</span>${d}
+      <span class="osum">${r.n}종${r.gn?'+거인':''} · 평균 <b class="cnum">${num2str(r.avgC)}</b>/<b class="snum">${num2str(r.avgS)}</b></span>
+    </div>`;
+    if(op) h += ents.map(e=>{
+      const st = stagesOf(e.o), p = pickOf(e.k);
+      const cur = p ? stageAt(e.o,p) : null;
+      const chips = `<button type="button" class="sc off${p===0?' on':''}" data-k="${e.k}" data-p="0">끔</button>`
+        + st.map((s,i)=>`<button type="button" class="sc${p===i+1?' on':''}" data-k="${e.k}" data-p="${i+1}">${i+1}</button>`).join('');
+      return `<div class="orow">
+        <span class="onm">${e.g?'<span class="ogt">거인</span>':''}${cur?cur.n:e.o.n}</span>
+        <span class="oval">${cur?`<b class="cnum">${cur.c}</b> · <b class="snum">${cur.s}</b>`:'<span class="mdim">제외</span>'}</span>
+        <span class="ost">${chips}</span>
+      </div>`;
+    }).join('');
+    return h + `</div>`;
+  }).join('');
+  $('oCnt').textContent = `${tot}종 켜짐`;
+  $('oList').querySelectorAll('.odh').forEach(h=>{
+    h.onclick = ()=>{ offOpen[h.dataset.d] = !offOpen[h.dataset.d]; renderOff(); };
+  });
+  $('oList').querySelectorAll('.sc').forEach(b=>{
+    b.onclick = ()=>{ OFF.pick[b.dataset.k] = parseInt(b.dataset.p); saveOff(); renderOff(); };
+  });
+
+  /* 차원별 표 */
+  const rows = OFFDIMS.map(d=> Object.assign({d}, offCalc(d)))
+    .sort((a,b)=> b.sps-a.sps);
+  const best = rows.length ? rows[0].sps : 0;
+  const skip = NOOFF.length ? `<tr class="seprow"><td colspan="7">${NOOFF.join(' · ')} — 들어가서 도는 스테이지라 오프라인 진행이 없어 제외</td></tr>` : '';
+  const dd = offDmg();
+  $('oRng').textContent = OFF.gon
+    ? `스폰 ${OFF.gpct}% · ` + (dd ? `데미지 ${big(dd)} · ${OFF.armor?'방어 포함':'HP만'}` : '전부 1타 가정')
+    : '소형 적만 (거인 제외)';
+  $('offTbl').querySelector('tbody').innerHTML = rows.map(r=>`
+    <tr${r.sps===best&&best>0?' style="background:#dff2e7"':''}>
+      <td class="l"><b>${r.d}</b></td>
+      <td>${r.n}${OFF.gon&&r.gn?'+G':''}</td>
+      <td class="snum">${r.gst?r.gst.s:'-'}</td>
+      <td class="${r.gh>1?'hitv':''}">${r.gh?r.gh+'타':'-'}</td>
+      <td class="cnum">${big(r.cps)}</td>
+      <td class="snum"><b>${big(r.sps)}</b></td>
+      <td class="snum">${big(r.sps*3600)}</td>
+    </tr>`).join('') + skip;
+}
+function saveOff(){
+  if(!canSave) return;
+  try{ ST.off = OFF; localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){ canSave=false; }
+}
+function readOffNums(){
+  const g = (id,d)=>{ const v=parseFloat($(id).value); return (isFinite(v)&&v>0)?v:d; };
+  OFF.sec = g('oSec',1);
+  const gp = parseFloat($('oGPct').value); OFF.gpct  = (isFinite(gp)&&gp>=0)?gp:2.5;
+  OFF.dmg = $('oDmg').value.trim();
+  const bc = parseBig($('oCm').value); OFF.cm = bc>0 ? bc : 1;
+  const bs = parseBig($('oSm').value); OFF.sm = bs>0 ? bs : 1;
+}
+['oSec','oGPct','oDmg','oCm','oSm'].forEach(id=>{
+  const _v = OFF[{oSec:'sec',oGPct:'gpct',oDmg:'dmg',oCm:'cm',oSm:'sm'}[id]];
+  $(id).value = (id==='oCm'||id==='oSm') ? big(_v) : _v;
+  $(id).addEventListener('input', ()=>{ readOffNums(); renderOff(); });
+  $(id).addEventListener('change', ()=>{ readOffNums(); saveOff(); renderOff(); });
+});
+$('oGOn').classList.toggle('on', !!OFF.gon);
+$('oGOn').textContent = OFF.gon ? '거인 포함' : '거인 제외';
+$('oGOn').onclick = ()=>{
+  OFF.gon = !OFF.gon;
+  $('oGOn').classList.toggle('on', OFF.gon);
+  $('oGOn').textContent = OFF.gon ? '거인 포함' : '거인 제외';
+  saveOff(); renderOff();
+};
+$('oSave').onclick = ()=>{
+  if(!canSave){ alert('이 브라우저에서는 저장이 막혀 있습니다.'); return; }
+  readOffNums(); saveOff(); renderOff();
+  const b=$('oSave'); b.classList.add('done'); b.textContent='저장됨';
+  setTimeout(()=>{ b.classList.remove('done'); b.textContent='저장'; },1200);
+};
+function setAll(fn){
+  OFFDIMS.forEach(d=> offEntries(d).forEach(e=>{ OFF.pick[e.k] = fn(e); }));
+  saveOff(); renderOff();
+}
+$('oAllMax').onclick  = ()=> setAll(e=> stagesOf(e.o).length);
+$('oAllBase').onclick = ()=> setAll(()=> 1);
+$('oAllOff').onclick  = ()=> setAll(()=> 0);
+function setNum(id,v){ $(id).value=v; readOffNums(); saveOff(); renderOff(); }
+$('oGp25').onclick  = ()=> setNum('oGPct','2.5');
+$('oGp35').onclick  = ()=> setNum('oGPct','3.5');
+$('oArm').classList.toggle('on', !!OFF.armor);
+$('oArm').textContent = OFF.armor ? '방어 포함' : 'HP만';
+$('oArm').onclick = ()=>{
+  OFF.armor = !OFF.armor;
+  $('oArm').classList.toggle('on', OFF.armor);
+  $('oArm').textContent = OFF.armor ? '방어 포함' : 'HP만';
+  saveOff(); renderOff();
+};
+
+/* ================= 오프라인 기록 · 분석 ================= */
+function parseBig(s){
+  if(s===null || s===undefined) return 0;
+  const t = String(s).trim().replace(/,/g,'');
+  if(!t) return 0;
+  let e = /^([\d.]+)[eE]\+?(\d+)$/.exec(t);
+  if(e) return parseFloat(e[1]) * Math.pow(10, parseInt(e[2]));
+  let m = /^([\d.]+)\s*([A-Za-z]*)$/.exec(t);
+  if(!m) return 0;
+  const v = parseFloat(m[1]); if(!isFinite(v)) return 0;
+  if(!m[2]) return v;
+  const i = UNITS.findIndex(x=> x && x.toLowerCase()===m[2].toLowerCase());
+  return i<0 ? v : v*Math.pow(1000,i);
+}
+let LG   = Object.assign({dim:OFFDIMS[0], dmg:'', sec:'1', kills:{}}, (ST.lg||{}));
+let LOGS = Array.isArray(ST.logs) ? ST.logs : [];
+if(OFFDIMS.indexOf(LG.dim)<0) LG.dim = OFFDIMS[0];
+LG.kills = LG.kills || {};
+function saveLog(){
+  if(!canSave) return;
+  try{ ST.lg = LG; ST.logs = LOGS; localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){ canSave=false; }
+}
+const stOf = (e,pk) => stageAt(e.o, Math.max(1, pk ? (pk[e.k]===undefined?1:pk[e.k]) : pickOf(e.k)));
+
+function analyzeLG(L){
+  L = L || LG;
+  const pk = L.stages || null;
+  const ents = offEntries(L.dim);
+  let small=0, giant=0, gRec=null;
+  const parts=[];
+  ents.forEach(e=>{
+    const n = parseFloat(L.kills[e.k]) || 0;
+    const st = stOf(e, pk);
+    if(e.g){ giant += n; gRec = {st, n}; }
+    else { small += n; parts.push({nm:st.n, n}); }
+  });
+  const gRat  = small ? giant/small : 0;
+  const spawn = OFF.gpct/100;
+  return {ents, small, giant, gRec, parts, gRat,
+          hits: gRat>0 ? spawn/gRat : 0,
+          dmg: parseBig(L.dmg), sec: parseFloat(L.sec)||0};
+}
+function renderLGAnal(){
+  const a = analyzeLG();
+  const box = $('lgAnal');
+  if(!a.small){
+    box.innerHTML = `<div class="mdim" style="padding:6px 2px">소형 적 처치 수를 넣으면 분석이 나옵니다.</div>`;
+    return;
+  }
+  let h = `<table class="lgt"><tbody>`;
+  const row = (k,v,note)=> h += `<tr><td class="l">${k}</td><td class="lv">${v}</td><td class="l mdim">${note||''}</td></tr>`;
+  row('소형 처치', `<b>${a.small.toLocaleString()}</b>`, a.sec?`${a.sec}초 간격이면 ${fmtDur(a.small*a.sec)}`:'');
+  if(a.gRec && a.giant){
+    const g = a.gRec.st;
+    row('거인 처치', `<b>${a.giant.toLocaleString()}</b>`, `${g.n} · HP ${g.hp}${g.ar?` · 방어 ${g.ar}`:''}`);
+    row('거인 비율', `<b>${(a.gRat*100).toFixed(3)}</b> %`, '소형 대비');
+    row('역산 타수', `<b class="hitv">${a.hits.toFixed(1)}</b> 타`, `스폰 ${OFF.gpct}% 기준 · 실측`);
+    if(a.dmg>0){
+      const A = (g.hp + (g.ar||0)) / a.dmg;
+      const B = g.hp / a.dmg;
+      const dA = Math.abs(A-a.hits), dB = Math.abs(B-a.hits);
+      const mk = (v,on)=> `<b${on?' class="okv"':''}>${v.toFixed(1)}</b> 타${on?' ✓':''}`;
+      row('(HP+방어)÷데미지', mk(A, dA<=dB), `${g.hp}+${g.ar||0} ÷ ${big(a.dmg)}`);
+      row('HP÷데미지',       mk(B, dB<dA),  `${g.hp} ÷ ${big(a.dmg)}`);
+      row('역산 유효 데미지', `<b>${big((g.hp+(g.ar||0))/a.hits)}</b>`, `${a.hits.toFixed(1)}타가 나오려면`);
+    }
+  } else if(a.gRec){
+    row('거인 처치', `<b>0</b>`, `${a.gRec.st.n} — 한 마리도 못 잡음`);
+  }
+  if(a.sec>0) row('처치 속도', `<b>${big(1/a.sec)}</b> 마리/초`, a.hits?`거인 ${big(3600/a.sec*(OFF.gpct/100)/a.hits)}마리/시간`:'');
+  h += `</tbody></table>`;
+
+  if(a.parts.length>1){
+    const mx = Math.max(...a.parts.map(p=>p.n)) || 1;
+    const even = a.parts.every(p=> a.small && Math.abs(p.n/a.small - 1/a.parts.length) < 0.02);
+    h += `<div class="lgbars">` + a.parts.map(p=>`
+      <div class="lgb"><span class="lgbn">${p.nm}</span>
+        <span class="lgbw"><i style="width:${(p.n/mx*100).toFixed(1)}%"></i></span>
+        <span class="lgbv">${p.n.toLocaleString()}<em>${a.small?(p.n/a.small*100).toFixed(1):0}%</em></span>
+      </div>`).join('')
+      + `<div class="lgnote ${even?'ok':'no'}">${even
+          ? '소형 적이 고르게 나왔습니다 — 오프라인 탭의 평균 계산이 맞습니다.'
+          : '소형 적 출현이 고르지 않습니다 — 오프라인 탭 평균과 어긋날 수 있습니다.'}</div>`
+      + `</div>`;
+  }
+  h += `<div class="grid2" style="margin-top:9px">
+    <button type="button" class="btn reg" id="lgApply">오프라인 탭에 적용</button>
+    <button type="button" class="btn" id="lgAdd2">기록 저장</button>
+  </div>`;
+  box.innerHTML = h;
+
+  $('lgApply').onclick = ()=>{
+    if(a.sec>0) $('oSec').value = a.sec;
+    if(a.gRec && a.hits){
+      const g = a.gRec.st;
+      $('oDmg').value = big((g.hp + (OFF.armor ? (g.ar||0) : 0)) / a.hits);
+    }
+    readOffNums(); saveOff(); renderOff();
+    const b=$('lgApply'); b.classList.add('done'); b.textContent='적용됨';
+    setTimeout(()=>{ b.classList.remove('done'); b.textContent='오프라인 탭에 적용'; },1400);
+  };
+  $('lgAdd2').onclick = ()=> addLog();
+}
+function fmtDur(sec){
+  if(sec<3600) return `${(sec/60).toFixed(0)}분`;
+  const hh = sec/3600;
+  return hh<24 ? `${hh.toFixed(1)}시간` : `${(hh/24).toFixed(1)}일`;
+}
+function renderLGKills(){
+  const ents = offEntries(LG.dim);
+  $('lgKills').innerHTML = ents.map(e=>{
+    const st = stagesOf(e.o), p = Math.max(1, pickOf(e.k));
+    const chips = st.map((x,i)=>`<button type="button" class="sc${p===i+1?' on':''}" data-sk="${e.k}" data-p="${i+1}">${i+1}</button>`).join('');
+    return `<div class="lrow">
+      <span class="onm">${e.g?'<span class="ogt">거인</span>':''}${st[p-1].n}</span>
+      <span class="ost">${chips}</span>
+      <input type="text" inputmode="numeric" class="lki" data-k="${e.k}" value="${LG.kills[e.k]||''}" placeholder="0">
+    </div>`;
+  }).join('');
+  $('lgKills').querySelectorAll('.lki').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      LG.kills[inp.dataset.k] = inp.value.replace(/[^\d.]/g,'');
+      renderLGAnal(); updLgTot();
+    });
+    inp.addEventListener('change', saveLog);
+  });
+  $('lgKills').querySelectorAll('.sc').forEach(b=>{
+    b.onclick = ()=>{ OFF.pick[b.dataset.sk] = parseInt(b.dataset.p);
+      saveOff(); renderOff(); renderLGKills(); renderLGAnal(); };
+  });
+  updLgTot();
+}
+function updLgTot(){
+  const a = analyzeLG();
+  $('lgTot').textContent = (a.small||a.giant) ? `소형 ${a.small.toLocaleString()} · 거인 ${a.giant.toLocaleString()}` : '';
+}
+function renderLGDim(){
+  $('lgDim').innerHTML = OFFDIMS.map(d=>
+    `<button type="button" class="chip ld${d===LG.dim?' on':''}" data-d="${d}">${d}</button>`).join('');
+  $('lgDim').querySelectorAll('.ld').forEach(b=>{
+    b.onclick = ()=>{ LG.dim=b.dataset.d; LG.kills={}; saveLog(); renderLGDim(); renderLGKills(); renderLGAnal(); };
+  });
+}
+function addLog(){
+  const a = analyzeLG();
+  if(!a.small){ alert('처치 수를 먼저 넣으세요.'); return; }
+  const stages = {};
+  offEntries(LG.dim).forEach(e=> stages[e.k] = Math.max(1, pickOf(e.k)));
+  LOGS.unshift({ dim:LG.dim, dmg:LG.dmg, sec:LG.sec, kills:Object.assign({},LG.kills), stages,
+                 ts: new Date().toISOString().slice(0,16).replace('T',' ') });
+  if(LOGS.length>50) LOGS.length=50;
+  saveLog(); renderLGList();
+}
+function renderLGList(){
+  $('lgCnt').textContent = LOGS.length ? `${LOGS.length}건` : '';
+  if(!LOGS.length){ $('lgList').innerHTML = `<div class="mdim" style="padding:6px 2px">아직 기록이 없습니다.</div>`; return; }
+  $('lgList').innerHTML = LOGS.map((L,i)=>{
+    const a = analyzeLG(L);
+    return `<div class="lgrow" data-i="${i}">
+      <span class="lgd"><b>${L.dim}</b><em>${L.ts||''}</em></span>
+      <span class="lgm">${a.gRec?a.gRec.st.n:''}${L.dmg?` · 뎀 ${L.dmg}`:''} · 소형 ${a.small.toLocaleString()}${a.giant?` · 거인 ${a.giant.toLocaleString()}`:''}</span>
+      <span class="lgm2">${a.hits?a.hits.toFixed(1)+'타':''}</span>
+      <button type="button" class="lgx" data-x="${i}">×</button>
+    </div>`;
+  }).join('');
+  $('lgList').querySelectorAll('.lgrow').forEach(r=>{
+    r.onclick = (ev)=>{
+      if(ev.target.classList.contains('lgx')) return;
+      const L = LOGS[parseInt(r.dataset.i)];
+      LG = {dim:L.dim, dmg:L.dmg||'', sec:L.sec||'1', kills:Object.assign({},L.kills)};
+      if(L.stages) Object.keys(L.stages).forEach(k=> OFF.pick[k]=L.stages[k]);
+      $('lgD').value=LG.dmg; $('lgSec').value=LG.sec;
+      saveLog(); saveOff(); renderOff(); renderLGDim(); renderLGKills(); renderLGAnal();
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+  });
+  $('lgList').querySelectorAll('.lgx').forEach(b=>{
+    b.onclick = (ev)=>{ ev.stopPropagation(); LOGS.splice(parseInt(b.dataset.x),1); saveLog(); renderLGList(); };
+  });
+}
+['lgD','lgSec'].forEach(id=>{
+  const f = {lgD:'dmg', lgSec:'sec'}[id];
+  $(id).value = LG[f]||'';
+  $(id).addEventListener('input', ()=>{ LG[f]=$(id).value; renderLGAnal(); });
+  $(id).addEventListener('change', saveLog);
+});
+$('lgAdd').onclick  = ()=> addLog();
+$('lgWipe').onclick = ()=>{ LG.kills={}; saveLog(); renderLGKills(); renderLGAnal(); };
+renderLGDim(); renderLGKills(); renderLGAnal(); renderLGList();
+document.querySelectorAll('.chip.tb').forEach(b=>{
+  b.onclick = ()=>{
+    const t=b.dataset.t;
+    document.querySelectorAll('.chip.tb').forEach(x=>x.classList.toggle('on',x===b));
+    $('tab-calc').style.display = t==='calc' ? '' : 'none';
+    $('tab-mon').style.display  = t==='mon'  ? '' : 'none';
+    $('tab-off').style.display  = t==='off'  ? '' : 'none';
+    $('tab-log').style.display  = t==='log'  ? '' : 'none';
+    window.scrollTo({top:0});
+  };
+});
+renderDimPick();
+renderMon();
+renderElem();
+renderOff();
+
+}catch(err){ showErr('몬스터 탭: ' + ((err && err.message) ? err.message : err)); }
+</script>
+</body>
+</html>

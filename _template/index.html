@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>새 도구</title>
+<!-- 이 세 줄은 모든 도구 페이지에 그대로 둘 것 (앱 설치·오프라인·홈 버튼) -->
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icons/favicon.png">
+<script src="../hub.js" defer></script>
+<style>
+:root{ --bg:#f6f4ee; --card:#fff; --ink:#1b2320; --muted:#66706b; --line:#e2dfd6; --brand:#1f3b33; }
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#141a18; --card:#1d2522; --ink:#e8ede9; --muted:#96a39c; --line:#2c3632; --brand:#7fc4ae; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  padding:calc(16px + env(safe-area-inset-top,0px)) 16px 24px}
+.wrap{max-width:560px; margin:0 auto}
+h1{font-size:20px; margin:4px 0 14px}
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px}
+input,button{font:inherit}
+input{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--ink)}
+button{border:0; border-radius:10px; padding:10px 14px; background:var(--brand); color:var(--bg); font-weight:700; cursor:pointer}
+.row{display:flex; gap:8px; margin-top:10px}
+.muted{color:var(--muted); font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>새 도구</h1>
+  <div class="card">
+    <p class="muted">여기에 도구 내용을 만드세요. 아래는 저장 예시입니다.</p>
+    <input id="memo" placeholder="메모">
+    <div class="row"><button id="saveBtn">저장</button><span class="muted" id="msg"></span></div>
+  </div>
+</div>
+<script>
+/* 저장 키는 도구마다 다르게 (다른 도구와 안 겹치게 폴더 이름을 앞에 붙이기) */
+const KEY = 'template:v1';
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+const save = d => { try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch { return false; } };
+
+const st = load();
+document.getElementById('memo').value = st.memo || '';
+document.getElementById('saveBtn').onclick = () => {
+  st.memo = document.getElementById('memo').value;
+  document.getElementById('msg').textContent = save(st) ? '저장됨' : '저장 실패';
+};
+</script>
+</body>
+</html>

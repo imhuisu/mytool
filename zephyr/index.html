@@ -1,0 +1,886 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><link rel="manifest" href="../manifest.webmanifest"><link rel="icon" type="image/png" href="../icons/favicon.png"><link rel="apple-touch-icon" href="../icons/apple-touch-icon.png"><meta name="theme-color" content="#1f3b33"><script src="../hub.js" defer></script><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>서풍의 광시곡 아이템 지도</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#E6E8EB; --surface:#FBFBFC; --surface-2:#F0F1F3;
+    --ink:#191D24; --muted:#5A636F; --faint:#8B95A2;
+    --line:#CDD2D9; --line-soft:#DEE2E7;
+    --accent:#2F5470; --accent-soft:#E2EAF1;
+    --wine:#8A2F3B; --wine-soft:#F3E4E6;
+    --gold:#7A5B1E; --gold-soft:#F2E9D6;
+    --green:#2E5E44; --green-soft:#E0EDE5;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#111418; --surface:#1A1E24; --surface-2:#22272E;
+      --ink:#E3E7EC; --muted:#9BA5B1; --faint:#6F7A87;
+      --line:#2F353D; --line-soft:#262C33;
+      --accent:#8FB4D0; --accent-soft:#1D2A35;
+      --wine:#D88893; --wine-soft:#2E1F23;
+      --gold:#C9A85C; --gold-soft:#2B2519;
+      --green:#7FBF9B; --green-soft:#1A2620;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#111418; --surface:#1A1E24; --surface-2:#22272E;
+    --ink:#E3E7EC; --muted:#9BA5B1; --faint:#6F7A87;
+    --line:#2F353D; --line-soft:#262C33;
+    --accent:#8FB4D0; --accent-soft:#1D2A35;
+    --wine:#D88893; --wine-soft:#2E1F23;
+    --gold:#C9A85C; --gold-soft:#2B2519;
+    --green:#7FBF9B; --green-soft:#1A2620;
+    color-scheme: dark;
+  }
+
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans KR", system-ui, -apple-system, sans-serif;
+    font-size:15px; line-height:1.7; margin:0;
+    -webkit-font-smoothing:antialiased; word-break:keep-all;
+  }
+  *{ box-sizing:border-box; }
+  .wrap{ max-width:860px; margin:0 auto; padding-inline:18px; padding-block:0; }
+
+  .topbar{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:50;
+    background:color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+  }
+  .topbar-in{
+    max-width:860px; margin:0 auto; padding-inline:18px;
+    display:flex; align-items:center; gap:14px; min-height:50px; flex-wrap:wrap;
+  }
+  .brand{ font-family:"Gowun Batang",serif; font-weight:700; font-size:15px; white-space:nowrap; }
+  .brand span{ color:var(--faint); font-weight:400; }
+  .navlinks{ display:flex; gap:14px; margin-left:auto; flex-wrap:wrap; }
+  .navlinks a{
+    font-size:12.5px; color:var(--muted); text-decoration:none; white-space:nowrap;
+    border-bottom:1px solid transparent; padding-bottom:1px;
+  }
+  .navlinks a:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+  a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  .hero{ padding-block:40px 24px; border-bottom:1px solid var(--line); }
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 13px;
+  }
+  h1{
+    font-family:"Gowun Batang",serif; font-weight:700;
+    font-size:clamp(28px,6.5vw,40px); line-height:1.24; margin:0 0 14px; text-wrap:balance;
+  }
+  .lede{ color:var(--muted); font-size:14.5px; margin:0; max-width:58ch; }
+
+  section{ padding-block:38px 4px; }
+  section + section{ border-top:1px solid var(--line); }
+  .sec-head{ margin-bottom:20px; }
+  .sec-no{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600;
+    letter-spacing:.14em; color:var(--faint); display:block; margin-bottom:6px;
+  }
+  .sec-head h2{
+    font-family:"Gowun Batang",serif; font-weight:700;
+    font-size:clamp(20px,4.2vw,26px); margin:0 0 8px; line-height:1.3; text-wrap:balance;
+  }
+  .sec-head p{ margin:0; color:var(--muted); font-size:13.5px; max-width:56ch; }
+
+  /* ---- missable cards ---- */
+  .miss-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; }
+  .miss-card{
+    border:1px solid var(--wine); border-radius:10px; padding:14px;
+    background:var(--wine-soft);
+  }
+  .miss-card h3{ margin:0 0 3px; font-size:14.5px; font-family:"Gowun Batang",serif; font-weight:700; color:var(--wine); }
+  .miss-card .loc{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.05em;
+    color:var(--muted); display:block; margin-bottom:7px;
+  }
+  .miss-card p{ margin:0; font-size:13px; color:var(--muted); line-height:1.6; }
+  .miss-card p b{ color:var(--ink); }
+
+  /* ---- checklist ---- */
+  .progress{
+    display:flex; align-items:center; gap:12px; margin-bottom:16px;
+    padding:11px 14px; background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  }
+  .pbar{ flex:1; height:6px; border-radius:999px; background:var(--surface-2); overflow:hidden; }
+  .pbar i{ display:block; height:100%; width:0%; background:var(--accent); transition:width .25s ease; }
+  .pnum{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+    color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  .cl{ display:grid; gap:10px; }
+  .clreg{ border:1px solid var(--line); border-radius:10px; background:var(--surface); padding:14px 15px; }
+  .clreg.now{ border-color:var(--accent); border-width:2px; padding:13px 14px; }
+  .clreg h3{
+    margin:0 0 10px; font-size:14.5px; font-family:"Gowun Batang",serif; font-weight:700;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .nowtag{
+    font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:600; letter-spacing:.08em;
+    background:var(--accent); color:var(--surface); padding:2px 7px; border-radius:999px;
+  }
+  .clreg label{
+    display:flex; gap:10px; align-items:flex-start; cursor:pointer;
+    padding:5px 0; font-size:13.5px; color:var(--muted); line-height:1.6;
+  }
+  .clreg label:hover span{ color:var(--ink); }
+  .clreg input[type=checkbox]{
+    margin:5px 0 0; flex:none; width:15px; height:15px; accent-color:var(--accent); cursor:pointer;
+  }
+  .clreg label b{ color:var(--ink); font-weight:700; }
+  .clreg input:checked + span{ color:var(--faint); text-decoration:line-through; }
+  .clreg input:checked + span b{ color:var(--faint); font-weight:400; }
+  .clreg span.dim{ font-style:italic; }
+  .mk{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600;
+    padding:1px 5px; border-radius:3px; margin-left:3px; white-space:nowrap;
+  }
+  .mk.r{ background:var(--wine-soft); color:var(--wine); }
+  .mk.g{ background:var(--green-soft); color:var(--green); }
+  .clreg input:checked + span .mk{ opacity:.4; }
+
+  /* ---- item table ---- */
+  .controls{ display:flex; gap:7px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .chip{
+    font-family:inherit; font-size:12px; font-weight:500; cursor:pointer;
+    padding:5px 11px; border-radius:999px; line-height:1.4;
+    border:1px solid var(--line); background:var(--surface); color:var(--muted);
+    transition:all .14s;
+  }
+  .chip:hover{ border-color:var(--accent); color:var(--accent); }
+  .chip[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:var(--surface); }
+  #q{
+    font-family:inherit; font-size:12.5px; padding:6px 11px; border-radius:999px;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    min-width:130px; flex:1; max-width:210px;
+  }
+  #q::placeholder{ color:var(--faint); }
+
+  .tscroll{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+  table{ width:100%; border-collapse:collapse; font-size:13px; min-width:620px; }
+  thead th{
+    position:sticky; top:0; background:var(--surface-2); z-index:1;
+    font-size:10.5px; letter-spacing:.07em; color:var(--faint); font-weight:600;
+    text-transform:uppercase; text-align:left; padding:9px 11px;
+    border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  tbody td{ padding:9px 11px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr.hit{ background:var(--accent-soft); }
+  .iname{ font-weight:700; color:var(--ink); white-space:nowrap; }
+  .iname .star{ color:var(--wine); margin-left:3px; }
+  td.loc{ color:var(--muted); min-width:150px; }
+  td.note{ color:var(--muted); font-size:12.5px; }
+  .act-badge{
+    font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600;
+    padding:2px 6px; border-radius:4px; white-space:nowrap;
+    background:var(--surface-2); color:var(--faint); border:1px solid var(--line-soft);
+  }
+  .act-badge.a1{ background:var(--accent-soft); color:var(--accent); border-color:transparent; }
+  .act-badge.a2{ background:var(--green-soft); color:var(--green); border-color:transparent; }
+  .act-badge.a3{ background:var(--gold-soft); color:var(--gold); border-color:transparent; }
+  .act-badge.a4{ background:var(--wine-soft); color:var(--wine); border-color:transparent; }
+  .empty{ padding:24px; text-align:center; color:var(--faint); font-size:13px; }
+  .count{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--faint); margin-left:auto; white-space:nowrap; }
+
+  /* ---- route diagrams ---- */
+  .route{
+    border:1px solid var(--line); border-radius:10px; background:var(--surface);
+    padding:16px; margin-bottom:12px;
+  }
+  .route h3{
+    margin:0 0 3px; font-size:15px; font-family:"Gowun Batang",serif; font-weight:700;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .route .sub{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.05em;
+    color:var(--faint); display:block; margin-bottom:11px;
+  }
+  .route p{ margin:0 0 9px; font-size:13.5px; color:var(--muted); }
+  .route p:last-child{ margin-bottom:0; }
+  .route b{ color:var(--ink); }
+  .flow{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:11px 0; }
+  .node{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600;
+    padding:5px 10px; border-radius:6px; white-space:nowrap;
+    background:var(--accent-soft); color:var(--accent);
+  }
+  .node.end{ background:var(--green-soft); color:var(--green); }
+  .node.bad{ background:var(--wine-soft); color:var(--wine); text-decoration:line-through; }
+  .arrow{ color:var(--faint); font-size:12px; }
+  .warnbox{
+    margin-top:11px; padding:10px 13px; border-radius:8px; font-size:12.5px;
+    background:var(--gold-soft); color:var(--muted); line-height:1.6;
+  }
+  .warnbox b{ color:var(--gold); }
+  ul.pts{ margin:8px 0 0; padding-left:0; list-style:none; }
+  ul.pts li{ font-size:13px; color:var(--muted); padding-left:15px; position:relative; margin-bottom:5px; }
+  ul.pts li::before{ content:""; position:absolute; left:2px; top:9px; width:4px; height:4px; border-radius:50%; background:var(--faint); }
+  ul.pts li b{ color:var(--ink); }
+
+  svg.dia{ display:block; width:100%; max-width:100%; height:auto; margin:6px 0 4px; }
+
+  /* ---- panels ---- */
+  details.panel{
+    border:1px solid var(--line); border-radius:10px; background:var(--surface);
+    margin-bottom:10px; overflow:hidden;
+  }
+  details.panel > summary{
+    cursor:pointer; padding:13px 15px; font-size:14px; font-weight:700;
+    list-style:none; display:flex; align-items:center; gap:9px;
+    font-family:"Gowun Batang",serif;
+  }
+  details.panel > summary::-webkit-details-marker{ display:none; }
+  details.panel > summary::after{
+    content:"+"; margin-left:auto; color:var(--faint);
+    font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:15px;
+  }
+  details.panel[open] > summary::after{ content:"–"; }
+  details.panel > summary small{ font-weight:400; color:var(--faint); font-size:12px; font-family:"Noto Sans KR",sans-serif; }
+  .panel-in{ padding:0 15px 15px; font-size:13.5px; color:var(--muted); }
+  .panel-in p{ margin:0 0 9px; }
+  .panel-in p:last-child{ margin-bottom:0; }
+  .panel-in b{ color:var(--ink); }
+  .panel-in ol{ margin:0; padding-left:20px; }
+  .panel-in ol li{ margin-bottom:6px; }
+
+  .tag{
+    font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:600;
+    letter-spacing:.07em; padding:1px 5px; border-radius:3px;
+    border:1px solid var(--line); color:var(--faint); background:var(--surface-2);
+    margin-left:5px; vertical-align:1px; white-space:nowrap;
+  }
+
+  footer{
+    border-top:1px solid var(--line); margin-top:28px;
+    padding-block:22px 40px; font-size:12px; color:var(--faint);
+  }
+  footer p{ margin:0 0 7px; }
+  footer a{ color:var(--muted); }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">서풍의 광시곡 <span>아이템 · 지도</span></div>
+    <nav class="navlinks">
+      <a href="#missable">놓치면 끝</a>
+      <a href="#check">체크리스트</a>
+      <a href="#items">아이템 표</a>
+      <a href="#routes">던전 길찾기</a>
+      <a href="#fullmap">전체맵</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Rhapsody of Zephyr · Remaster</p>
+    <h1>무엇을, 어디서, 언제까지</h1>
+    <p class="lede">아이템 획득처와 던전 경로만 모았습니다. 이 게임은 한 번 지나치면 두 번 다시 못 얻는 물건이 몇 개 있고, 그게 후반 난이도를 통째로 바꿉니다. 그것부터 먼저 보세요.</p>
+  </header>
+
+  <!-- ===== MISSABLE ===== -->
+  <section id="missable">
+    <div class="sec-head">
+      <span class="sec-no">우선순위 0</span>
+      <h2>놓치면 다시 못 얻습니다</h2>
+      <p>시점이 지나면 회수가 불가능하거나, 횟수 제한이 걸린 것들입니다. 다른 건 몰라도 이 다섯 개는 챙기세요.</p>
+    </div>
+    <div class="miss-grid">
+      <div class="miss-card">
+        <h3>썬더메어</h3>
+        <span class="loc">리브레빌 · 투기장 지하 동굴</span>
+        <p><b>투기장 밖으로 나가 다른 지역으로 이동하면 문이 잠기고 재입장이 영영 불가능합니다.</b> 입장했다면 무조건 얻고 나오세요. 전체공격 소환마법이라 이후 전투가 통째로 쉬워집니다. 에스메랄다 지력 80 이상에서 장착.</p>
+      </div>
+      <div class="miss-card">
+        <h3>해적 키드의 상점</h3>
+        <span class="loc">롱기누스 동굴 북동쪽</span>
+        <p><b>상점을 여는 횟수가 3회로 제한됩니다.</b> 한 번 열었을 때 사는 개수에는 제한이 없으니, <b>돈을 최대한 모아 한 번에 몰아 사세요.</b> 완전 회복약을 고급 회복약 가격에 팝니다.</p>
+      </div>
+      <div class="miss-card">
+        <h3>낡은 엑스칼리버</h3>
+        <span class="loc">1막 창고 → 파즈에서 수리</span>
+        <p>초반부터 굴러다니는 고물이라 팔아버리기 쉽습니다. <b>파즈에서 수리하면 광 속성이 되어 암흑계 몬스터에게 2배 피해</b>를 줍니다. 최종전 상대 다수가 암흑계입니다.</p>
+      </div>
+      <div class="miss-card">
+        <h3>롱기누스의 창</h3>
+        <span class="loc">기지 동쪽 · 술집 뒤 비밀 던전</span>
+        <p>이자벨과 대화해야 존재를 알 수 있어 그냥 지나치기 쉽습니다. 게임 내 최강 창에 전용 필살기. 가는 길의 검은 기사가 크리티컬 한 방에 눕힐 수 있으니 준비하고 가세요.</p>
+      </div>
+      <div class="miss-card">
+        <h3>자비의 여신상</h3>
+        <span class="loc">게이시르 대성당 · 입장 직후</span>
+        <p>이스카리옷 2연전이 바로 이어지므로 <b>전투 전에 얻어 에스메랄다에게 즉시 장착</b>해야 의미가 있습니다.</p>
+      </div>
+      <div class="miss-card" style="border-color:var(--gold); background:var(--gold-soft)">
+        <h3 style="color:var(--gold)">사지 마세요 · 카오스 큐브</h3>
+        <span class="loc">폭풍도 · 죄수의 상점</span>
+        <p>초반 자금이 빠듯한 시점에 팔리는데 <b>실제 효능이 없는 아이템</b>입니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CHECKLIST ===== -->
+  <section id="check">
+    <div class="sec-head">
+      <span class="sec-no">구간별 체크리스트</span>
+      <h2>지나온 구간에 빠뜨린 것이 있는지</h2>
+      <p>지역마다 챙겼어야 할 것들입니다. 체크한 내용은 이 브라우저에 저장됩니다. <span style="color:var(--wine)">★</span>는 시점이 지나면 회수 불가, <span style="color:var(--green)">↩</span>는 지금이라도 돌아가면 되는 것입니다.</p>
+    </div>
+
+    <div class="progress">
+      <span class="pnum" id="pnum">0 / 0</span>
+      <span class="pbar"><i id="pbar"></i></span>
+      <button class="chip" id="resetChk" style="padding:4px 10px">초기화</button>
+    </div>
+
+    <div class="cl" id="cl">
+
+      <div class="clreg" data-reg="r1">
+        <h3>인페르노 감옥 <span class="act-badge a1">1막</span></h3>
+        <label><input type="checkbox"><span>1층 왼쪽 아래 구석방에서 <b>만능열쇠</b> 획득</span></label>
+        <label><input type="checkbox"><span>2층 별표 지점 보물상자 (회복약)</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r2">
+        <h3>폭풍도 <span class="act-badge a1">1막</span></h3>
+        <label><input type="checkbox"><span>이올린의 수련 (7단계, 선택 사항)</span></label>
+        <label><input type="checkbox"><span>서쪽 숲 · 동굴의 잠긴 상자 <span class="mk r">★</span></span></label>
+        <label><input type="checkbox"><span><b>유리검</b> 획득 (아수라전 질풍마영참용)</span></label>
+        <label><input type="checkbox"><span>아수라 수호신 격파 → <b>마검 아수라</b>, 회색 망토, 반지</span></label>
+        <label><input type="checkbox"><span>몬스터로 초반 자금 확보 (엘드 수급이 좋은 구간)</span></label>
+        <label><input type="checkbox"><span class="dim">카오스 큐브는 사지 않았는지 — 효능 없는 아이템</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r3">
+        <h3>카라카스 <span class="act-badge a2">2막</span></h3>
+        <label><input type="checkbox"><span>카나 밀라노비치 합류</span></label>
+        <label><input type="checkbox"><span>2번 블록 <b>무기연구회</b>에서 <b>스타더스트</b> 구매 <span class="mk g">↩</span></span></label>
+        <label><input type="checkbox"><span><b>그람 + 플레이트 아머 2개</b> 구매 (기본 방어력 100 조합) <span class="mk g">↩</span></span></label>
+        <label><input type="checkbox"><span><b>바스타드 소드</b> 한 자루 확보 (보스전 상비) <span class="mk g">↩</span></span></label>
+        <label><input type="checkbox"><span>일반 무기상 ↔ 연구회 매매 차익으로 자금 확보 <span class="mk g">↩</span></span></label>
+        <label><input type="checkbox"><span>투기장 · 지하수로에서 레벨 정리</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r4">
+        <h3>루벤 저택 · 프리토리아 <span class="act-badge a2">2막</span></h3>
+        <label><input type="checkbox"><span>루벤 격파 (첫 복수)</span></label>
+        <label><input type="checkbox"><span>라몬 자작 저택 → <b>에스메랄다 정식 합류</b></span></label>
+        <label><input type="checkbox"><span>프리토리아 상점에서 <b>기본 마법 반지</b> 세팅 <span class="mk g">↩</span></span></label>
+        <label><input type="checkbox"><span>지하 고문실 曰자 통로에서 <b>레벨 40~55</b>까지 확보</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r5">
+        <h3>제피르 팰컨 기지 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>이자벨과 대화해 비밀던전 위치 확인</span></label>
+        <label><input type="checkbox"><span>동쪽 술집 동쪽 막다른 통로 → 동굴 진입</span></label>
+        <label><input type="checkbox"><span>동굴 <b>가장 끝</b>에서 <b>롱기누스의 창</b> <span class="mk r">★</span></span></label>
+        <label><input type="checkbox"><span>동굴 <b>북동쪽</b>에서 <b>해적 키드</b> 조우 — 상점 개방 3회 제한 <span class="mk r">★</span></span></label>
+        <label><input type="checkbox"><span>키드에게서 <b>완전 회복약 10~20개</b> — 가성비 최고</span></label>
+        <label><input type="checkbox"><span>키드에게서 <b>미스릴탄</b> 최대한 (로우엔에서도 판매)</span></label>
+        <label><input type="checkbox"><span>키드에게서 <b>불의 문장</b> (화룡굴 상자에서도 무료 입수 가능)</span></label>
+        <label><input type="checkbox"><span class="dim">지크프리드는 롱기누스가 있으면 불필요 — 내구력 2</span></label>
+        <label><input type="checkbox"><span>기지 NPC 대화 (제피르 팰컨 배경)</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r6">
+        <h3>게이시르 시티 · 니코시아 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>시라노의 옛 저택 방문</span></label>
+        <label><input type="checkbox"><span>크리스 합류 / 카나 이탈</span></label>
+      </div>
+
+      <div class="clreg now" data-reg="r7">
+        <h3>리브레빌 <span class="act-badge a3">3막</span> <span class="nowtag">지금 여기</span></h3>
+        <label><input type="checkbox"><span>주점 정보 → 무기상점 주인 대화 → 투기장 주인의 집에서 <b>열쇠</b></span></label>
+        <label><input type="checkbox"><span><b>투기장 지하 동굴 진입</b></span></label>
+        <label><input type="checkbox"><span><b>썬더메어(번개의 문장) 획득</b> <span class="mk r">★</span> — 나가면 문이 영구히 잠깁니다</span></label>
+        <label><input type="checkbox"><span>좀비 4마리 반복 전투로 레벨업 (약 4,050 exp)</span></label>
+        <label><input type="checkbox"><span><b>카오스 스톤</b> 구매 (완력·지력·민첩 각 +10)</span></label>
+        <label><input type="checkbox"><span><b>기력의 로드</b> 구매</span></label>
+        <label><input type="checkbox"><span><b>각성제</b> 대량 구매 — 이 지역부터 판매</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r8">
+        <h3>영주 저택 3곳 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>프리토리아 → 멤피스 → 보르도 순차 공략</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r9">
+        <h3>선택 던전 — 소환수 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>프리토리아 산 남동쪽 구석 → <b>피닉스의 알</b></span></label>
+        <label><input type="checkbox"><span>게이시르 숲 화룡굴 A→N 완주 → <b>크림슨 헬카이트</b></span></label>
+        <label><input type="checkbox"><span>화룡굴 경로 상자 — 불의 반지 · 암흑탄 · 자동소총 · 제스터스 캡 · 불의 문장</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r10">
+        <h3>로우엔 · 마검숲 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>로우엔 산 <b>지리학회 NPC</b>와 대화 — 근처 길을 알려줍니다</span></label>
+        <label><input type="checkbox"><span>선글라스 부대 격파 → <b>유성검</b> · <b>멸살지옥검</b></span></label>
+        <label><input type="checkbox"><span>F 지점 다이아몬드 젬 매매 차익</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r11">
+        <h3>보르도 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>프레데릭 대포 부대전 / 실버 이탈 · 리델 합류</span></label>
+        <label><input type="checkbox"><span>술집 개구리와 10회 이상 대화 (무기 판매 개방)</span></label>
+        <label><input type="checkbox"><span>리델을 카오스 스톤 · 롱기누스의 창으로 보강</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r12">
+        <h3>파즈 · 망티고아산 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span><b>파즈에서 낡은 엑스칼리버 수리</b> <span class="mk r">★</span> — 팔았다면 회수 불가</span></label>
+        <label><input type="checkbox"><span>유니콘 서식지 → <b>일각수의 뿔</b></span></label>
+        <label><input type="checkbox"><span>카타리나 격파</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r13">
+        <h3>인페르노 탈환 · 미로숲 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>비프로스트 사령관 격파 / 크리스 이탈 · 카나 재합류</span></label>
+        <label><input type="checkbox"><span><b>스펙터의 악몽</b>을 카나에게 장착</span></label>
+        <label><input type="checkbox"><span>미로숲 흰 나무 2개 사이 숨은 길 → 보물상자 2개</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r14">
+        <h3>보급로 · 산 정상 <span class="act-badge a3">3막</span></h3>
+        <label><input type="checkbox"><span>다리 앞 <b>세이브</b> — 엔딩 분기 직전</span></label>
+        <label><input type="checkbox"><span><b>서풍의 광시곡(스태프)</b> → 에스메랄다 <span class="mk r">★</span></span></label>
+        <label><input type="checkbox"><span><b>글로리어의 홀</b></span></label>
+        <label><input type="checkbox"><span>프레데릭과의 결투</span></label>
+      </div>
+
+      <div class="clreg" data-reg="r15">
+        <h3>대성당 · 수중도시 <span class="act-badge a4">4막</span></h3>
+        <label><input type="checkbox"><span>대성당 입장 직후 <b>자비의 여신상</b> → 에스메랄다 <span class="mk r">★</span></span></label>
+        <label><input type="checkbox"><span>이스카리옷 2연전</span></label>
+        <label><input type="checkbox"><span>수중도시 진입 전 ★ 지점 <b>네이비럴 디스크</b></span></label>
+        <label><input type="checkbox"><span>4층 <b>광선검</b></span></label>
+        <label><input type="checkbox"><span>5층 개구리에게서 회복 · 부활 · 각성제 보충 (사기꾼 주의)</span></label>
+      </div>
+
+    </div>
+
+    <div class="warnbox" style="margin-top:14px">
+      <b>리브레빌 시점에서 이미 늦은 것은 사실상 없습니다.</b> 이 게임에서 완전히 회수 불가능해지는 건 ① 리브레빌 투기장을 썬더메어 없이 나가는 것, ② 키드의 상점 대화 3회를 허비하는 것, ③ 낡은 엑스칼리버를 팔아버린 것, 이 셋입니다. 나머지 상점 구매나 레벨 노가다는 지금이라도 만회할 수 있습니다.
+    </div>
+  </section>
+
+  <!-- ===== ITEMS ===== -->
+  <section id="items">
+    <div class="sec-head">
+      <span class="sec-no">아이템 목록</span>
+      <h2>어디서 무엇이 나오는가</h2>
+      <p>주요 아이템만 추렸습니다. 이름이나 지역명으로 검색되고, 분류로 걸러집니다. <span style="color:var(--wine)">★</span>는 놓치면 못 얻는 것입니다.</p>
+    </div>
+
+    <div class="controls">
+      <button class="chip" data-f="all" aria-pressed="true">전체</button>
+      <button class="chip" data-f="miss" aria-pressed="false">★ 놓치면 끝</button>
+      <button class="chip" data-f="무기" aria-pressed="false">무기</button>
+      <button class="chip" data-f="소환" aria-pressed="false">소환·마법</button>
+      <button class="chip" data-f="장비" aria-pressed="false">장비·악세</button>
+      <input id="q" type="search" placeholder="이름 · 지역 검색" autocomplete="off">
+      <span class="count" id="count"></span>
+    </div>
+
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr><th>아이템</th><th>분류</th><th>시점</th><th>획득처</th><th>비고</th></tr>
+        </thead>
+        <tbody id="tb">
+          <tr data-k="무기" data-m="1"><td class="iname">유리검</td><td>무기</td><td><span class="act-badge a1">1막</span></td><td class="loc">폭풍도 동굴</td><td class="note">아수라 수호신전에서 질풍마영참용. 내구도가 극히 낮아 버티기용 무기와 바꿔 써야 합니다.</td></tr>
+          <tr data-k="무기" data-m="1"><td class="iname">소검 · 스틸레토</td><td>무기</td><td><span class="act-badge a1">1막</span></td><td class="loc">폭풍도 · 잠긴 상자</td><td class="note">서쪽 숲 상자 등. 출처마다 상자 개수와 내용물이 엇갈립니다.<span class="tag">불일치</span></td></tr>
+          <tr data-k="장비" data-m="1"><td class="iname">만능열쇠</td><td>진행</td><td><span class="act-badge a1">1막</span></td><td class="loc">인페르노 1층 왼쪽 아래 구석방</td><td class="note">잠긴 문을 여는 프롤로그 필수품.</td></tr>
+          <tr data-k="장비" data-m="1"><td class="iname">회색 망토</td><td>장비</td><td><span class="act-badge a1">1막</span></td><td class="loc">폭풍도 · 이올린</td><td class="note">아수라전 보상으로 함께 나오는 반지가 효율이 더 좋다는 평가가 있습니다.</td></tr>
+          <tr data-k="무기 miss" data-m="1"><td class="iname">낡은 엑스칼리버<span class="star">★</span></td><td>무기</td><td><span class="act-badge a1">1막</span></td><td class="loc">창고 → 파즈에서 수리</td><td class="note">수리 후 광 속성. <b>암흑계 2배 피해</b>로 최종전 핵심 무기가 됩니다. 절대 팔지 마세요.</td></tr>
+          <tr data-k="무기" data-m="2"><td class="iname">스타더스트</td><td>무기</td><td><span class="act-badge a2">2막</span></td><td class="loc">카라카스 2번 블록 무기연구회</td><td class="note">방어력 90 / 한계력 5,000. 시라노가 들면 사실상 돌파당하지 않습니다.</td></tr>
+          <tr data-k="무기" data-m="2"><td class="iname">그람</td><td>무기</td><td><span class="act-badge a2">2막</span></td><td class="loc">카라카스 무기연구회</td><td class="note">방어력·한계력 0인 세검. 플레이트 아머 2개와 조합해 기본 방어력 100을 만드는 용도.</td></tr>
+          <tr data-k="장비" data-m="2"><td class="iname">플레이트 아머</td><td>악세</td><td><span class="act-badge a2">2막</span></td><td class="loc">카라카스 무기연구회</td><td class="note">방어력 +30. 2개 장착이 전제입니다. 악세사리 상점에서는 11만이라 사실상 구매 불가.</td></tr>
+          <tr data-k="무기" data-m="2"><td class="iname">바스타드 소드</td><td>무기</td><td><span class="act-badge a2">2막</span></td><td class="loc">필드·마을 상자, 상점</td><td class="note">보스전 상비용. 무기가 부서지면 아수라를 소환할 수 없으니 한 자루는 챙겨두세요.</td></tr>
+          <tr data-k="장비" data-m="2"><td class="iname">힘의 반지</td><td>악세</td><td><span class="act-badge a2">2막</span></td><td class="loc">초반 상점</td><td class="note">완력 보충용. 이후 바바리안이나 카오스 스톤으로 대체됩니다.</td></tr>
+          <tr data-k="소환 miss" data-m="3"><td class="iname">썬더메어<span class="star">★</span></td><td>소환</td><td><span class="act-badge a3">3막</span></td><td class="loc">리브레빌 투기장 지하 동굴</td><td class="note">번개의 문장. <b>1회 입장 한정.</b> 전체공격 소환마법, 적중률 100%. 지력 80 이상.</td></tr>
+          <tr data-k="장비" data-m="3"><td class="iname">카오스 스톤</td><td>악세</td><td><span class="act-badge a3">3막</span></td><td class="loc">리브레빌</td><td class="note">완력·지력·민첩 각 +10. 뒤늦게 합류하는 저레벨 동료를 보정하는 데 씁니다.</td></tr>
+          <tr data-k="장비" data-m="3"><td class="iname">기력의 로드</td><td>장비</td><td><span class="act-badge a3">3막</span></td><td class="loc">리브레빌 상점</td><td class="note">에스메랄다 운용에 유용합니다.</td></tr>
+          <tr data-k="장비" data-m="3"><td class="iname">각성제</td><td>소모품</td><td><span class="act-badge a3">3막</span></td><td class="loc">리브레빌부터 판매</td><td class="note">XP를 즉시 채웁니다. 2개면 기력 100%. 아수라파천무 난사의 재료라 대량 구매해 두세요.</td></tr>
+          <tr data-k="무기 miss" data-m="3"><td class="iname">롱기누스의 창<span class="star">★</span></td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">기지 동쪽 술집 동쪽 통로 → 동굴 끝</td><td class="note">최강 창 + 전용 필살기. 내구 6 / 공격 140 / 방어 30 / 한계 2,200 / 명중 55.</td></tr>
+          <tr data-k="장비 miss" data-m="3"><td class="iname">완전 회복약<span class="star">★</span></td><td>소모품</td><td><span class="act-badge a3">3막</span></td><td class="loc">키드의 비밀상점</td><td class="note"><b>고급 회복약 수준의 가격</b>에 팝니다. 10~20개 확보 권장. 이 상점의 진짜 가치.</td></tr>
+          <tr data-k="무기 miss" data-m="3"><td class="iname">미스릴탄<span class="star">★</span></td><td>소모품</td><td><span class="act-badge a3">3막</span></td><td class="loc">키드의 비밀상점 · 로우엔</td><td class="note">최종 티어 탄약. 카나는 탄이 최종 티어가 아니면 물리 공격이 무의미합니다.</td></tr>
+          <tr data-k="소환 miss" data-m="3"><td class="iname">불의 문장</td><td>마법부여</td><td><span class="act-badge a3">3막</span></td><td class="loc">키드의 비밀상점 · 화룡굴 상자</td><td class="note">에스메랄다에게 화염계 마법 추가 + 지력 상승. 화룡굴에서 무료로도 얻습니다.</td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">지크프리드</td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">키드의 비밀상점</td><td class="note">창. 내구 <b>2</b> / 공격 150 / 방어 20 / 한계 1,200 / 명중 52. <b>롱기누스를 얻었다면 살 필요 없습니다.</b></td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">클레이모르</td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">키드의 비밀상점</td><td class="note">4만 엘드 미만. 강한 추천을 받는 물건은 아닙니다.</td></tr>
+          <tr data-k="소환" data-m="3"><td class="iname">피닉스의 알</td><td>소환</td><td><span class="act-badge a3">3막</span></td><td class="loc">프리토리아 산 피닉스 동굴 남동쪽 구석</td><td class="note">화염 마법 부여 + 피닉스 소환.</td></tr>
+          <tr data-k="소환" data-m="3"><td class="iname">크림슨 헬카이트</td><td>소환</td><td><span class="act-badge a3">3막</span></td><td class="loc">게이시르 숲 화룡굴 최심부</td><td class="note">화룡의 문장. 지력 100 이상에서 화염 소환마법. 창세기전 2에서 칼스가 봉인했던 물건.</td></tr>
+          <tr data-k="장비" data-m="3"><td class="iname">불의 반지</td><td>악세</td><td><span class="act-badge a3">3막</span></td><td class="loc">화룡굴 · E 출구 옆 상자</td><td class="note">아래 화룡굴 경로표 참고.</td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">자동소총</td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">화룡굴 · H 출구 전 북쪽 상자</td><td class="note">총기 캐릭터용.</td></tr>
+          <tr data-k="장비" data-m="3"><td class="iname">제스터스 캡 · 암흑탄</td><td>악세</td><td><span class="act-badge a3">3막</span></td><td class="loc">화룡굴 · K 전 통로 / G 전 서쪽</td><td class="note">경로 중간 상자들입니다.</td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">유성검</td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">로우엔 일대 (동굴 동쪽 E 지점 / 로우엔 산)</td><td class="note">화염 속성, 필살기 메테오. 화염 속성 적에게는 무효. 획득 지점이 출처마다 다릅니다.<span class="tag">불일치</span></td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">멸살지옥검</td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">마검숲 · 선글라스 부대</td><td class="note">능력치는 최상급이나 암흑 속성이라 후반 암흑계 보스에게 쓰기 어렵습니다.</td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">낭천의 검</td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">로우엔 구간</td><td class="note">플레이 일지 한 곳의 단발 언급이 전부이고 어떤 아이템 목록에도 없습니다. <b>실재 여부가 확인되지 않았습니다.</b><span class="tag">미확인</span></td></tr>
+          <tr data-k="소환" data-m="3"><td class="iname">일각수의 뿔</td><td>소환</td><td><span class="act-badge a3">3막</span></td><td class="loc">망티고아산 유니콘 서식지</td><td class="note">빙한계 마법 + 크리스탈 유니콘 소환.</td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">스펙터의 악몽</td><td>무기</td><td><span class="act-badge a3">3막</span></td><td class="loc">인페르노 탈환 구간</td><td class="note">최고급 총기. 재합류한 카나에게 장착하세요.</td></tr>
+          <tr data-k="무기" data-m="3"><td class="iname">미스릴탄</td><td>소모품</td><td><span class="act-badge a3">3막</span></td><td class="loc">미로숲 숨은 길 보물상자</td><td class="note">흰 나무 2개가 뭉친 곳의 나무 사이로 진입.</td></tr>
+          <tr data-k="장비 miss" data-m="3"><td class="iname">서풍의 광시곡<span class="star">★</span></td><td>장비</td><td><span class="act-badge a3">3막</span></td><td class="loc">보급로 탈환 구간</td><td class="note">최고급 스태프. <b>지력 +30, MP +2000, 마법방어 +40.</b> 에스메랄다 지력이 144까지 올라갑니다.</td></tr>
+          <tr data-k="장비" data-m="3"><td class="iname">글로리어의 홀</td><td>장비</td><td><span class="act-badge a3">3막</span></td><td class="loc">보급로 탈환 구간</td><td class="note">팬드래건 삼신기 중 하나.</td></tr>
+          <tr data-k="장비 miss" data-m="4"><td class="iname">자비의 여신상<span class="star">★</span></td><td>악세</td><td><span class="act-badge a4">4막</span></td><td class="loc">게이시르 대성당 입장 직후</td><td class="note">이스카리옷 2연전 전에 에스메랄다에게 장착해야 의미가 있습니다.</td></tr>
+          <tr data-k="소환" data-m="4"><td class="iname">네이비럴 디스크</td><td>소환</td><td><span class="act-badge a4">4막</span></td><td class="loc">수중도시 · ★ 지점</td><td class="note">궁극의 암흑 소환수. 진입 전에 챙기세요.</td></tr>
+          <tr data-k="무기" data-m="4"><td class="iname">광선검</td><td>무기</td><td><span class="act-badge a4">4막</span></td><td class="loc">수중도시 4층</td><td class="note">좋은 검이 없다면 반드시 챙길 것.</td></tr>
+          <tr data-k="소환" data-m="4"><td class="iname">아비도스</td><td>소환</td><td><span class="act-badge a4">4막</span></td><td class="loc">획득처 미확인</td><td class="note">빛 속성 소환수. 최종전에서 암흑계 상대로 섞어 씁니다.<span class="tag">미확인</span></td></tr>
+        </tbody>
+      </table>
+      <div class="empty" id="empty" hidden>조건에 맞는 아이템이 없습니다.</div>
+    </div>
+  </section>
+
+  <!-- ===== ROUTES ===== -->
+  <section id="routes">
+    <div class="sec-head">
+      <span class="sec-no">던전 길찾기</span>
+      <h2>경로가 확인된 던전</h2>
+      <p>실제 맵 스캔은 저작권 자료라 쓸 수 없어, 텍스트로 확인된 경로 규칙만 도식으로 옮겼습니다. 확인이 안 된 던전은 아래에 따로 적어뒀습니다.</p>
+    </div>
+
+    <!-- 화룡굴 -->
+    <div class="route">
+      <h3>화룡굴 <span class="act-badge a3">3막</span></h3>
+      <span class="sub">게이시르 숲 · 출구 A→N 순차 통과</span>
+      <p>출구를 정해진 순서로만 통과하는 구조입니다. 원칙은 단순합니다 — <b>항상 북쪽 계열(북 · 정북 · 동북) 출구를 고릅니다.</b></p>
+      <div class="tscroll" style="border:none; background:transparent">
+        <table style="min-width:420px">
+          <thead><tr><th>출구</th><th>방향</th><th>주변 상자</th></tr></thead>
+          <tbody>
+            <tr><td class="iname">A</td><td class="note">북</td><td class="note">—</td></tr>
+            <tr><td class="iname">B</td><td class="note">동북</td><td class="note">—</td></tr>
+            <tr><td class="iname">C</td><td class="note">정북</td><td class="note">—</td></tr>
+            <tr><td class="iname">D</td><td class="note">동북</td><td class="note">—</td></tr>
+            <tr><td class="iname">E</td><td class="note">북</td><td class="note">옆 상자 — 불의 반지</td></tr>
+            <tr><td class="iname">F</td><td class="note">정북</td><td class="note">—</td></tr>
+            <tr><td class="iname">G</td><td class="note">동북</td><td class="note">가기 전 서쪽 — 암흑탄</td></tr>
+            <tr><td class="iname">H</td><td class="note">동북</td><td class="note">지나기 전 북쪽 — 자동소총</td></tr>
+            <tr><td class="iname">I</td><td class="note">동북</td><td class="note">—</td></tr>
+            <tr><td class="iname">J</td><td class="note">정북</td><td class="note">—</td></tr>
+            <tr><td class="iname">K</td><td class="note">북</td><td class="note">가기 전 통로 중간 — 제스터스 캡</td></tr>
+            <tr><td class="iname">L</td><td class="note">정북</td><td class="note">—</td></tr>
+            <tr><td class="iname">M</td><td class="note">동북</td><td class="note">가기 전 입구 서쪽 — 불의 문장</td></tr>
+            <tr><td class="iname">N</td><td class="note">최종 출구</td><td class="note">크림슨 헬카이트</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="warnbox"><b>9~12단계 방향은 출처마다 미세하게 달랐습니다.</b> 전체 골격(A→N, 북쪽 계열만 선택)은 일치하니, 세부가 어긋나면 "북쪽 계열 출구"라는 원칙으로 판단하세요.</div>
+    </div>
+
+    <!-- 미로숲 -->
+    <div class="route">
+      <h3>드래건 브래스 미로숲 <span class="act-badge a3">3막</span></h3>
+      <span class="sub">경관이 전부 허상 · 그림자 판정</span>
+      <p>비프로스트의 미로진이 만든 허상이라 지도가 의미 없습니다. 시라노의 대사 <b>"태양을 바라보고 나아가라"</b>가 해법입니다. 정해진 횟수가 아니라 <b>매 갈림길마다 판정</b>합니다.</p>
+      <svg class="dia" viewBox="0 0 560 130" role="img" aria-label="미로숲 판정 흐름: 갈림길에서 그림자 방향을 확인하고 그 반대 길로 간다">
+        <defs>
+          <marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g style="color:var(--faint)">
+          <rect x="6" y="46" width="108" height="38" rx="7" fill="var(--accent-soft)"/>
+          <text x="60" y="70" text-anchor="middle" font-size="13" font-family="Noto Sans KR,sans-serif" fill="var(--accent)">갈림길 도착</text>
+          <line x1="118" y1="65" x2="154" y2="65" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
+          <rect x="158" y="46" width="126" height="38" rx="7" fill="var(--surface-2)"/>
+          <text x="221" y="70" text-anchor="middle" font-size="13" font-family="Noto Sans KR,sans-serif" fill="var(--ink)">그림자 방향 확인</text>
+          <line x1="288" y1="65" x2="324" y2="65" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
+          <rect x="328" y="8" width="150" height="36" rx="7" fill="var(--wine-soft)"/>
+          <text x="403" y="31" text-anchor="middle" font-size="12.5" font-family="Noto Sans KR,sans-serif" fill="var(--wine)">그림자 쪽 길 — 배제</text>
+          <rect x="328" y="86" width="150" height="36" rx="7" fill="var(--green-soft)"/>
+          <text x="403" y="109" text-anchor="middle" font-size="12.5" font-family="Noto Sans KR,sans-serif" fill="var(--green)">반대쪽 길 — 진행</text>
+          <path d="M310 58 L310 26 L324 26" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M310 72 L310 104 L324 104" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M478 104 L512 104 L512 65 L288 65" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/>
+          <text x="524" y="66" font-size="10.5" font-family="IBM Plex Mono,monospace" fill="currentColor">반복</text>
+        </g>
+      </svg>
+      <ul class="pts">
+        <li>숲을 빠져나오면 목표인 <b>비프로스트 병참기지</b>가 나옵니다. 이후 동굴길은 전부 외길입니다.</li>
+        <li><b>흰색 나무 2개가 뭉쳐 있는 곳</b>의 나무 사이로 들어가면 숨은 길이 있고 보물상자 2개(미스릴탄 포함)가 있습니다. 정확한 위치는 텍스트 자료로는 특정되지 않습니다.</li>
+      </ul>
+    </div>
+
+    <!-- 인페르노 -->
+    <div class="route">
+      <h3>인페르노 감옥 · 유황동굴 <span class="act-badge a1">1막</span></h3>
+      <span class="sub">프롤로그 · 메디치 조작</span>
+      <div class="flow">
+        <span class="node">2층 시계방향</span><span class="arrow">→</span>
+        <span class="node">계단</span><span class="arrow">→</span>
+        <span class="node">1층 좌하단 구석방</span><span class="arrow">→</span>
+        <span class="node">만능열쇠</span><span class="arrow">→</span>
+        <span class="node">지하감옥</span><span class="arrow">→</span>
+        <span class="node end">시라노 구출</span>
+      </div>
+      <p><b>유황동굴</b>은 상하가 무한 반복되는 구조입니다. 한 방향으로 3회 정도 반복 이동한 뒤 측면 출구로 나가는 것이 요령이고, <b>빛나는 쪽과 "기분 나쁜 느낌이 든다"는 쪽은 페이크</b>입니다.</p>
+      <div class="flow">
+        <span class="node">동굴 진입</span><span class="arrow">→</span>
+        <span class="node">같은 방향 3회 반복</span><span class="arrow">→</span>
+        <span class="node end">측면 출구</span>
+        <span class="arrow" style="margin-left:6px">·</span>
+        <span class="node bad">빛나는 통로</span>
+      </div>
+      <div class="warnbox"><b>탈출 방향이 자료마다 정반대입니다.</b> 같은 필자의 연속 글에서도 "아래로 세 번 내려간 뒤 우측 출구"와 "계속 위쪽으로만"이 엇갈립니다. 한쪽으로 세 번 가보고 안 되면 반대로 시도하세요. 리마스터는 미니맵이 있어 실제로는 거의 문제가 되지 않습니다.</div>
+    </div>
+
+    <!-- 수중도시 -->
+    <div class="route">
+      <h3>수중도시 <span class="act-badge a4">4막</span></h3>
+      <span class="sub">지하 5층 · 공간이동장치 짝 구조</span>
+      <p>미로처럼 보이지만 실제로는 <b>거의 직선</b>입니다. 이동장치는 알파벳끼리 1대1로 짝지어져 있어, A를 타면 A′로 나옵니다. 순서대로만 타면 됩니다.</p>
+      <div class="flow">
+        <span class="node">S</span><span class="arrow">→</span>
+        <span class="node">A</span><span class="arrow">→</span><span class="node">A′</span><span class="arrow">→</span>
+        <span class="node">B</span><span class="arrow">→</span><span class="node">B′</span><span class="arrow">→</span>
+        <span class="node">C</span><span class="arrow">→</span><span class="node">C′</span><span class="arrow">→</span>
+        <span class="node">D</span><span class="arrow">→</span><span class="node">D′</span><span class="arrow">→</span>
+        <span class="node">E</span><span class="arrow">→</span>
+        <span class="node end">최종전</span>
+      </div>
+      <ul class="pts">
+        <li>진입 경로는 <b>트리시스 사막을 동쪽으로 돌파 → 호수의 공간이동장치</b>입니다.</li>
+        <li>진입 전 <b>★ 지점의 네이비럴 디스크</b>를 챙기세요.</li>
+        <li><b>4층</b> — 광선검.</li>
+        <li><b>5층</b> — 휴식 가능. 개구리들과 대화해 회복 → 부활 → 각성제 순으로 보충하세요. <b>사기꾼 개구리가 섞여 있습니다.</b></li>
+      </ul>
+    </div>
+
+    <!-- 라몬 저택 -->
+    <div class="route">
+      <h3>라몬 자작 저택 <span class="act-badge a2">2막</span></h3>
+      <span class="sub">프리토리아 · 에스메랄다 구출</span>
+      <p>구조가 특이한 미로지만 규칙은 하나입니다 — <b>반시계 방향으로 계속 진행</b>하면 영주의 방에 도달합니다. 시작점에서 잠겨 있던 오른쪽 문이 통로입니다.</p>
+      <ul class="pts">
+        <li>지하 고문실로 가는 <b>曰자 통로 위쪽</b>이 초반 최고의 노가다 지점입니다. 좀비·구울·박쥐 파티가 경험치 900에 돈 1,200을 줍니다.</li>
+        <li>도중 괴도 샤른호스트와 마주칩니다.</li>
+        <li>프리토리아 마을 자체도 길이 복잡하니 미니맵을 켜두세요.</li>
+      </ul>
+    </div>
+
+    <!-- 폭풍도 -->
+    <div class="route">
+      <h3>폭풍도 <span class="act-badge a1">1막</span></h3>
+      <span class="sub">이올린의 수련 7단계 → 아수라</span>
+      <div class="flow">
+        <span class="node">이올린의 집</span><span class="arrow">→</span>
+        <span class="node">서쪽 숲에서 레벨업</span><span class="arrow">→</span>
+        <span class="node">복귀 · 다음 수업</span>
+        <span class="arrow" style="margin-left:4px">↻ 7회</span>
+        <span class="arrow">→</span>
+        <span class="node">동굴</span><span class="arrow">→</span>
+        <span class="node">위쪽으로 계속</span><span class="arrow">→</span>
+        <span class="node end">정상 · 아수라</span>
+      </div>
+      <ul class="pts">
+        <li>수련은 <b>의무가 아닙니다.</b> 6단계 이후 동굴 진입이 가능하고, 레벨 25 이상이면 마지막 수업을 생략해도 됩니다.</li>
+        <li>동굴은 지도상 <b>위쪽을 향해 계속</b> 가면 정상에 닿습니다.</li>
+        <li>아수라 수호신전 <b>권장 26레벨 이상.</b> 원작에서 이 전투는 강제 종료 버그로 악명 높았으니 직전에 저장하세요.</li>
+        <li>해안가 선원에게서 무기를 살 수 있습니다. 폭풍도 몬스터가 엘드를 많이 주니 초반 자금을 여기서 버세요.</li>
+      </ul>
+    </div>
+
+    <!-- 로우엔 -->
+    <div class="route">
+      <h3>로우엔 동굴 <span class="act-badge a3">3막</span></h3>
+      <span class="sub">유성검 · 다이아몬드 광산</span>
+      <div class="flow">
+        <span class="node">S · 남쪽 입구</span><span class="arrow">→</span>
+        <span class="node">동쪽으로 진행</span><span class="arrow">→</span>
+        <span class="node end">E · 유성검</span>
+        <span class="arrow" style="margin-left:6px">·</span>
+        <span class="node">F · 다이아몬드 젬 저가 판매</span>
+      </div>
+      <p>유성검 갈림길 부근에서 <b>인어 1 + 파란 슬라임 3</b> 조합이 경험치 4,390에 돈 3,900을 줍니다. 인어는 방어력이 높고 빙한 마법을 쓰니 레벨이 애매하면 위험합니다.</p>
+      <div class="warnbox"><b>두 검의 획득 지점이 출처마다 다릅니다.</b> 위는 동굴 기준 설명이고, 다른 기록은 "로우엔 시티 도착 후 바로 마검숲 → 로우엔 산 근처에서 선글라스 부대를 잡고 유성검, 동쪽 길에서 멸살지옥검"이라고 적습니다. <b>로우엔 산의 지리학회 NPC가 근처 길을 알려주니</b> 거기부터 들르는 편이 확실합니다.</div>
+    </div>
+
+    <details class="panel" style="margin-top:14px">
+      <summary>경로 자료를 찾지 못한 던전 <small>솔직한 공백</small></summary>
+      <div class="panel-in">
+        <p><b>썬더메어 동굴</b> — 진입 절차(주점에서 정보 → 무기상점 주인과 대화 → 투기장 주인의 집에서 열쇠 → 투기장 입장)는 확인됐지만, 동굴 내부 경로는 텍스트 자료가 없습니다. 원래 지도 지원이 없는 미로 컨셉 던전입니다. 동굴 옆 구멍으로 나가면 투기장으로 바로 복귀합니다.</p>
+        <p><b>루벤 저택 지하수로</b> — 지도 이미지로만 존재합니다. 이루스는 원거리(마법·탄검)로만 대응 가능하고, 루벤은 3점사만 쓰며 이동과 공격을 동시에 못 한다는 전투 정보만 확인됐습니다.</p>
+        <p><b>기지 동쪽 비밀던전(롱기누스의 창)</b>, <b>피닉스 동굴</b> — 목적지 방향(피닉스 동굴 남동쪽 구석)만 알려져 있습니다.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== FULL MAP ===== -->
+  <section id="fullmap">
+    <div class="sec-head">
+      <span class="sec-no">전체맵</span>
+      <h2>전체 지도를 보는 방법</h2>
+      <p>제가 실제 맵을 그려드릴 수는 없지만, 지금 게임에서 바로 쓸 수 있는 수단은 있습니다.</p>
+    </div>
+
+    <details class="panel" open>
+      <summary>1. 게임 내 미니맵 <small>가장 확실한 방법</small></summary>
+      <div class="panel-in">
+        <p>리마스터에서 새로 들어간 기능입니다. 버튼으로 <b>끔 → 우측 상단 미니맵 → 중앙 전체 맵</b> 3단계 전환이 되고, <b>다음 이벤트 목표 지점이 표시</b>됩니다.</p>
+        <p>원작 시절 지도를 프린터로 뽑아 놓고 하던 이유가 알트탭이 안 되고 게임 내 지도가 없어서였는데, 이 기능으로 대부분 해결됩니다. 길이 막히면 중앙 전체 맵부터 켜세요.</p>
+        <p>다만 <b>보물상자 위치는 표시되지 않습니다.</b> 아이템을 빠짐없이 먹고 싶다면 아래 방법이 필요합니다.</p>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>2. 전체맵 + 보물상자 표시 모드 <small>유저 제작</small></summary>
+      <div class="panel-in">
+        <p>디시인사이드 창세기전 갤러리에 <b>게임 내에서 전체 맵과 보물상자·퀘스트 위치를 표시해주는 유저 모드</b>가 올라와 있습니다. 원하시는 것에 가장 가까운 물건입니다.</p>
+        <p>같은 갤러리에 <b>"서풍의 광시곡 모든 맵"</b> 이미지 모음 게시물도 있습니다.</p>
+        <p style="margin-top:12px"><a href="https://gall.dcinside.com/mgallery/board/view/?id=warofgenesis&no=138106">전체맵 적용 모드 게시물 →</a><br>
+        <a href="https://gall.dcinside.com/mgallery/board/view/?id=warofgenesis&no=99669">모든 맵 이미지 모음 →</a></p>
+        <div class="warnbox" style="margin-top:12px"><b>제가 직접 열어 확인하지는 못했습니다.</b> 접근이 차단되어 내용과 현재 동작 여부를 검증할 수 없었습니다. 유저 제작 모드는 게임 업데이트 후 동작하지 않을 수 있고, 설치 전 백업을 권합니다.</div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>3. 원작 공략 자료 <small>지도 이미지 소장처</small></summary>
+      <div class="panel-in">
+        <p>1998년 당시 나온 <b>퍼펙트 가이드</b> 공략집에 던전 지도가 실려 있고, 이를 스캔한 자료가 팬 사이트에 흩어져 있습니다. 저작권 자료라 여기에 옮겨 담을 수는 없습니다.</p>
+        <p>순차 플레이 일지에 맵 이미지가 함께 올라와 있는 곳들입니다.</p>
+        <p style="margin-top:12px"><a href="https://tali.kr/2518">tali.kr 공략 시리즈</a> — 1~6편. 인페르노·폭풍도·카라카스·프리토리아 구간에 지도 이미지가 붙어 있습니다.<br>
+        <a href="https://bbs.ruliweb.com/game/board/100138/read/4055315">루리웹 순차 플레이 일지</a> — 중후반 구간. 미로숲 숨은 길 위치가 이미지에 표시되어 있습니다.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 진행 요약 ===== -->
+  <section id="order">
+    <div class="sec-head">
+      <span class="sec-no">참고</span>
+      <h2>지역 방문 순서</h2>
+      <p>스토리는 빼고 지명 순서만 적었습니다. 아이템을 언제 챙겨야 하는지 가늠하는 용도입니다.</p>
+    </div>
+    <details class="panel">
+      <summary>전체 동선 <small>1막 → 4막</small></summary>
+      <div class="panel-in">
+        <ol>
+          <li><b>인페르노 감옥</b> — 프롤로그, 메디치 조작</li>
+          <li><b>트리시스 사막 → 사이럽스 시티</b> — 에스메랄다 조우, 전술연구회</li>
+          <li><b>다카마 항</b> — 루스의 도움으로 승선</li>
+          <li><b>폭풍도</b> — 이올린 수련, 아수라 수호신</li>
+          <li><b>귀환선</b> — 실버 합류</li>
+          <li><b>카라카스</b> — 카나 합류, 무기연구회, 투기장</li>
+          <li><b>루벤 저택 · 지하수로</b></li>
+          <li><b>프리토리아</b> — 라몬 자작 저택, 에스메랄다 정식 합류</li>
+          <li><b>제피르 팰컨 기지</b> — 비밀던전, 키드의 상점</li>
+          <li><b>게이시르 시티 → 니코시아</b> — 크리스 합류, 카나 이탈</li>
+          <li><b>리브레빌</b> — 썬더메어 ★</li>
+          <li><b>프리토리아 → 멤피스 → 보르도</b> — 영주 저택 3곳</li>
+          <li><b>프리토리아 산 · 게이시르 숲</b> — 피닉스의 알, 화룡굴</li>
+          <li><b>로우엔 · 마검숲</b> — 유성검, 멸살지옥검</li>
+          <li><b>보르도</b> — 실버 이탈, 리델 합류</li>
+          <li><b>파즈 → 안타나나리보 → 망티고아산</b> — 엑스칼리버 수리, 일각수의 뿔</li>
+          <li><b>인페르노 감옥</b> — 탈환, 크리스 이탈 / 카나 재합류</li>
+          <li><b>드래건 브래스 미로숲 → 병참기지</b></li>
+          <li><b>보급로 · 산 정상</b> — 서풍의 광시곡(스태프) ★, 엔딩 분기 직전</li>
+          <li><b>게이시르 대성당</b> — 자비의 여신상 ★, 이스카리옷</li>
+          <li><b>트리시스 사막 → 수중도시</b> — 최종 던전</li>
+        </ol>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <p>원작(1998) 공략 자료와 리마스터 출시 후 플레이 기록을 교차 정리했습니다. 리마스터는 장(章) 단위로 재구성되어 원작의 CD 구분과 정확히 대응하지 않을 수 있습니다.</p>
+    <p><span class="tag" style="margin-left:0">미확인</span> <span class="tag" style="margin-left:0">불일치</span> 표시가 붙은 항목은 출처 간에 엇갈리거나 검증되지 않은 내용입니다.</p>
+    <p style="margin-top:12px">참고: <a href="https://namu.wiki/w/%EC%B0%BD%EC%84%B8%EA%B8%B0%EC%A0%84%20%EC%99%B8%EC%A0%84%20%EC%84%9C%ED%92%8D%EC%9D%98%20%EA%B4%91%EC%8B%9C%EA%B3%A1">나무위키</a> · <a href="https://tali.kr/2518">tali.kr</a> · <a href="https://bbs.ruliweb.com/game/board/100138/read/4055315">루리웹 플레이 일지</a> · <a href="https://seopung.wiki/">seopung.wiki</a></p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var chips = [].slice.call(document.querySelectorAll(".chip"));
+  var rows  = [].slice.call(document.querySelectorAll("#tb tr"));
+  var q     = document.getElementById("q");
+  var empty = document.getElementById("empty");
+  var count = document.getElementById("count");
+  var filter = "all";
+
+  function apply(){
+    var term = (q.value || "").trim().toLowerCase();
+    var shown = 0;
+    rows.forEach(function(r){
+      var k = r.dataset.k || "";
+      var okF = filter === "all" ? true
+              : filter === "miss" ? k.indexOf("miss") > -1
+              : k.indexOf(filter) > -1;
+      var okQ = !term || r.textContent.toLowerCase().indexOf(term) > -1;
+      var ok = okF && okQ;
+      r.hidden = !ok;
+      r.classList.toggle("hit", !!term && ok);
+      if(ok) shown++;
+    });
+    empty.hidden = shown > 0;
+    count.textContent = shown + " / " + rows.length;
+  }
+
+  chips.forEach(function(c){
+    c.addEventListener("click", function(){
+      chips.forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+      c.setAttribute("aria-pressed","true");
+      filter = c.dataset.f;
+      apply();
+    });
+  });
+  q.addEventListener("input", apply);
+  apply();
+
+  /* ---- checklist ---- */
+  var CKEY = "seopung-check-v1";
+  var boxes = [].slice.call(document.querySelectorAll("#cl input[type=checkbox]"));
+  var pbar = document.getElementById("pbar");
+  var pnum = document.getElementById("pnum");
+
+  boxes.forEach(function(b,i){
+    b.id = "chk-" + i;
+    b.dataset.i = i;
+  });
+
+  function cload(){
+    try { return JSON.parse(localStorage.getItem(CKEY)) || {}; }
+    catch(e){ return {}; }
+  }
+  function csave(st){
+    try { localStorage.setItem(CKEY, JSON.stringify(st)); } catch(e){}
+  }
+  var cstate = cload();
+
+  function crender(){
+    var done = 0;
+    boxes.forEach(function(b){
+      b.checked = !!cstate[b.dataset.i];
+      if(b.checked) done++;
+    });
+    var pct = boxes.length ? Math.round(done / boxes.length * 100) : 0;
+    pbar.style.width = pct + "%";
+    pnum.textContent = done + " / " + boxes.length;
+  }
+
+  boxes.forEach(function(b){
+    b.addEventListener("change", function(){
+      if(b.checked) cstate[b.dataset.i] = 1; else delete cstate[b.dataset.i];
+      csave(cstate); crender();
+    });
+  });
+
+  document.getElementById("resetChk").addEventListener("click", function(){
+    cstate = {}; csave(cstate); crender();
+  });
+
+  crender();
+})();
+</script>
+
+</body></html>

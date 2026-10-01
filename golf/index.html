@@ -1,0 +1,485 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><link rel="manifest" href="../manifest.webmanifest"><link rel="icon" type="image/png" href="../icons/favicon.png"><link rel="apple-touch-icon" href="../icons/apple-touch-icon.png"><meta name="theme-color" content="#1f3b33"><script src="../hub.js" defer></script><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>골프 뽑기</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F1F5F0; --surface:#FFFFFF; --ink:#1F2D24; --muted:#5C6E62;
+  --line:#D7E2D7; --green:#2E7D4F; --green-deep:#1E5A38; --green-soft:#E3EFE6;
+  --flag:#D1493A; --flag-soft:#F9E4E0; --gold:#B8860B; --gold-soft:#F6EDD4;
+  --ballW:#FDFDFB; --ballG:#2E7D4F; --dimple:#E4E8E2; --shadow:0 2px 10px rgba(31,45,36,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121B15; --surface:#1B2820; --ink:#E9F1EA; --muted:#95A89B;
+    --line:#2C3B31; --green:#4CAF7A; --green-deep:#7BCB9E; --green-soft:#22382B;
+    --flag:#E0604F; --flag-soft:#3C2521; --gold:#E0B84E; --gold-soft:#3A311B;
+    --ballW:#F2F3EE; --ballG:#3E9367; --dimple:#D9DDD6; --shadow:0 2px 10px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121B15; --surface:#1B2820; --ink:#E9F1EA; --muted:#95A89B;
+  --line:#2C3B31; --green:#4CAF7A; --green-deep:#7BCB9E; --green-soft:#22382B;
+  --flag:#E0604F; --flag-soft:#3C2521; --gold:#E0B84E; --gold-soft:#3A311B;
+  --ballW:#F2F3EE; --ballG:#3E9367; --dimple:#D9DDD6; --shadow:0 2px 10px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); margin:0;
+  font-family:"IBM Plex Sans KR",-apple-system,"Malgun Gothic",sans-serif; font-size:15px; line-height:1.5}
+.wrap{max-width:520px; margin:0 auto; padding-inline:16px; padding-block:14px 40px}
+header{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+h1{font-family:"Jua",sans-serif; font-weight:400; font-size:25px; margin:0; letter-spacing:.5px}
+header .sp{flex:1}
+.holechip{font-family:"Jua",sans-serif; font-size:17px; background:var(--green); color:#fff;
+  border-radius:999px; padding:4px 14px; letter-spacing:1px}
+.multchip{font-family:"Jua",sans-serif; font-size:15px; background:var(--flag); color:#fff;
+  border-radius:999px; padding:4px 12px; letter-spacing:1px; animation:blink 1.2s infinite alternate}
+@keyframes blink{to{opacity:.65}}
+@media (prefers-reduced-motion:reduce){.multchip{animation:none}}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px}
+.label{font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.08em; margin-bottom:8px}
+.btn{border:0; border-radius:10px; padding:10px 14px; font:inherit; font-weight:700; cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--green-deep); outline-offset:2px}
+.btn.ghost{background:var(--green-soft); color:var(--green-deep)}
+.btn.main{background:var(--green); color:#fff; width:100%; padding:13px; font-size:17px; font-family:"Jua",sans-serif; font-weight:400; letter-spacing:1px}
+.btn.main:active{transform:translateY(1px)}
+.btn.warn{background:var(--flag-soft); color:var(--flag)}
+
+.names{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.names input,.feein input{width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink);
+  border-radius:10px; padding:9px 12px; font:inherit}
+.names input:focus,.feein input:focus{outline:2px solid var(--green); outline-offset:1px}
+.feein{display:flex; align-items:center; gap:8px; margin-top:12px}
+.feein input{text-align:right; font-variant-numeric:tabular-nums; flex:1}
+.feein .unit{color:var(--muted); font-weight:700}
+.stepbtn{border:1px solid var(--line); background:var(--bg); color:var(--green-deep);
+  border-radius:10px; width:42px; height:40px; font-size:17px; font-weight:700; cursor:pointer}
+.hintline{font-size:12.5px; color:var(--muted); margin-top:10px}
+.seg{display:flex; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:3px; gap:3px}
+.seg button{flex:1; border:0; border-radius:8px; padding:8px 4px; font:inherit; font-weight:500; background:none; color:var(--muted); cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); font-weight:700; box-shadow:var(--shadow)}
+.recgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:4px 0 12px}
+.pbtn{padding:14px 6px; border:1.5px solid var(--line); border-radius:12px; background:var(--surface);
+  font:inherit; font-weight:700; font-size:16px; cursor:pointer; color:var(--ink)}
+.pbtn.sel{background:var(--flag-soft); border-color:var(--flag); color:var(--flag)}
+.pbtn:focus-visible{outline:2px solid var(--green-deep); outline-offset:2px}
+.recbtns{display:grid; grid-template-columns:.8fr 1fr; gap:8px}
+.recbtns .btn{padding:12px 4px; font-family:"Jua",sans-serif; font-weight:400; font-size:15.5px}
+.recbtns .btn[disabled]{opacity:.45; cursor:default}
+
+.turnline{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+.turnline b{font-family:"Jua",sans-serif; font-weight:400; font-size:21px}
+.turnline small{color:var(--muted)}
+.bigwrap{display:flex; justify-content:center; margin:4px 0 12px}
+.card.big{width:132px; aspect-ratio:3/4}
+.card.big .ball{width:52px; height:52px}
+.card.big .face.front .who{font-size:13px}
+.card.big .face.front .lab{font-size:16px}
+.card.big .face.back::after{width:44px; height:44px}
+.drawnrow{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:4px}
+.drawn{display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11.5px; font-weight:700; color:var(--muted)}
+.drawn .ball{width:26px; height:26px; font-size:12px}
+.drawn.wait .ball{background:var(--bg); border-style:dashed}
+.card{aspect-ratio:3/4.2; perspective:600px; cursor:pointer; border:0; background:none; padding:0}
+.card:focus-visible .face.back{outline:2px solid var(--green-deep); outline-offset:2px}
+.card .inner{display:block; position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d}
+.card.flipped .inner{transform:rotateY(180deg)}
+.card[disabled]{cursor:default}
+.face{position:absolute; inset:0; border-radius:11px; backface-visibility:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px}
+.face.back{background:var(--surface);
+  background-image:radial-gradient(var(--dimple) 1.5px, transparent 1.6px);
+  background-size:10px 10px; background-position:center;
+  border:1px solid var(--line); box-shadow:var(--shadow)}
+.face.back::after{content:""; width:30px; height:30px; border-radius:50%; background:var(--green);
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34"><line x1="14" y1="9" x2="14" y2="25" stroke="white" stroke-width="2.2" stroke-linecap="round"/><path d="M14 9 L24 12 L14 15.2 Z" fill="white"/></svg>');
+  background-size:contain}
+.face.front{transform:rotateY(180deg); border:1px solid var(--line); box-shadow:var(--shadow);
+  background:var(--surface); padding:4px}
+.ball{width:34px; height:34px; border-radius:50%; border:1.5px solid var(--line)}
+.ball.W{background:var(--ballW);
+  background-image:radial-gradient(rgba(0,0,0,.10) 1.2px, transparent 1.3px); background-size:7px 7px}
+.ball.G{background:var(--ballG); border-color:transparent;
+  background-image:radial-gradient(rgba(255,255,255,.22) 1.2px, transparent 1.3px); background-size:7px 7px}
+.ball.J{background:var(--gold-soft); border-color:var(--gold); display:flex; align-items:center; justify-content:center;
+  color:var(--gold); font-family:"Jua",sans-serif; font-size:15px}
+.face.front .who{font-size:10.5px; color:var(--muted); font-weight:700; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.face.front .lab{font-family:"Jua",sans-serif; font-size:12.5px}
+.face.front .lab.W{color:var(--muted)} .face.front .lab.G{color:var(--green-deep)} .face.front .lab.J{color:var(--gold)}
+
+.teams{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px}
+.team{border-radius:12px; padding:10px 12px; border:1px solid var(--line)}
+.team h3{margin:0 0 4px; font-family:"Jua",sans-serif; font-weight:400; font-size:15px}
+.team.W{background:var(--surface)} .team.W h3{color:var(--ink)}
+.team.G{background:var(--green-soft)} .team.G h3{color:var(--green-deep)}
+.team .mem{font-weight:700}
+.team .jk{display:inline-block; background:var(--gold-soft); color:var(--gold); border-radius:6px;
+  font-size:10.5px; font-weight:700; padding:0 5px; margin-left:4px; vertical-align:1px}
+.resbtns{display:grid; grid-template-columns:1fr .8fr 1fr; gap:8px; margin-top:12px}
+.resbtns .btn{padding:12px 4px; font-family:"Jua",sans-serif; font-weight:400; font-size:15.5px}
+.resbtns .w{background:var(--surface); border:1.5px solid var(--line); color:var(--ink)}
+.resbtns .t{background:var(--gold-soft); color:var(--gold)}
+.resbtns .g{background:var(--green); color:#fff}
+.stake{margin-top:10px; text-align:center; font-size:13px; color:var(--muted)}
+.stake b{color:var(--flag); font-variant-numeric:tabular-nums}
+
+.totals{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.tot{background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:8px 6px; text-align:center}
+.tot .n{font-size:12px; font-weight:700; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tot .v{font-family:"Jua",sans-serif; font-size:16px; font-variant-numeric:tabular-nums}
+.tot .v.pay{color:var(--flag)}
+.potline{margin-top:10px; display:flex; justify-content:space-between; font-size:13.5px; color:var(--muted)}
+.potline b{color:var(--ink); font-variant-numeric:tabular-nums}
+
+.histwrap{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap}
+th{color:var(--muted); font-size:11.5px; letter-spacing:.05em}
+td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.res-T{color:var(--gold); font-weight:700}
+.toolrow{display:flex; gap:8px; margin-top:12px}
+.toolrow .btn{flex:1; font-size:13.5px; padding:9px 6px}
+.finale{text-align:center; padding:6px 0 2px}
+.finale h2{font-family:"Jua",sans-serif; font-weight:400; font-size:22px; margin:0 0 4px}
+.finale p{margin:0; color:var(--muted); font-size:13.5px}
+.empty{color:var(--muted); font-size:13.5px; text-align:center; padding:10px 6px}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>골프 뽑기</h1><span class="sp"></span>
+  <span class="multchip" id="multChip" hidden>배판 ×2</span>
+  <span class="holechip" id="holeChip" hidden>HOLE 1</span>
+</header>
+
+<!-- 설정 -->
+<section class="panel" id="setupPanel">
+  <div class="label">참가자 4명</div>
+  <div class="names">
+    <input id="n0" maxlength="8" placeholder="플레이어 1" autocomplete="off">
+    <input id="n1" maxlength="8" placeholder="플레이어 2" autocomplete="off">
+    <input id="n2" maxlength="8" placeholder="플레이어 3" autocomplete="off">
+    <input id="n3" maxlength="8" placeholder="플레이어 4" autocomplete="off">
+  </div>
+  <div class="label" style="margin-top:14px">홀당 금액 (진 팀 1인당 적립)</div>
+  <div class="feein">
+    <button class="stepbtn" id="feeMinus" aria-label="금액 줄이기">−</button>
+    <input id="feeIn" inputmode="numeric" value="5,000">
+    <span class="unit">원</span>
+    <button class="stepbtn" id="feePlus" aria-label="금액 늘리기">＋</button>
+  </div>
+  <div class="label" style="margin-top:14px">진행 방식</div>
+  <div class="seg" id="dmSeg" role="group" aria-label="진행 방식">
+    <button data-dm="app" aria-pressed="true">앱에서 뽑기</button>
+    <button data-dm="rec" aria-pressed="false">결과만 기록</button>
+  </div>
+  <div class="hintline" id="dmHint">흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 동점 홀은 다음 홀이 배판(×2, 연속되면 ×4…)이 됩니다.</div>
+  <div style="margin-top:12px"><button class="btn main" id="startBtn">라운드 시작</button></div>
+</section>
+
+<!-- 뽑기 -->
+<section class="panel" id="drawPanel" hidden>
+ <div id="appDraw">
+  <div class="turnline"><b id="turnName"></b><small id="turnHint">카드를 눌러 뽑으세요</small></div>
+  <div class="bigwrap" id="bigwrap"></div>
+  <div class="drawnrow" id="drawnRow"></div>
+ </div>
+ <div id="recArea" hidden>
+  <div class="turnline"><b>진 팀 기록</b><small>진 팀 두 명을 누르세요</small></div>
+  <div class="recgrid" id="recGrid"></div>
+  <div class="stake" id="recStake" style="margin:0 0 10px"></div>
+  <div class="recbtns">
+    <button class="btn t" id="recTie">동점</button>
+    <button class="btn g" id="recSave" disabled>진 팀 확정</button>
+  </div>
+ </div>
+  <div id="teamsArea" hidden>
+    <div class="teams">
+      <div class="team W"><h3>흰팀</h3><div class="mem" id="memW"></div></div>
+      <div class="team G"><h3>녹팀</h3><div class="mem" id="memG"></div></div>
+    </div>
+    <div class="stake" id="stakeLine"></div>
+    <div class="resbtns">
+      <button class="btn w" id="winW">흰팀 승</button>
+      <button class="btn t" id="winT">동점</button>
+      <button class="btn g" id="winG">녹팀 승</button>
+    </div>
+  </div>
+</section>
+
+<!-- 라운드 종료 -->
+<section class="panel" id="endPanel" hidden>
+  <div class="finale">
+    <h2>18홀 종료</h2>
+    <p id="endLine"></p>
+  </div>
+</section>
+
+<!-- 스코어보드 -->
+<section class="panel" id="scorePanel" hidden>
+  <div class="label">적립 현황</div>
+  <div class="totals" id="totals"></div>
+  <div class="potline"><span>총 적립금</span><b id="potSum">0원</b></div>
+  <div class="histwrap" style="margin-top:10px">
+    <table id="histTable" hidden>
+      <thead><tr><th>홀</th><th>배</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead>
+      <tbody id="histBody"></tbody>
+    </table>
+  </div>
+  <div class="empty" id="histEmpty">아직 끝난 홀이 없습니다</div>
+  <div class="toolrow">
+    <button class="btn ghost" id="undoBtn">이전 홀 취소</button>
+    <button class="btn ghost" id="switchBtn">방식 전환</button>
+    <button class="btn warn" id="resetBtn">새 라운드</button>
+  </div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('ko-KR');
+let names=['',''  ,'',''], fee=5000, started=false, drawMode='app';
+let history=[];            // app: {colors:[4], joker, result:'W'|'G'|'T'} / 기록: {result:'L', losers:[i,j]} 또는 {result:'T'}
+let draw=null;             // {pool:[5], taken, colors:[4], busy}
+let recSel=[];             // 기록 모드에서 선택된 진 팀
+let resetArmed=false;
+
+/* ---------- 저장/복원 ---------- */
+function save(){ try{
+  localStorage.setItem('gd2', JSON.stringify({names,fee,started,history,drawMode}));
+}catch(e){} }
+try{
+  const s=JSON.parse(localStorage.getItem('gd2')||'null');
+  if(s){ names=s.names||names; fee=s.fee||5000; started=!!s.started; history=Array.isArray(s.history)?s.history:[];
+    if(s.drawMode==='rec') drawMode='rec'; }
+}catch(e){}
+
+/* ---------- 파생 값 ---------- */
+function curHole(){ return history.length+1; }
+function multAt(i){ let m=1; for(let k=0;k<i;k++) m = history[k].result==='T' ? m*2 : 1; return m; }
+function curMult(){ return multAt(history.length); }
+function losersOf(h){
+  if(h.result==='T') return [];
+  if(h.result==='L') return h.losers||[];
+  return teamOf(h, h.result==='W'?'G':'W');
+}
+function totals(){
+  const t=[0,0,0,0];
+  history.forEach((h,i)=>{
+    const m=multAt(i);
+    losersOf(h).forEach(p=>t[p]+=fee*m);
+  });
+  return t;
+}
+function teamOf(h,color){
+  const team=[];
+  h.colors.forEach((c,p)=>{ if(c===color || (c==='J' && jokerSide(h)===color)) team.push(p); });
+  return team;
+}
+function jokerSide(h){
+  const w=h.colors.filter(c=>c==='W').length;
+  return w<2 ? 'W' : 'G';
+}
+
+/* ---------- 설정 ---------- */
+function loadSetupUI(){
+  for(let i=0;i<4;i++) $('n'+i).value=names[i]||'';
+  $('feeIn').value=fmt(fee);
+}
+$('feeIn').addEventListener('change',()=>{
+  const v=parseInt($('feeIn').value.replace(/[^\d]/g,''),10);
+  fee=isNaN(v)||v<100?5000:v; $('feeIn').value=fmt(fee); save(); render();
+});
+$('feeMinus').onclick=()=>{ fee=Math.max(500, fee-500); $('feeIn').value=fmt(fee); save(); render(); };
+$('feePlus').onclick=()=>{ fee+=500; $('feeIn').value=fmt(fee); save(); render(); };
+$('dmSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  drawMode=b.dataset.dm; save(); syncDmUI();
+});
+function syncDmUI(){
+  [...$('dmSeg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.dm===drawMode?'true':'false'));
+  $('dmHint').textContent = drawMode==='app'
+    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 동점 홀은 다음 홀이 배판(×2, 연속되면 ×4…)이 됩니다.'
+    : '뽑기는 현장에서 직접 하고, 홀마다 진 팀 두 명만 기록하면 배판까지 자동 정산됩니다.';
+}
+$('startBtn').onclick=()=>{
+  for(let i=0;i<4;i++){ const v=$('n'+i).value.trim(); names[i]=v||('P'+(i+1)); }
+  started=true; save(); render();
+};
+
+/* ---------- 뽑기 ---------- */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const LABT={W:'흰',G:'녹',J:'조커'};
+function startDraw(){
+  draw={ pool:shuffle(['W','W','G','G','J']), taken:0, colors:[null,null,null,null], busy:false };
+  renderDraw();
+}
+function drawOrder(k){ return k; }  // 뽑는 순서 고정: 등록 순서대로
+
+function ballHTML(c,extra){ return '<span class="ball '+c+(extra||'')+'">'+(c==='J'?'J':'')+'</span>'; }
+function renderDraw(){
+  $('teamsArea').hidden=true;
+  renderBigCard();
+  renderDrawnRow();
+  updateTurnLine();
+}
+function renderBigCard(){
+  const w=$('bigwrap'); w.innerHTML='';
+  if(draw.taken>=4) return;
+  const b=document.createElement('button'); b.className='card big';
+  b.setAttribute('aria-label','뽑기 카드');
+  b.innerHTML='<span class="inner"><span class="face back"></span>'+
+    '<span class="face front"><span class="who"></span><span class="ballspot"></span><span class="lab"></span></span></span>';
+  b.onclick=()=>pick(b);
+  w.appendChild(b);
+}
+function renderDrawnRow(){
+  $('drawnRow').innerHTML=[0,1,2,3].map(k=>{
+    const p=drawOrder(k), c=draw.colors[p];
+    if(c) return '<span class="drawn">'+ballHTML(c)+esc(names[p])+'</span>';
+    return '<span class="drawn wait"><span class="ball"></span>'+esc(names[p])+'</span>';
+  }).join('');
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+function updateTurnLine(){
+  if(draw.taken<4){
+    $('turnName').textContent=names[drawOrder(draw.taken)]+' 차례';
+    $('turnHint').hidden=false;
+  }else{
+    $('turnName').textContent='팀 확정!';
+    $('turnHint').hidden=true;
+  }
+}
+function pick(btn){
+  if(!draw || draw.busy || draw.taken>=4) return;
+  draw.busy=true;
+  const p=drawOrder(draw.taken);
+  const c=draw.pool[draw.taken];
+  draw.colors[p]=c; draw.taken++;
+  btn.querySelector('.who').textContent=names[p];
+  btn.querySelector('.ballspot').outerHTML=ballHTML(c);
+  const lab=btn.querySelector('.lab'); lab.textContent=LABT[c]; lab.classList.add(c);
+  btn.classList.add('flipped'); btn.disabled=true;
+  setTimeout(()=>{
+    draw.busy=false;
+    renderDrawnRow();
+    if(draw.taken>=4){ $('bigwrap').innerHTML=''; updateTurnLine(); showTeams(); }
+    else renderDraw();
+  }, 1100);
+}
+function showTeams(){
+  const h={colors:draw.colors};
+  const W=teamOf(h,'W').map(p=>memHTML(p,h)), G=teamOf(h,'G').map(p=>memHTML(p,h));
+  $('memW').innerHTML=W.join('<br>'); $('memG').innerHTML=G.join('<br>');
+  const m=curMult();
+  $('stakeLine').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (배판 ×'+m+')':'');
+  $('teamsArea').hidden=false;
+}
+function memHTML(p,h){
+  const esc=s=>s.replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  return esc(names[p])+(h.colors[p]==='J'?'<span class="jk">JOKER</span>':'');
+}
+function finishHole(result){
+  const jk=draw.colors.indexOf('J');
+  history.push({colors:draw.colors, joker:jk>=0?jk:null, result});
+  draw=null; save(); render();
+}
+$('winW').onclick=()=>finishHole('W');
+$('winG').onclick=()=>finishHole('G');
+$('winT').onclick=()=>finishHole('T');
+
+/* ---------- 기록 모드 ---------- */
+function renderRec(){
+  $('recGrid').innerHTML='';
+  names.forEach((n,i)=>{
+    const b=document.createElement('button'); b.className='pbtn'+(recSel.includes(i)?' sel':'');
+    b.textContent=n; b.setAttribute('aria-pressed', recSel.includes(i)?'true':'false');
+    b.onclick=()=>{
+      const k=recSel.indexOf(i);
+      if(k>=0) recSel.splice(k,1);
+      else{ if(recSel.length>=2) recSel.shift(); recSel.push(i); }
+      renderRec();
+    };
+    $('recGrid').appendChild(b);
+  });
+  const m=curMult();
+  $('recStake').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (배판 ×'+m+')':'');
+  $('recSave').disabled = recSel.length!==2;
+}
+$('recSave').onclick=()=>{
+  if(recSel.length!==2) return;
+  history.push({result:'L', losers:[...recSel].sort()});
+  recSel=[]; save(); render();
+};
+$('recTie').onclick=()=>{
+  history.push({result:'T'});
+  recSel=[]; save(); render();
+};
+
+/* ---------- 스코어보드 ---------- */
+function renderScore(){
+  const t=totals();
+  $('totals').innerHTML=t.map((v,i)=>
+    '<div class="tot"><div class="n">'+names[i]+'</div><div class="v'+(v>0?' pay':'')+'">'+fmt(v)+'</div></div>').join('');
+  $('potSum').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
+  const rows=history.map((h,i)=>{
+    const m=multAt(i);
+    let res,paid='—',who='—';
+    if(h.result==='T'){ res='동점'; }
+    else{
+      res=h.result==='W'?'흰팀 승':h.result==='G'?'녹팀 승':'승부';
+      paid=fmt(fee*m);
+      who=losersOf(h).map(p=>names[p]).join('·');
+    }
+    return '<tr><td>'+(i+1)+'</td><td>'+(m>1?'×'+m:'')+'</td><td class="res-'+h.result+'">'+res+'</td><td>'+paid+'</td><td>'+who+'</td></tr>';
+  }).join('');
+  $('histBody').innerHTML=rows;
+  $('histTable').hidden=!history.length;
+  $('histEmpty').hidden=!!history.length;
+}
+$('undoBtn').onclick=()=>{
+  if(!history.length) return;
+  history.pop(); draw=null; recSel=[]; save(); render();
+};
+$('switchBtn').onclick=()=>{
+  drawMode = drawMode==='app' ? 'rec' : 'app';
+  draw=null; recSel=[]; save(); syncDmUI(); render();
+};
+$('resetBtn').onclick=()=>{
+  if(!resetArmed){ resetArmed=true; $('resetBtn').textContent='정말 초기화?'; setTimeout(()=>{resetArmed=false; $('resetBtn').textContent='새 라운드';},2500); return; }
+  resetArmed=false; $('resetBtn').textContent='새 라운드';
+  history=[]; started=false; draw=null; save(); loadSetupUI(); render();
+};
+
+/* ---------- 화면 전환 ---------- */
+function render(){
+  const done=started && history.length>=18;
+  $('setupPanel').hidden=started;
+  $('drawPanel').hidden=!started || done;
+  $('endPanel').hidden=!done;
+  $('scorePanel').hidden=!started;
+  $('holeChip').hidden=!started || done;
+  $('holeChip').textContent='HOLE '+Math.min(curHole(),18);
+  const m=curMult();
+  $('multChip').hidden=!started || done || m<=1;
+  $('multChip').textContent='배판 ×'+m;
+  if(started && !done){
+    const app = drawMode==='app';
+    $('appDraw').hidden=!app;
+    $('recArea').hidden=app;
+    if(app){ if(!draw) startDraw(); }
+    else{ $('teamsArea').hidden=true; renderRec(); }
+  }
+  if(done){
+    const t=totals(); const mx=Math.max(...t);
+    const worst=names.filter((_,i)=>t[i]===mx&&mx>0);
+    $('endLine').textContent = mx>0 ? '오늘의 물주: '+worst.join(', ')+' ('+fmt(mx)+'원)' : '전홀 동점?! 다음에 다시 붙시죠';
+  }
+  if(started && !done) renderScore(); else if(done) renderScore();
+}
+
+loadSetupUI();
+syncDmUI();
+render();
+</script>
+
+</body></html>
