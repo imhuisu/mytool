@@ -193,6 +193,8 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 .sc-card td .o{color:var(--muted)}
 .sc-card td .o2{color:var(--ink); font-weight:700}
 .sc-card + .sc-card{margin-top:4px}
+.scjump{font-family:"Jua",sans-serif; font-size:15px; border:1.5px solid var(--green); background:var(--surface); color:var(--green-deep);
+  border-radius:999px; padding:3px 12px; cursor:pointer; white-space:nowrap}
 .sc-sum{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; text-align:center; font-size:12px; color:var(--muted)}
 .sc-sum b{display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:17px; color:var(--ink)}
 .joinrow{display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:8px}
@@ -219,7 +221,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 <div class="wrap">
 <header>
   <h1>골프 뽑기</h1>
-  <span class="chips"><span class="multchip" id="multChip" hidden>이월 ×2</span>
+  <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
 <div class="roundinfo" id="roundInfo" hidden></div>
@@ -326,6 +328,12 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   </div>
 </section>
 
+<!-- 스코어카드 -->
+<section class="panel" id="cardPanel" hidden>
+  <div class="turnline" style="margin-bottom:0"><b>스코어카드</b><small id="cardSub"></small></div>
+  <div id="cardWrap"></div>
+</section>
+
 <!-- 라운드 종료 -->
 <section class="panel" id="endPanel" hidden>
   <div class="finale">
@@ -357,8 +365,6 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   </div>
   <div class="empty" id="histEmpty">아직 끝난 홀이 없습니다</div>
   <div class="hintline" id="editHint" hidden>홀 줄을 누르면 그 홀 결과·±를 고칠 수 있어요</div>
-  <button class="btn ghost wide" id="cardBtn">전체 스코어 보기</button>
-  <div id="cardWrap" hidden></div>
   <div class="toolrow">
     <button class="btn save" id="archBtn">기록 저장</button>
     <button class="btn ghost" id="switchBtn">방식 전환</button>
@@ -686,8 +692,10 @@ function renderScore(){
   $('histTable').hidden=!history.length;
   $('histEmpty').hidden=!!history.length;
   $('editHint').hidden=!history.length;
-  $('cardBtn').hidden=!history.some(h=>h.scores);
-  if(!$('cardWrap').hidden) $('cardWrap').innerHTML=scorecardHTML(history,names,parsOf(course,front,back));
+  const nSc=history.filter(h=>h.scores).length;
+  $('cardPanel').hidden=!nSc; $('scJump').hidden=!nSc;
+  $('cardSub').textContent=nSc?nSc+'홀까지':'';
+  if(nSc) $('cardWrap').innerHTML=scorecardHTML(history,names,parsOf(course,front,back));
 }
 
 /* ---------- 전체 스코어 (스코어카드) ---------- */
@@ -711,10 +719,9 @@ function scorecardHTML(hist,nm,pars){
     return '<div>'+esc(n)+'<b>'+(pars?st+' ':'')+'<small>('+sgn(pm)+')</small></b></div>'; }).join('');
   return half(0)+half(1)+'<div class="sc-sum">'+tot+'</div>';
 }
-$('cardBtn').onclick=()=>{
-  const w=$('cardWrap'); w.hidden=!w.hidden;
-  $('cardBtn').textContent=w.hidden?'전체 스코어 보기':'전체 스코어 접기';
-  if(!w.hidden) w.innerHTML=scorecardHTML(history,names,parsOf(course,front,back));
+$('scJump').onclick=()=>{
+  const t=(room&&rs)?$('rCard'):$('cardPanel');
+  t.scrollIntoView({behavior:'smooth', block:'start'});
 };
 
 /* ---------- 지난 홀 수정 ---------- */
@@ -993,7 +1000,8 @@ function renderRoom(){
   $('rPot').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
   $('rHistBody').innerHTML=histRows(H,rs.fee,nm);
   $('rHistTable').hidden=!H.length;
-  $('rCard').innerHTML=H.some(h=>h.scores)?scorecardHTML(H,nm,pars):'';
+  $('rCard').innerHTML=H.some(h=>h.scores)?'<div class="label" style="margin-top:14px">스코어카드 · '+H.filter(h=>h.scores).length+'홀까지</div>'+scorecardHTML(H,nm,pars):'';
+  $('scJump').hidden=!H.some(h=>h.scores);
   $('rUndoBtn').hidden=!H.length;
 }
 $('roomBody').addEventListener('click',e=>{
@@ -1011,7 +1019,7 @@ function render(){
   $('roomPanel').hidden=!inRoom; $('roomScore').hidden=!inRoom;
   $('joinPanel').hidden=inRoom||started;
   if(inRoom){
-    ['setupPanel','drawPanel','endPanel','scorePanel','editPanel'].forEach(id=>$(id).hidden=true);
+    ['setupPanel','drawPanel','endPanel','scorePanel','editPanel','cardPanel'].forEach(id=>$(id).hidden=true);
     renderRoom(); return;
   }
   const done=started && history.length>=18;
@@ -1019,6 +1027,7 @@ function render(){
   $('drawPanel').hidden=!started || done;
   $('endPanel').hidden=!done;
   $('scorePanel').hidden=!started;
+  if(!started){ $('cardPanel').hidden=true; $('scJump').hidden=true; }
   $('holeChip').hidden=!started || done;
   const hn=Math.min(curHole(),18), par=parAt(hn);
   $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
