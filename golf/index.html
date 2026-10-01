@@ -62,7 +62,8 @@ header{flex-wrap:wrap; row-gap:6px}
 .subc{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px}
 .subc label{display:flex; flex-direction:column; gap:3px; font-size:12px; font-weight:700; color:var(--muted)}
 .subc select{width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:9px 10px; font:inherit}
-.subc .pars{font-size:13px; color:var(--ink); font-weight:500; letter-spacing:.06em; font-variant-numeric:tabular-nums; white-space:nowrap}
+.subc .pars{display:grid; grid-template-columns:repeat(9,1fr); margin-top:2px; padding:0 2px;
+  font-family:"Jua",sans-serif; font-size:18px; color:var(--ink); text-align:center; font-variant-numeric:tabular-nums}
 .names input:focus,.feein input:focus,.meta input:focus{outline:2px solid var(--green); outline-offset:1px}
 .roundinfo{margin:-6px 0 10px; font-size:13.5px; font-weight:700; color:var(--muted)}
 .feein{display:flex; align-items:center; gap:8px; margin-top:12px}
@@ -398,8 +399,9 @@ function syncSubC(){
   [['frontSel',front],['backSel',back]].forEach(([id,v])=>{
     $(id).innerHTML=ks.map(x=>'<option'+(x===v?' selected':'')+'>'+x+'</option>').join('');
   });
-  $('parF').textContent=c[front].join(' ');
-  $('parB').textContent=c[back].join(' ');
+  const cells=a=>a.map(n=>'<span>'+n+'</span>').join('');
+  $('parF').innerHTML=cells(c[front]);
+  $('parB').innerHTML=cells(c[back]);
 }
 $('dateIn').addEventListener('change',()=>{ date=$('dateIn').value||todayStr(); save(); });
 $('courseIn').addEventListener('input',()=>{ course=$('courseIn').value.trim(); syncSubC(); save(); showSug(); });
