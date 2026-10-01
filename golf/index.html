@@ -402,7 +402,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div class="label">지난 기록</div>
   <div id="archList"></div>
 </section>
-<div class="hintline" style="text-align:center;opacity:.6">버전 2026-10-01 · 8</div>
+<div class="hintline" style="text-align:center;opacity:.6">버전 2026-10-01 · 9</div>
 </div>
 
 <script>
@@ -926,7 +926,7 @@ try{ room=JSON.parse(localStorage.getItem('gd2-room')||'null'); }catch(e){}
 function saveRoom(){ try{ room?localStorage.setItem('gd2-room',JSON.stringify(room)):localStorage.removeItem('gd2-room'); }catch(e){} }
 function roomErr(j){
   const e=j&&j.error;
-  return e==='no_db'?'서버가 아직 연결되지 않았어요 (Cloudflare 설정 필요)'
+  return (e==='no_db'||e==='http404'||e==='http405')?'서버가 아직 연결되지 않았어요 (Cloudflare 설정 필요)'
     : e==='no_room'?'그런 방이 없어요. 코드를 확인해 주세요'
     : e==='net'?'연결이 안 돼요. 인터넷을 확인해 주세요'
     : '문제가 생겼어요 ('+(e||'?')+')';
