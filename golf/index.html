@@ -96,6 +96,11 @@ header{flex-wrap:wrap; row-gap:6px}
 .drawnrow{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:4px}
 .drawn{display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11.5px; font-weight:700; color:var(--muted)}
 .drawn .ball{width:26px; height:26px; font-size:12px}
+.drawnrow.sc{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px}
+.drawn .dsc{font-family:"Jua",sans-serif; font-weight:400; font-size:18px; color:var(--ink); line-height:1.1}
+.drawn .dsc.u{color:var(--flag)}
+.drawn .dst{font-size:11px; font-weight:500}
+.drawn .dnm{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .drawn.wait .ball{background:var(--bg); border-style:dashed}
 .card{aspect-ratio:3/4.2; perspective:600px; cursor:pointer; border:0; background:none; padding:0}
 .card:focus-visible .face.back{outline:2px solid var(--green-deep); outline-offset:2px}
@@ -598,10 +603,13 @@ function renderBigCard(){
   w.appendChild(b);
 }
 function renderDrawnRow(){
+  // 스코어 먼저 방식이면 이번 홀 스코어를 사람별로 같이 보여줌
+  const showSc=order==='post', par=parAt(curHole());
+  $('drawnRow').classList.toggle('sc',showSc);
   $('drawnRow').innerHTML=[0,1,2,3].map(k=>{
-    const p=drawOrder(k), c=draw.colors[p];
-    if(c) return '<span class="drawn">'+ballHTML(c)+esc(names[p])+'</span>';
-    return '<span class="drawn wait"><span class="ball"></span>'+esc(names[p])+'</span>';
+    const p=drawOrder(k), c=draw.colors[p], v=draw.scores[p];
+    const sc=showSc?'<span class="dsc'+(v<0?' u':'')+'">'+sgn(v)+'</span><span class="dst">'+(par?(par+v)+'타':(SCNAME[v]||''))+'</span>':'';
+    return '<span class="drawn'+(c?'':' wait')+'">'+(c?ballHTML(c):'<span class="ball"></span>')+'<span class="dnm">'+esc(names[p])+'</span>'+sc+'</span>';
   }).join('');
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
@@ -1032,7 +1040,7 @@ function renderRoom(){
     const P=rs.plays, allDrawn=P.every(x=>x.drawn), allDone=P.every(x=>x.done), post=rs.order!=='pre';
     const mine=P[me], v=myScore.v;
     const status=x=> post
-      ? (allDone ? (x.drawn?'뽑음':'') : (x.done?'✓ 입력':'입력 중'))
+      ? (allDone ? sgn(x.score)+(x.drawn?' · 뽑음':'') : (x.done?'✓ 입력':'입력 중'))
       : (allDrawn ? (x.done?'✓ '+sgn(x.score):'입력 중') : (x.drawn?'뽑음':''));
     html+='<div class="stat">'+P.map(x=>'<span class="s'+(x.p===me?' me':'')+'">'+
       (x.color?ballHTML(x.color):'<span class="ball wait"></span>')+esc(nm[x.p])+'<em>'+status(x)+'</em></span>').join('')+'</div>';
