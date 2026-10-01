@@ -153,7 +153,7 @@ header{flex-wrap:wrap; row-gap:6px}
 .stake{margin-top:10px; text-align:center; font-size:13px; color:var(--muted)}
 .stake b{color:var(--flag); font-variant-numeric:tabular-nums}
 
-.totals{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.totals{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px}
 .tot{background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:8px 6px; text-align:center}
 .tot .n{font-size:12px; font-weight:700; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .tot .v{font-family:"Jua",sans-serif; font-size:16px; font-variant-numeric:tabular-nums}
@@ -184,10 +184,12 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 .edbtns .btn{padding:12px 4px}
 .btn.wide{width:100%; margin-top:12px}
 .sc-card{overflow-x:auto; margin-top:10px}
-.sc-card table{font-size:12.5px; table-layout:fixed; min-width:300px}
+.sc-card table{font-size:12.5px; table-layout:fixed}
 .sc-card th,.sc-card td{padding:5px 0; border-bottom:1px solid var(--line)}
-.sc-card th:first-child,.sc-card td:first-child{width:52px; text-align:left; padding-left:4px; overflow:hidden; text-overflow:ellipsis}
-.sc-card th:last-child,.sc-card td:last-child{width:34px; font-weight:700}
+.sc-card th:first-child,.sc-card td:first-child{width:46px; text-align:left; padding-left:4px; overflow:hidden; text-overflow:ellipsis}
+.sc-card th:last-child,.sc-card td:last-child{width:30px; font-weight:700}
+.sc-card th.pm,.sc-card td.pm{width:28px; font-weight:700; font-size:12px}
+.sc-card td.pm.u{color:var(--flag)}
 .sc-card tr.par td{color:var(--muted); font-size:11.5px}
 .sc-card td .u{display:inline-block; min-width:20px; border-radius:50%; color:var(--flag); font-weight:700}
 .sc-card td .o{color:var(--muted)}
@@ -709,10 +711,15 @@ function scorecardHTML(hist,nm,pars){
   const half=k=>{
     const idx=[...Array(9)].map((_,j)=>k*9+j);
     if(!idx.some(i=>hist[i]&&hist[i].scores) && !(pars&&k===0)) return '';
-    const sumOf=p=>{ let st=0,pm=0,n=0; idx.forEach(i=>{ const h=hist[i]; if(h&&h.scores){ pm+=h.scores[p]; if(pars) st+=pars[i]+h.scores[p]; n++; } }); return n?(pars?st:sgn(pm)):''; };
-    let t='<div class="sc-card"><table><thead><tr><th>'+(k?'후반':'전반')+'</th>'+idx.map(i=>'<th>'+(i+1)+'</th>').join('')+'<th>합</th></tr></thead><tbody>';
-    if(pars) t+='<tr class="par"><td>파</td>'+idx.map(i=>'<td>'+pars[i]+'</td>').join('')+'<td>'+idx.reduce((a,i)=>a+pars[i],0)+'</td></tr>';
-    t+=nm.map((n,p)=>'<tr><td>'+esc(n)+'</td>'+idx.map(i=>'<td>'+cell(i,p)+'</td>').join('')+'<td>'+sumOf(p)+'</td></tr>').join('');
+    const agg=p=>{ let st=0,pm=0,n=0; idx.forEach(i=>{ const h=hist[i]; if(h&&h.scores){ pm+=h.scores[p]; if(pars) st+=pars[i]+h.scores[p]; n++; } }); return {st,pm,n}; };
+    // 파 정보가 있으면: 합(타수) + 파 대비 ± 칸, 없으면 합 칸에 ±
+    const pmTd=a=>'<td class="pm'+(a.n&&a.pm<0?' u':'')+'">'+(a.n?sgn(a.pm):'')+'</td>';
+    let t='<div class="sc-card"><table><thead><tr><th>'+(k?'후반':'전반')+'</th>'+idx.map(i=>'<th>'+(i+1)+'</th>').join('')+
+      (pars?'<th class="pm">±</th>':'')+'<th>합</th></tr></thead><tbody>';
+    if(pars) t+='<tr class="par"><td>파</td>'+idx.map(i=>'<td>'+pars[i]+'</td>').join('')+'<td class="pm"></td><td>'+idx.reduce((a,i)=>a+pars[i],0)+'</td></tr>';
+    t+=nm.map((n,p)=>{ const a=agg(p);
+      return '<tr><td>'+esc(n)+'</td>'+idx.map(i=>'<td>'+cell(i,p)+'</td>').join('')+
+        (pars?pmTd(a)+'<td>'+(a.n?a.st:'')+'</td>':'<td>'+(a.n?sgn(a.pm):'')+'</td>')+'</tr>'; }).join('');
     return t+'</tbody></table></div>';
   };
   const tot=nm.map((n,p)=>{ let st=0,pm=0; hist.forEach((h,i)=>{ if(h.scores){ pm+=h.scores[p]; if(pars) st+=pars[i]+h.scores[p]; } });
