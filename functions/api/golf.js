@@ -8,6 +8,7 @@
  * POST {op:'draw',  code, hole, p}         p번 사람이 자기 카드 뒤집기
  * POST {op:'score', code, hole, p, score}  p번 사람이 자기 ± 확정. 4명 다 확정되면 홀 마감
  * POST {op:'unscore', code, hole, p}       확정 취소 (다른 사람이 다 넣기 전까지)
+ * POST {op:'skip',  code, hole}            내기 없이 스코어만 기록 (4명 다 확정, 아무도 안 뽑았을 때)
  * POST {op:'undo',  code, hole}            마지막으로 끝난 홀 되돌리기
  *
  * 카드: 홀마다 방 seed + 홀 번호로 섞은 5장 중 p번째가 p번 사람 카드 (누가 요청해도 같은 결과)
@@ -152,6 +153,15 @@ export async function onRequest({ request, env }) {
       if (plays.some(x => x.drawn)) return state(db, code);
     }
     await db.prepare('UPDATE golf_plays SET done=0 WHERE code=? AND hole=? AND p=?').bind(code, hole, b.p).run();
+  } else if (b.op === 'skip') {
+    const plays = await getPlays(db, code, hole);
+    if (plays.every(x => x.done) && !plays.some(x => x.drawn)) {
+      const data = room.data;
+      data.history = (data.history || []).slice(0, hole);
+      data.history.push({ result: 'N', scores: plays.map(x => x.score | 0) });
+      await db.prepare('UPDATE golf_rooms SET data=?, hole=hole+1, updated=? WHERE code=? AND hole=?')
+        .bind(JSON.stringify(data), now, code, hole).run();
+    }
   } else if (b.op === 'undo' && hole > 0) {
     // 직전 홀은 카드는 그대로 두고 ± 확정만 풀어서 다시 입력하게
     const data = room.data; data.history = (data.history || []).slice(0, hole - 1);
