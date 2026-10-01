@@ -27,10 +27,12 @@ body{background:var(--bg); color:var(--ink); margin:0;
   font-family:"IBM Plex Sans KR",-apple-system,"Malgun Gothic",sans-serif; font-size:15px; line-height:1.5}
 .wrap{max-width:520px; margin:0 auto; padding-inline:16px; padding-block:14px 40px}
 header{display:flex; align-items:center; gap:10px; margin-bottom:12px}
-h1{font-family:"Jua",sans-serif; font-weight:400; font-size:25px; margin:0; letter-spacing:.5px}
-header .sp{flex:1}
+h1{font-family:"Jua",sans-serif; font-weight:400; font-size:25px; margin:0; letter-spacing:.5px; white-space:nowrap}
+.holechip,.multchip{white-space:nowrap}
+header{flex-wrap:wrap; row-gap:6px}
+.chips{margin-left:auto; display:flex; gap:8px}
 .holechip{font-family:"Jua",sans-serif; font-size:17px; background:var(--green); color:#fff;
-  border-radius:999px; padding:4px 14px; letter-spacing:1px}
+  border-radius:999px; padding:4px 12px; letter-spacing:.5px}
 .multchip{font-family:"Jua",sans-serif; font-size:15px; background:var(--flag); color:#fff;
   border-radius:999px; padding:4px 12px; letter-spacing:1px; animation:blink 1.2s infinite alternate}
 @keyframes blink{to{opacity:.65}}
@@ -50,6 +52,10 @@ header .sp{flex:1}
 .names input,.feein input,.meta input{width:100%; min-width:0; border:1px solid var(--line); background:var(--bg); color:var(--ink);
   border-radius:10px; padding:9px 12px; font:inherit}
 .meta input[type=date]{padding:8px 8px}
+.subc{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px}
+.subc label{display:flex; flex-direction:column; gap:3px; font-size:12px; font-weight:700; color:var(--muted)}
+.subc select{width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:9px 10px; font:inherit}
+.subc .pars{grid-column:1/-1; font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums}
 .names input:focus,.feein input:focus,.meta input:focus{outline:2px solid var(--green); outline-offset:1px}
 .roundinfo{margin:-6px 0 10px; font-size:13.5px; font-weight:700; color:var(--muted)}
 .feein{display:flex; align-items:center; gap:8px; margin-top:12px}
@@ -171,9 +177,9 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="sp"></span>
-  <span class="multchip" id="multChip" hidden>배판 ×2</span>
-  <span class="holechip" id="holeChip" hidden>HOLE 1</span>
+  <h1>골프 뽑기</h1>
+  <span class="chips"><span class="multchip" id="multChip" hidden>배판 ×2</span>
+  <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
 <div class="roundinfo" id="roundInfo" hidden></div>
 
@@ -182,7 +188,13 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div class="label">일자 · 골프장</div>
   <div class="meta">
     <input id="dateIn" type="date" aria-label="일자">
-    <input id="courseIn" maxlength="20" placeholder="골프장 이름" autocomplete="off" aria-label="골프장">
+    <input id="courseIn" maxlength="20" placeholder="골프장 이름" autocomplete="off" aria-label="골프장" list="courseList">
+  </div>
+  <datalist id="courseList"></datalist>
+  <div class="subc" id="subC" hidden>
+    <label>전반 (1~9홀)<select id="frontSel"></select></label>
+    <label>후반 (10~18홀)<select id="backSel"></select></label>
+    <div class="pars" id="parLine"></div>
   </div>
   <div class="label" style="margin-top:14px">참가자 4명</div>
   <div class="names">
@@ -280,18 +292,27 @@ let draw=null;             // {pool:[5], taken, colors:[4], busy}
 let recSel=[];             // 기록 모드에서 선택된 진 팀
 let resetArmed=false;
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-let date=todayStr(), course='', roundId=null;
+let date=todayStr(), course='', roundId=null, front='', back='';
+/* 골프장별 코스 파 (1~9홀). 출처: 예약·야디지 사이트 스코어카드, 2026-10 */
+const COURSES={
+  '힐데스하임':{ '레이크':[4,3,5,4,3,5,4,4,4], '힐':[4,3,4,5,4,4,5,3,4], '밸리':[4,4,3,4,4,5,4,3,5] },
+};
+function courseKey(c){ const t=(c||'').replace(/\s/g,''); return Object.keys(COURSES).find(k=>t.includes(k))||null; }
+function parAt(hole){
+  const c=COURSES[courseKey(course)]; if(!c) return null;
+  const arr=c[hole<=9?front:back]; return arr ? arr[(hole-1)%9] : null;
+}
 let rounds=[];             // 저장된 라운드: {id, date, course, names, fee, history, savedAt}
 
 /* ---------- 저장/복원 ---------- */
 function save(){ try{
-  localStorage.setItem('gd2', JSON.stringify({names,fee,started,history,drawMode,date,course,roundId}));
+  localStorage.setItem('gd2', JSON.stringify({names,fee,started,history,drawMode,date,course,roundId,front,back}));
 }catch(e){} }
 try{
   const s=JSON.parse(localStorage.getItem('gd2')||'null');
   if(s){ names=s.names||names; fee=s.fee||5000; started=!!s.started; history=Array.isArray(s.history)?s.history:[];
     if(s.drawMode==='rec') drawMode='rec';
-    if(s.date) date=s.date; course=s.course||''; roundId=s.roundId||null; }
+    if(s.date) date=s.date; course=s.course||''; roundId=s.roundId||null; front=s.front||''; back=s.back||''; }
 }catch(e){}
 function saveRounds(){ try{ localStorage.setItem('gd2-rounds', JSON.stringify(rounds)); }catch(e){} }
 try{ const r=JSON.parse(localStorage.getItem('gd2-rounds')||'[]'); if(Array.isArray(r)) rounds=r; }catch(e){}
@@ -336,9 +357,24 @@ function loadSetupUI(){
   for(let i=0;i<4;i++) $('n'+i).value=names[i]||'';
   $('feeIn').value=fmt(fee);
   $('dateIn').value=date; $('courseIn').value=course;
+  syncSubC();
+}
+$('courseList').innerHTML=Object.keys(COURSES).map(k=>'<option value="'+k+'">').join('');
+function syncSubC(){
+  const k=courseKey(course), c=COURSES[k];
+  $('subC').hidden=!c; if(!c) return;
+  const ks=Object.keys(c);
+  if(!c[front]) front=ks[0];
+  if(!c[back]) back=ks.find(x=>x!==front)||ks[0];
+  [['frontSel',front],['backSel',back]].forEach(([id,v])=>{
+    $(id).innerHTML=ks.map(x=>'<option'+(x===v?' selected':'')+'>'+x+'</option>').join('');
+  });
+  $('parLine').textContent='파 '+c[front].join(' ')+'  |  '+c[back].join(' ');
 }
 $('dateIn').addEventListener('change',()=>{ date=$('dateIn').value||todayStr(); save(); });
-$('courseIn').addEventListener('change',()=>{ course=$('courseIn').value.trim(); save(); });
+$('courseIn').addEventListener('input',()=>{ course=$('courseIn').value.trim(); syncSubC(); save(); });
+$('frontSel').onchange=()=>{ front=$('frontSel').value; syncSubC(); save(); };
+$('backSel').onchange=()=>{ back=$('backSel').value; syncSubC(); save(); };
 $('feeIn').addEventListener('change',()=>{
   const v=parseInt($('feeIn').value.replace(/[^\d]/g,''),10);
   fee=isNaN(v)||v<100?5000:v; $('feeIn').value=fmt(fee); save(); render();
@@ -540,7 +576,8 @@ $('undoBtn').onclick=()=>{
 function archiveCurrent(){
   if(!history.length) return false;
   if(!roundId){ roundId=Date.now(); save(); }
-  const entry={id:roundId, date, course, names:[...names], fee, history:history.map(h=>({...h})), savedAt:Date.now()};
+  const ck=!!courseKey(course);
+  const entry={id:roundId, date, course, front:ck?front:"", back:ck?back:"", names:[...names], fee, history:history.map(h=>({...h})), savedAt:Date.now()};
   const k=rounds.findIndex(r=>r.id===roundId);
   if(k>=0) rounds[k]=entry; else rounds.push(entry);
   rounds.sort((a,b)=>(b.date||'').localeCompare(a.date||'') || b.id-a.id);
@@ -557,7 +594,7 @@ function renderArch(){
   $('archPanel').hidden=!rounds.length;
   $('archList').innerHTML=rounds.map(r=>{
     const t=calcTotals(r.history,r.fee), pot=t.reduce((a,b)=>a+b,0);
-    const title=esc(roundTitle(r.date,r.course)||'일자 없음');
+    const title=esc((roundTitle(r.date,r.course)||'일자 없음')+(r.front?' · '+r.front+' → '+r.back:''));
     const sub=r.history.length+'홀 · 총 '+fmt(pot)+'원 · '+r.names.map(esc).join(', ');
     return '<details class="arch" data-id="'+r.id+'"><summary><b>'+title+'</b><small>'+sub+'</small></summary>'+
       '<div class="body"><div class="totals">'+totalsHTML(t,r.names,r.history)+'</div>'+
@@ -592,11 +629,12 @@ function render(){
   $('endPanel').hidden=!done;
   $('scorePanel').hidden=!started;
   $('holeChip').hidden=!started || done;
-  $('holeChip').textContent='HOLE '+Math.min(curHole(),18);
+  const hn=Math.min(curHole(),18), par=parAt(hn);
+  $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
   const m=curMult();
   $('multChip').hidden=!started || done || m<=1;
   $('multChip').textContent='배판 ×'+m;
-  const info=roundTitle(date,course);
+  const info=roundTitle(date,course)+(courseKey(course)&&front?' · '+front+' → '+back:'');
   $('roundInfo').hidden=!started || !info;
   $('roundInfo').textContent=info;
   if(started && !done){
