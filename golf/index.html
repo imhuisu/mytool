@@ -52,6 +52,13 @@ header{flex-wrap:wrap; row-gap:6px}
 .names input,.feein input,.meta input{width:100%; min-width:0; border:1px solid var(--line); background:var(--bg); color:var(--ink);
   border-radius:10px; padding:9px 12px; font:inherit}
 .meta input[type=date]{padding:8px 8px}
+.cwrap{position:relative; min-width:0}
+.csug{position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5; background:var(--surface); border:1px solid var(--line);
+  border-radius:10px; box-shadow:var(--shadow); overflow:hidden}
+.csug button{display:block; width:100%; text-align:left; border:0; border-bottom:1px solid var(--line); background:none; color:var(--ink);
+  font:inherit; font-weight:700; padding:11px 12px; cursor:pointer}
+.csug button:last-child{border-bottom:0}
+.csug button small{display:block; color:var(--muted); font-weight:500; font-size:12px}
 .subc{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px}
 .subc label{display:flex; flex-direction:column; gap:3px; font-size:12px; font-weight:700; color:var(--muted)}
 .subc select{width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:9px 10px; font:inherit}
@@ -188,9 +195,11 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div class="label">일자 · 골프장</div>
   <div class="meta">
     <input id="dateIn" type="date" aria-label="일자">
-    <input id="courseIn" maxlength="20" placeholder="골프장 이름" autocomplete="off" aria-label="골프장" list="courseList">
+    <div class="cwrap">
+      <input id="courseIn" maxlength="20" placeholder="골프장 선택" autocomplete="off" aria-label="골프장">
+      <div class="csug" id="cSug" hidden></div>
+    </div>
   </div>
-  <datalist id="courseList"></datalist>
   <div class="subc" id="subC" hidden>
     <label>전반 (1~9홀)<select id="frontSel"></select></label>
     <label>후반 (10~18홀)<select id="backSel"></select></label>
@@ -359,7 +368,28 @@ function loadSetupUI(){
   $('dateIn').value=date; $('courseIn').value=course;
   syncSubC();
 }
-$('courseList').innerHTML=Object.keys(COURSES).map(k=>'<option value="'+k+'">').join('');
+/* 골프장 칸을 누르면 목록: 파 정보 있는 곳 + 지난 기록의 골프장 */
+function courseOptions(){
+  const seen=new Set(), out=[];
+  Object.keys(COURSES).forEach(k=>{ seen.add(k); out.push({name:k, sub:Object.keys(COURSES[k]).join('·')}); });
+  rounds.forEach(r=>{ const c=(r.course||'').trim(); if(c && !courseKey(c) && !seen.has(c)){ seen.add(c); out.push({name:c, sub:'지난 기록'}); } });
+  return out;
+}
+function showSug(){
+  const q=$('courseIn').value.replace(/\s/g,'');
+  const list=courseOptions().filter(o=>!q || o.name.replace(/\s/g,'').includes(q) || q.includes(o.name.replace(/\s/g,'')));
+  $('cSug').innerHTML=list.map(o=>'<button type="button" data-c="'+esc(o.name)+'">'+esc(o.name)+'<small>'+esc(o.sub)+'</small></button>').join('');
+  $('cSug').hidden=!list.length;
+}
+$('courseIn').addEventListener('focus',showSug);
+$('courseIn').addEventListener('click',showSug);
+$('cSug').addEventListener('pointerdown',e=>e.preventDefault());   // 입력칸 포커스 유지
+$('cSug').addEventListener('click',e=>{
+  const b=e.target.closest('[data-c]'); if(!b) return;
+  $('courseIn').value=b.dataset.c; course=b.dataset.c; syncSubC(); save();
+  $('cSug').hidden=true; $('courseIn').blur();
+});
+$('courseIn').addEventListener('blur',()=>setTimeout(()=>{ $('cSug').hidden=true; },150));
 function syncSubC(){
   const k=courseKey(course), c=COURSES[k];
   $('subC').hidden=!c; if(!c) return;
@@ -372,7 +402,7 @@ function syncSubC(){
   $('parLine').textContent='파 '+c[front].join(' ')+'  |  '+c[back].join(' ');
 }
 $('dateIn').addEventListener('change',()=>{ date=$('dateIn').value||todayStr(); save(); });
-$('courseIn').addEventListener('input',()=>{ course=$('courseIn').value.trim(); syncSubC(); save(); });
+$('courseIn').addEventListener('input',()=>{ course=$('courseIn').value.trim(); syncSubC(); save(); showSug(); });
 $('frontSel').onchange=()=>{ front=$('frontSel').value; syncSubC(); save(); };
 $('backSel').onchange=()=>{ back=$('backSel').value; syncSubC(); save(); };
 $('feeIn').addEventListener('change',()=>{
