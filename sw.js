@@ -5,7 +5,7 @@
  *
  * 보통은 건드릴 일 없음. hub.js나 아이콘을 바꿨는데 폰에 안 바뀌면 VERSION 숫자만 올리기.
  */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'tools-' + VERSION;
 
 const CORE = [
@@ -73,6 +73,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
+  if (sameOrigin && url.pathname.includes('/api/')) return;   // 서버 API(골프 함께하기)는 항상 네트워크
 
   if (req.mode === 'navigate' && sameOrigin) {
     e.respondWith(networkFirst(req));

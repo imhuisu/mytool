@@ -195,6 +195,21 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 .sc-card + .sc-card{margin-top:4px}
 .sc-sum{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; text-align:center; font-size:12px; color:var(--muted)}
 .sc-sum b{display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:17px; color:var(--ink)}
+.joinrow{display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:8px}
+.joinrow input{width:100%; min-width:0; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px;
+  padding:9px 12px; font:inherit; font-size:18px; letter-spacing:.3em; text-align:center}
+.roommsg{font-size:13px; color:var(--flag); margin-top:8px; min-height:1em}
+.roomhead{display:flex; align-items:center; gap:8px; margin-bottom:10px}
+.roomhead b{font-family:"Jua",sans-serif; font-weight:400; font-size:21px; flex:1}
+.roomhead .btn{padding:7px 10px; font-size:13px}
+.stat{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:6px 0 10px}
+.stat .s{display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11.5px; font-weight:700; color:var(--muted); text-align:center}
+.stat .s.me{color:var(--ink)}
+.stat .s .ball{width:28px; height:28px}
+.stat .s .wait{background:var(--bg); border-style:dashed}
+.stat .s em{font-style:normal; font-size:11px; color:var(--green-deep)}
+.waitline{text-align:center; color:var(--muted); font-size:13.5px; margin:8px 0}
+.mybox{border:2px solid var(--green); border-radius:12px; padding:10px; margin-top:12px}
 .finale{text-align:center; padding:6px 0 2px}
 .finale h2{font-family:"Jua",sans-serif; font-weight:400; font-size:22px; margin:0 0 4px}
 .finale p{margin:0; color:var(--muted); font-size:13.5px}
@@ -244,6 +259,43 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   </div>
   <div class="hintline" id="dmHint">흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).</div>
   <div style="margin-top:12px"><button class="btn main" id="startBtn">라운드 시작</button></div>
+</section>
+
+<!-- 함께하기: 각자 폰으로 -->
+<section class="panel" id="joinPanel">
+  <div class="label">함께하기 · 각자 자기 폰으로</div>
+  <button class="btn ghost wide" id="mkRoomBtn" style="margin-top:0">위 설정으로 방 만들기</button>
+  <div class="joinrow">
+    <input id="joinCode" inputmode="numeric" maxlength="4" placeholder="방 코드" autocomplete="off" aria-label="방 코드">
+    <button class="btn save" id="joinBtn">들어가기</button>
+  </div>
+  <div class="roommsg" id="roomMsg"></div>
+  <div class="hintline" style="margin-top:2px">방을 만들면 4자리 코드가 나와요. 다른 사람은 코드를 넣거나 공유 링크로 들어와 자기 이름을 고르고, 자기 카드 뽑기·자기 ± 입력을 해요.</div>
+</section>
+
+<!-- 함께하기 진행 -->
+<section class="panel" id="roomPanel" hidden>
+  <div class="roomhead"><b id="roomTitle"></b>
+    <button class="btn ghost" id="shareBtn">공유</button>
+    <button class="btn warn" id="leaveBtn">나가기</button>
+  </div>
+  <div id="roomBody"></div>
+</section>
+<section class="panel" id="roomScore" hidden>
+  <div class="label">적립 현황</div>
+  <div class="totals" id="rTotals"></div>
+  <div class="potline"><span>총 적립금</span><b id="rPot">0원</b></div>
+  <div class="histwrap" style="margin-top:10px">
+    <table id="rHistTable" hidden>
+      <thead><tr><th>홀</th><th>이월</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead>
+      <tbody id="rHistBody"></tbody>
+    </table>
+  </div>
+  <div id="rCard"></div>
+  <div class="toolrow">
+    <button class="btn save" id="rArchBtn">내 기록에 저장</button>
+    <button class="btn ghost" id="rUndoBtn">이전 홀 되돌리기</button>
+  </div>
 </section>
 
 <!-- 뽑기 -->
@@ -775,8 +827,189 @@ $('resetBtn').onclick=()=>{
   history=[]; started=false; draw=null; roundId=null; edit=null; renderEdit(); date=todayStr(); save(); loadSetupUI(); render();
 };
 
+
+/* ---------- 함께하기 (서버: ../api/golf, Cloudflare Pages Functions + D1) ---------- */
+const API='../api/golf';
+let room=null;        // {code, me, archId}
+let rs=null;          // 서버 상태
+let rsKey='';
+let myScore={hole:-1, v:0};
+let pollT=null, roomBusy=false, rUndoArmed=false;
+try{ room=JSON.parse(localStorage.getItem('gd2-room')||'null'); }catch(e){}
+function saveRoom(){ try{ room?localStorage.setItem('gd2-room',JSON.stringify(room)):localStorage.removeItem('gd2-room'); }catch(e){} }
+function roomErr(j){
+  const e=j&&j.error;
+  return e==='no_db'?'서버가 아직 연결되지 않았어요 (Cloudflare 설정 필요)'
+    : e==='no_room'?'그런 방이 없어요. 코드를 확인해 주세요'
+    : e==='net'?'연결이 안 돼요. 인터넷을 확인해 주세요'
+    : '문제가 생겼어요 ('+(e||'?')+')';
+}
+async function api(method,body,code){
+  try{
+    const r=await fetch(API+(method==='GET'?'?code='+encodeURIComponent(code):''),
+      method==='GET'?{cache:'no-store'}:{method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body)});
+    let j=null; try{ j=await r.json(); }catch(e){}
+    if(!r.ok) return {error:(j&&j.error)||('http'+r.status)};
+    return j;
+  }catch(e){ return {error:'net'}; }
+}
+function setRs(j){
+  if(!j || j.error) return false;
+  const k=JSON.stringify(j); if(k===rsKey) return true;
+  rs=j; rsKey=k;
+  if(myScore.hole!==rs.hole){ myScore={hole:rs.hole, v:0}; const mine=room&&room.me!=null&&rs.plays[room.me]; if(mine&&mine.done&&mine.score!=null) myScore.v=mine.score; }
+  render();
+  return true;
+}
+$('mkRoomBtn').onclick=async()=>{
+  const nm=[0,1,2,3].map(i=>$('n'+i).value.trim()||('P'+(i+1)));
+  $('roomMsg').textContent='방 만드는 중…';
+  const j=await api('POST',{op:'create', names:nm, fee, date:$('dateIn').value||todayStr(), course:$('courseIn').value.trim(),
+    front:courseKey($('courseIn').value)?front:'', back:courseKey($('courseIn').value)?back:''});
+  if(j.error){ $('roomMsg').textContent=roomErr(j); return; }
+  $('roomMsg').textContent='';
+  room={code:j.code, me:null, archId:Date.now()}; saveRoom(); setRs(j); startPoll();
+};
+async function joinRoom(code){
+  code=String(code||'').replace(/\D/g,'').slice(0,4);
+  if(code.length!==4){ $('roomMsg').textContent='4자리 코드를 넣어 주세요'; return; }
+  $('roomMsg').textContent='들어가는 중…';
+  const j=await api('GET',null,code);
+  if(j.error){ $('roomMsg').textContent=roomErr(j); return; }
+  $('roomMsg').textContent='';
+  room={code, me:null, archId:Date.now()}; saveRoom(); rsKey=''; setRs(j); startPoll();
+}
+$('joinBtn').onclick=()=>joinRoom($('joinCode').value);
+$('joinCode').addEventListener('keydown',e=>{ if(e.key==='Enter') joinRoom($('joinCode').value); });
+$('leaveBtn').onclick=()=>{
+  if($('leaveBtn').dataset.armed!=='1'){ $('leaveBtn').dataset.armed='1'; $('leaveBtn').textContent='정말?'; setTimeout(()=>{ $('leaveBtn').dataset.armed=''; $('leaveBtn').textContent='나가기'; },2500); return; }
+  $('leaveBtn').dataset.armed=''; $('leaveBtn').textContent='나가기';
+  if(rs && rs.history && rs.history.length) archiveRoom();
+  room=null; rs=null; rsKey=''; saveRoom(); stopPoll(); render();
+};
+$('shareBtn').onclick=async()=>{
+  if(!room) return;
+  const url=location.origin+location.pathname+'?room='+room.code;
+  const text='골프 뽑기 방 '+room.code;
+  try{
+    if(navigator.share){ await navigator.share({title:'골프 뽑기', text, url}); return; }
+    await navigator.clipboard.writeText(text+' '+url); $('shareBtn').textContent='복사됨';
+  }catch(e){ $('shareBtn').textContent=room.code; }
+  setTimeout(()=>{ $('shareBtn').textContent='공유'; },1500);
+};
+async function roomPost(body){
+  if(!room||!rs||roomBusy) return;
+  roomBusy=true;
+  const j=await api('POST',{code:room.code, hole:rs.hole, ...body});
+  roomBusy=false;
+  if(j.error){ alert(roomErr(j)); return; }
+  setRs(j);
+}
+async function poll(){
+  if(!room || document.hidden) return;
+  const j=await api('GET',null,room.code);
+  if(j.error==='no_room'){ room=null; rs=null; saveRoom(); stopPoll(); render(); $('roomMsg').textContent='방이 없어졌어요'; return; }
+  setRs(j);
+}
+function startPoll(){ stopPoll(); pollT=setInterval(poll,2000); }
+function stopPoll(){ if(pollT) clearInterval(pollT); pollT=null; }
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) poll(); });
+
+function archiveRoom(){
+  if(!rs || !rs.history.length) return false;
+  const entry={id:room.archId, date:rs.date, course:rs.course, front:rs.front, back:rs.back, names:[...rs.names], fee:rs.fee,
+    history:rs.history.map(h=>({...h})), savedAt:Date.now()};
+  const k=rounds.findIndex(r=>r.id===entry.id);
+  if(k>=0) rounds[k]=entry; else rounds.push(entry);
+  rounds.sort((a,b)=>(b.date||'').localeCompare(a.date||'') || b.id-a.id);
+  saveRounds(); renderArch(); return true;
+}
+$('rArchBtn').onclick=()=>{ const b=$('rArchBtn'); b.textContent=archiveRoom()?'저장됨 ✓':'끝난 홀이 없어요'; setTimeout(()=>{ b.textContent='내 기록에 저장'; },1500); };
+$('rUndoBtn').onclick=()=>{
+  if(!rs||!rs.hole) return;
+  if(!rUndoArmed){ rUndoArmed=true; $('rUndoBtn').textContent='모두에게 적용, 한 번 더'; setTimeout(()=>{ rUndoArmed=false; $('rUndoBtn').textContent='이전 홀 되돌리기'; },2500); return; }
+  rUndoArmed=false; $('rUndoBtn').textContent='이전 홀 되돌리기';
+  roomPost({op:'undo'});
+};
+
+function renderRoom(){
+  const nm=rs.names, me=room.me, H=rs.history||[], done=rs.hole>=18;
+  const pars=parsOf(rs.course,rs.front,rs.back);
+  $('roomTitle').textContent='방 '+room.code+(me!=null?' · '+nm[me]:'');
+  // 머리 칩
+  const hn=Math.min(rs.hole+1,18), par=pars?pars[hn-1]:null, m=multAtH(H,H.length);
+  $('holeChip').hidden=done; $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
+  $('multChip').hidden=done||m<=1; $('multChip').textContent='이월 ×'+m;
+  const info=roundTitle(rs.date,rs.course)+(rs.front?' · '+rs.front+' → '+rs.back:'');
+  $('roundInfo').hidden=!info; $('roundInfo').textContent=info;
+
+  let html='';
+  if(me==null){
+    html='<div class="waitline" style="margin-top:0">나는 누구예요?</div><div class="recgrid">'+
+      nm.map((n,i)=>'<button class="pbtn" data-me="'+i+'">'+esc(n)+'</button>').join('')+'</div>';
+  }else if(done){
+    const t=calcTotals(H,rs.fee), mx=Math.max(...t), worst=nm.filter((_,i)=>t[i]===mx&&mx>0);
+    html='<div class="finale"><h2>18홀 종료</h2><p>'+(mx>0?'오늘의 물주: '+esc(worst.join(', '))+' ('+fmt(mx)+'원)':'전홀 동점?!')+'</p></div>';
+  }else{
+    const P=rs.plays, allDrawn=P.every(x=>x.drawn);
+    html+='<div class="stat">'+P.map(x=>'<span class="s'+(x.p===me?' me':'')+'">'+
+      (x.color?ballHTML(x.color):'<span class="ball wait"></span>')+esc(nm[x.p])+
+      '<em>'+(allDrawn?(x.done?'✓ '+sgn(x.score):'입력 중'):(x.drawn?'뽑음':''))+'</em></span>').join('')+'</div>';
+    if(!P[me].drawn){
+      html+='<div class="turnline"><b>'+esc(nm[me])+' 차례</b><small>내 카드를 눌러 뽑으세요</small></div>'+
+        '<div class="bigwrap"><button class="card big" id="myCard" aria-label="내 카드 뽑기"><span class="inner"><span class="face back"></span></span></button></div>';
+    }else if(!allDrawn){
+      html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>';
+    }else{
+      const colors=P.map(x=>x.color), h={colors};
+      const mem=c=>teamOf(h,c).map(p=>esc(nm[p])+(colors[p]==='J'?'<span class="jk">JOKER</span>':'')).join('<br>');
+      html+='<div class="teams"><div class="team W"><h3>흰팀</h3><div class="mem">'+mem('W')+'</div></div>'+
+        '<div class="team G"><h3>녹팀</h3><div class="mem">'+mem('G')+'</div></div></div>';
+      const mine=P[me];
+      if(mine.done){
+        html+='<div class="mybox"><div class="waitline" style="margin:0 0 8px">내 ± <b>'+sgn(mine.score)+'</b> 확정 · 다른 사람 기다리는 중 ('+P.filter(x=>x.done).length+'/4)</div>'+
+          '<button class="btn ghost wide" id="unscoreBtn" style="margin-top:0">고치기</button></div>';
+      }else{
+        const v=myScore.v;
+        html+='<div class="mybox"><div class="scrow '+(teamOf(h,'W').includes(me)?'W':'G')+'">'+ballHTML(colors[me])+'<span class="nm">'+esc(nm[me])+'</span>'+
+          '<button class="stepbtn" data-my="-1" aria-label="한 타 줄이기">−</button>'+
+          '<span class="val"><b>'+sgn(v)+'</b><small>'+(SCNAME[v]||'')+'</small></span>'+
+          '<button class="stepbtn" data-my="1" aria-label="한 타 늘리기">＋</button></div>'+
+          '<button class="btn main resbtn" id="scoreBtn">내 ± 확정</button></div>';
+      }
+    }
+    html+='<div class="stake">이번 홀: 진 팀 1인당 <b>'+fmt(rs.fee*m)+'원</b> 적립'+(m>1?' (이월 ×'+m+')':'')+'</div>';
+  }
+  $('roomBody').innerHTML=html;
+
+  // 적립 현황
+  $('roomScore').hidden=me==null;
+  const t=calcTotals(H,rs.fee);
+  $('rTotals').innerHTML=totalsHTML(t,nm,H);
+  $('rPot').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
+  $('rHistBody').innerHTML=histRows(H,rs.fee,nm);
+  $('rHistTable').hidden=!H.length;
+  $('rCard').innerHTML=H.some(h=>h.scores)?scorecardHTML(H,nm,pars):'';
+  $('rUndoBtn').hidden=!H.length;
+}
+$('roomBody').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||!rs) return;
+  if(b.dataset.me!==undefined){ room.me=+b.dataset.me; saveRoom(); myScore={hole:-1,v:0}; rsKey=''; setRs(rs); return; }
+  if(b.id==='myCard'){ b.classList.add('flipped'); roomPost({op:'draw', p:room.me}); return; }
+  if(b.dataset.my){ myScore.v=Math.max(-3,Math.min(10,myScore.v+(+b.dataset.my))); renderRoom(); return; }
+  if(b.id==='scoreBtn'){ roomPost({op:'score', p:room.me, score:myScore.v}); return; }
+  if(b.id==='unscoreBtn'){ roomPost({op:'unscore', p:room.me}); return; }
+});
+
 /* ---------- 화면 전환 ---------- */
 function render(){
+  const inRoom=!!(room&&rs);
+  $('roomPanel').hidden=!inRoom; $('roomScore').hidden=!inRoom;
+  $('joinPanel').hidden=inRoom||started;
+  if(inRoom){
+    ['setupPanel','drawPanel','endPanel','scorePanel','editPanel'].forEach(id=>$(id).hidden=true);
+    renderRoom(); return;
+  }
   const done=started && history.length>=18;
   $('setupPanel').hidden=started;
   $('drawPanel').hidden=!started || done;
@@ -810,6 +1043,9 @@ loadSetupUI();
 syncDmUI();
 render();
 renderArch();
+{ const q=new URLSearchParams(location.search).get('room');
+  if(room){ poll(); startPoll(); }
+  else if(q){ $('joinCode').value=q; joinRoom(q); } }
 </script>
 
 </body></html>
