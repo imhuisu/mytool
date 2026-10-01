@@ -135,7 +135,7 @@ header{flex-wrap:wrap; row-gap:6px}
 .resbtns{display:grid; grid-template-columns:1fr .8fr 1fr; gap:8px; margin-top:12px}
 .resbtns .btn{padding:12px 4px; font-family:"Jua",sans-serif; font-weight:400; font-size:15.5px}
 .resbtns .w{background:var(--surface); border:1.5px solid var(--line); color:var(--ink)}
-.resbtns .t{background:var(--gold-soft); color:var(--gold)}
+.resbtns .t,.btn.t{background:var(--gold-soft); color:var(--gold)}
 .resbtns .g{background:var(--green); color:#fff}
 .scrows{margin-top:12px; display:flex; flex-direction:column; gap:6px}
 .scrow{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:11px; background:var(--bg)}
@@ -177,6 +177,24 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 .arch[open] summary{border-bottom:1px solid var(--line)}
 .arch .body{padding:10px 12px}
 .arch .del{margin-top:10px; width:100%; font-size:13px; padding:8px}
+.histwrap tbody tr[data-edit]{cursor:pointer}
+.histwrap tbody tr[data-edit]:active{background:var(--green-soft)}
+.histwrap tbody tr.editing{background:var(--gold-soft)}
+.edbtns{display:grid; grid-template-columns:.8fr 1fr; gap:8px; margin-top:12px}
+.edbtns .btn{padding:12px 4px}
+.btn.wide{width:100%; margin-top:12px}
+.sc-card{overflow-x:auto; margin-top:10px}
+.sc-card table{font-size:12.5px; table-layout:fixed; min-width:300px}
+.sc-card th,.sc-card td{padding:5px 0; border-bottom:1px solid var(--line)}
+.sc-card th:first-child,.sc-card td:first-child{width:52px; text-align:left; padding-left:4px; overflow:hidden; text-overflow:ellipsis}
+.sc-card th:last-child,.sc-card td:last-child{width:34px; font-weight:700}
+.sc-card tr.par td{color:var(--muted); font-size:11.5px}
+.sc-card td .u{display:inline-block; min-width:20px; border-radius:50%; color:var(--flag); font-weight:700}
+.sc-card td .o{color:var(--muted)}
+.sc-card td .o2{color:var(--ink); font-weight:700}
+.sc-card + .sc-card{margin-top:4px}
+.sc-sum{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; text-align:center; font-size:12px; color:var(--muted)}
+.sc-sum b{display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:17px; color:var(--ink)}
 .finale{text-align:center; padding:6px 0 2px}
 .finale h2{font-family:"Jua",sans-serif; font-weight:400; font-size:22px; margin:0 0 4px}
 .finale p{margin:0; color:var(--muted); font-size:13.5px}
@@ -186,7 +204,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 <div class="wrap">
 <header>
   <h1>골프 뽑기</h1>
-  <span class="chips"><span class="multchip" id="multChip" hidden>배판 ×2</span>
+  <span class="chips"><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
 <div class="roundinfo" id="roundInfo" hidden></div>
@@ -224,7 +242,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
     <button data-dm="app" aria-pressed="true">앱에서 뽑기</button>
     <button data-dm="rec" aria-pressed="false">결과만 기록</button>
   </div>
-  <div class="hintline" id="dmHint">흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 동점 홀은 다음 홀이 배판(×2, 연속되면 ×4…)이 됩니다.</div>
+  <div class="hintline" id="dmHint">흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).</div>
   <div style="margin-top:12px"><button class="btn main" id="startBtn">라운드 시작</button></div>
 </section>
 
@@ -264,6 +282,16 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   </div>
 </section>
 
+<!-- 지난 홀 수정 -->
+<section class="panel" id="editPanel" hidden>
+  <div class="turnline"><b id="edTitle"></b><small id="edHint"></small></div>
+  <div id="edBody"></div>
+  <div class="edbtns">
+    <button class="btn ghost" id="edCancel">취소</button>
+    <button class="btn main" id="edSave" style="padding:12px 4px">수정 저장</button>
+  </div>
+</section>
+
 <!-- 스코어보드 -->
 <section class="panel" id="scorePanel" hidden>
   <div class="label">적립 현황</div>
@@ -271,11 +299,14 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div class="potline"><span>총 적립금</span><b id="potSum">0원</b></div>
   <div class="histwrap" style="margin-top:10px">
     <table id="histTable" hidden>
-      <thead><tr><th>홀</th><th>배</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead>
+      <thead><tr><th>홀</th><th>이월</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead>
       <tbody id="histBody"></tbody>
     </table>
   </div>
   <div class="empty" id="histEmpty">아직 끝난 홀이 없습니다</div>
+  <div class="hintline" id="editHint" hidden>홀 줄을 누르면 그 홀 결과·±를 고칠 수 있어요</div>
+  <button class="btn ghost wide" id="cardBtn">전체 스코어 보기</button>
+  <div id="cardWrap" hidden></div>
   <div class="toolrow">
     <button class="btn save" id="archBtn">기록 저장</button>
     <button class="btn ghost" id="switchBtn">방식 전환</button>
@@ -307,10 +338,11 @@ const COURSES={
   '힐데스하임':{ '레이크':[4,3,5,4,3,5,4,4,4], '힐':[4,3,4,5,4,4,5,3,4], '밸리':[4,4,3,4,4,5,4,3,5] },
 };
 function courseKey(c){ const t=(c||'').replace(/\s/g,''); return Object.keys(COURSES).find(k=>t.includes(k))||null; }
-function parAt(hole){
-  const c=COURSES[courseKey(course)]; if(!c) return null;
-  const arr=c[hole<=9?front:back]; return arr ? arr[(hole-1)%9] : null;
+function parsOf(cn,f,b){
+  const c=COURSES[courseKey(cn)]; if(!c||!c[f]||!c[b]) return null;
+  return c[f].concat(c[b]);
 }
+function parAt(hole){ const ps=parsOf(course,front,back); return ps ? ps[hole-1] : null; }
 let rounds=[];             // 저장된 라운드: {id, date, course, names, fee, history, savedAt}
 
 /* ---------- 저장/복원 ---------- */
@@ -328,7 +360,7 @@ try{ const r=JSON.parse(localStorage.getItem('gd2-rounds')||'[]'); if(Array.isAr
 
 /* ---------- 파생 값 ---------- */
 function curHole(){ return history.length+1; }
-function multAtH(hist,i){ let m=1; for(let k=0;k<i;k++) m = hist[k].result==='T' ? m*2 : 1; return m; }
+function multAtH(hist,i){ let m=1; for(let k=0;k<i;k++) m = hist[k].result==='T' ? m+1 : 1;  /* 동점이면 그 홀 금액이 다음 홀로 이월(합산) */ return m; }
 function multAt(i){ return multAtH(history,i); }
 function curMult(){ return multAt(history.length); }
 function losersOf(h){
@@ -420,8 +452,8 @@ $('dmSeg').addEventListener('click',e=>{
 function syncDmUI(){
   [...$('dmSeg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.dm===drawMode?'true':'false'));
   $('dmHint').textContent = drawMode==='app'
-    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 홀이 끝나면 각자 파 대비 ±를 넣으면 팀 합산이 많은 쪽이 진 팀으로 기록됩니다. 동점 홀은 다음 홀이 배판(×2, 연속되면 ×4…)이 됩니다.'
-    : '뽑기는 현장에서 직접 하고, 홀마다 진 팀 두 명만 기록하면 배판까지 자동 정산됩니다.';
+    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 홀이 끝나면 각자 파 대비 ±를 넣으면 팀 합산이 많은 쪽이 진 팀으로 기록됩니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).'
+    : '뽑기는 현장에서 직접 하고, 홀마다 진 팀 두 명만 기록하면 이월까지 자동 정산됩니다.';
 }
 $('startBtn').onclick=()=>{
   for(let i=0;i<4;i++){ const v=$('n'+i).value.trim(); names[i]=v||('P'+(i+1)); }
@@ -494,7 +526,7 @@ function showTeams(){
   const W=teamOf(h,'W').map(p=>memHTML(p,h)), G=teamOf(h,'G').map(p=>memHTML(p,h));
   $('memW').innerHTML=W.join('<br>'); $('memG').innerHTML=G.join('<br>');
   const m=curMult();
-  $('stakeLine').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (배판 ×'+m+')':'');
+  $('stakeLine').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (이월 ×'+m+')':'');
   draw.scores=[0,0,0,0];
   renderScoreInput();
   $('teamsArea').hidden=false;
@@ -548,7 +580,7 @@ function renderRec(){
     $('recGrid').appendChild(b);
   });
   const m=curMult();
-  $('recStake').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (배판 ×'+m+')':'');
+  $('recStake').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (이월 ×'+m+')':'');
   $('recSave').disabled = recSel.length!==2;
 }
 $('recSave').onclick=()=>{
@@ -572,7 +604,7 @@ function totalsHTML(t,nm,hist){
     '<div class="tot"><div class="n">'+esc(nm[i])+'</div><div class="v'+(v>0?' pay':'')+'">'+fmt(v)+'</div>'+
     (sc?'<div class="sc">'+sgn(sc[i])+'</div>':'')+'</div>').join('');
 }
-function histRows(hist,fe,nm){
+function histRows(hist,fe,nm,editable){
   return hist.map((h,i)=>{
     const m=multAtH(hist,i);
     let res,paid='—',who='—';
@@ -587,20 +619,109 @@ function histRows(hist,fe,nm){
       paid=fmt(fe*m);
       who=losersOf(h).map(p=>esc(nm[p])).join('·');
     }
-    return '<tr><td>'+(i+1)+'</td><td>'+(m>1?'×'+m:'')+'</td><td class="res-'+h.result+'">'+res+'</td><td>'+paid+'</td><td>'+who+'</td></tr>';
+    return '<tr'+(editable?' data-edit="'+i+'"'+(edit&&edit.i===i?' class="editing"':''):'')+'><td>'+(i+1)+'</td><td>'+(m>1?'×'+m:'')+'</td><td class="res-'+h.result+'">'+res+'</td><td>'+paid+'</td><td>'+who+'</td></tr>';
   }).join('');
 }
 function renderScore(){
   const t=totals();
   $('totals').innerHTML=totalsHTML(t,names,history);
   $('potSum').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
-  $('histBody').innerHTML=histRows(history,fee,names);
+  $('histBody').innerHTML=histRows(history,fee,names,true);
   $('histTable').hidden=!history.length;
   $('histEmpty').hidden=!!history.length;
+  $('editHint').hidden=!history.length;
+  $('cardBtn').hidden=!history.some(h=>h.scores);
+  if(!$('cardWrap').hidden) $('cardWrap').innerHTML=scorecardHTML(history,names,parsOf(course,front,back));
 }
+
+/* ---------- 전체 스코어 (스코어카드) ---------- */
+function scorecardHTML(hist,nm,pars){
+  if(!hist.some(h=>h.scores)) return '<div class="empty">± 기록이 있는 홀이 없습니다</div>';
+  const cell=(i,p)=>{
+    const h=hist[i]; if(!h||!h.scores) return '';
+    const v=h.scores[p], txt=pars?String(pars[i]+v):sgn(v);
+    return v<0?'<span class="u">'+txt+'</span>':v>=2?'<span class="o2">'+txt+'</span>':v===1?'<span class="o">'+txt+'</span>':txt;
+  };
+  const half=k=>{
+    const idx=[...Array(9)].map((_,j)=>k*9+j);
+    if(!idx.some(i=>hist[i]&&hist[i].scores) && !(pars&&k===0)) return '';
+    const sumOf=p=>{ let st=0,pm=0,n=0; idx.forEach(i=>{ const h=hist[i]; if(h&&h.scores){ pm+=h.scores[p]; if(pars) st+=pars[i]+h.scores[p]; n++; } }); return n?(pars?st:sgn(pm)):''; };
+    let t='<div class="sc-card"><table><thead><tr><th>'+(k?'후반':'전반')+'</th>'+idx.map(i=>'<th>'+(i+1)+'</th>').join('')+'<th>합</th></tr></thead><tbody>';
+    if(pars) t+='<tr class="par"><td>파</td>'+idx.map(i=>'<td>'+pars[i]+'</td>').join('')+'<td>'+idx.reduce((a,i)=>a+pars[i],0)+'</td></tr>';
+    t+=nm.map((n,p)=>'<tr><td>'+esc(n)+'</td>'+idx.map(i=>'<td>'+cell(i,p)+'</td>').join('')+'<td>'+sumOf(p)+'</td></tr>').join('');
+    return t+'</tbody></table></div>';
+  };
+  const tot=nm.map((n,p)=>{ let st=0,pm=0; hist.forEach((h,i)=>{ if(h.scores){ pm+=h.scores[p]; if(pars) st+=pars[i]+h.scores[p]; } });
+    return '<div>'+esc(n)+'<b>'+(pars?st+' ':'')+'<small>('+sgn(pm)+')</small></b></div>'; }).join('');
+  return half(0)+half(1)+'<div class="sc-sum">'+tot+'</div>';
+}
+$('cardBtn').onclick=()=>{
+  const w=$('cardWrap'); w.hidden=!w.hidden;
+  $('cardBtn').textContent=w.hidden?'전체 스코어 보기':'전체 스코어 접기';
+  if(!w.hidden) w.innerHTML=scorecardHTML(history,names,parsOf(course,front,back));
+};
+
+/* ---------- 지난 홀 수정 ---------- */
+let edit=null;   // {i, scores?, losers?, tie?}
+$('histBody').addEventListener('click',e=>{
+  const tr=e.target.closest('[data-edit]'); if(!tr) return;
+  const i=+tr.dataset.edit, h=history[i];
+  edit = h.colors ? {i, scores:h.scores?[...h.scores]:[0,0,0,0], manual:h.scores?null:h.result}
+                  : {i, losers:h.result==='L'?[...h.losers]:[], tie:h.result==='T'};
+  renderEdit(); renderScore();
+  $('editPanel').scrollIntoView({behavior:'smooth', block:'start'});
+});
+function editResult(){
+  const h=history[edit.i];
+  if(h.colors) return edit.manual || scoreResult({colors:h.colors, scores:edit.scores});
+  return edit.tie ? 'T' : 'L';
+}
+function renderEdit(){
+  $('editPanel').hidden=!edit; if(!edit) return;
+  const h=history[edit.i], par=parAt(edit.i+1);
+  $('edTitle').textContent=(edit.i+1)+'번 홀 수정'+(par?' · 파'+par:'');
+  if(h.colors){
+    $('edHint').textContent='승패 자동 재계산';
+    const hh={colors:h.colors, scores:edit.scores};
+    let html='<div class="scrows">'+['W','G'].flatMap(c=>teamOf(hh,c).map(p=>
+      '<div class="scrow '+c+'">'+ballHTML(h.colors[p])+'<span class="nm">'+esc(names[p])+'</span>'+
+      '<button class="stepbtn" data-ep="'+p+'" data-d="-1" aria-label="'+esc(names[p])+' 한 타 줄이기">−</button>'+
+      '<span class="val"><b>'+sgn(edit.scores[p])+'</b><small>'+(SCNAME[edit.scores[p]]||'')+'</small></span>'+
+      '<button class="stepbtn" data-ep="'+p+'" data-d="1" aria-label="'+esc(names[p])+' 한 타 늘리기">＋</button></div>')).join('')+'</div>';
+    const r=editResult();
+    html+='<div class="scsum"><span>흰팀 <b>'+sgn(teamSum(hh,'W'))+'</b></span><span>녹팀 <b>'+sgn(teamSum(hh,'G'))+'</b></span></div>';
+    html+='<div class="stake">결과: <b>'+(r==='T'?'동점':(r==='W'?'흰팀':'녹팀')+' 승')+'</b></div>';
+    $('edBody').innerHTML=html;
+  }else{
+    $('edHint').textContent='진 팀 두 명 또는 동점';
+    $('edBody').innerHTML='<div class="recgrid">'+names.map((n,i)=>
+      '<button class="pbtn'+(!edit.tie&&edit.losers.includes(i)?' sel':'')+'" data-el="'+i+'">'+esc(n)+'</button>').join('')+'</div>'+
+      '<button class="btn t wide" data-etie="1" style="margin-top:0'+(edit.tie?';outline:2px solid var(--gold)':'')+'">동점</button>';
+  }
+  $('edSave').disabled = !h.colors && !edit.tie && edit.losers.length!==2;
+}
+$('edBody').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||!edit) return;
+  if(b.dataset.ep!==undefined){ const p=+b.dataset.ep; edit.scores[p]=Math.max(-3,Math.min(10,edit.scores[p]+(+b.dataset.d))); edit.manual=null; }
+  else if(b.dataset.el!==undefined){
+    const i=+b.dataset.el; edit.tie=false; const k=edit.losers.indexOf(i);
+    if(k>=0) edit.losers.splice(k,1); else { if(edit.losers.length>=2) edit.losers.shift(); edit.losers.push(i); }
+  }
+  else if(b.dataset.etie){ edit.tie=true; edit.losers=[]; }
+  renderEdit();
+});
+$('edCancel').onclick=()=>{ edit=null; renderEdit(); renderScore(); };
+$('edSave').onclick=()=>{
+  if(!edit) return;
+  const h=history[edit.i], r=editResult();
+  if(h.colors){ h.result=r; if(!edit.manual) h.scores=[...edit.scores]; }
+  else if(r==='T'){ history[edit.i]={result:'T'}; }
+  else { history[edit.i]={result:'L', losers:[...edit.losers].sort()}; }
+  edit=null; save(); renderEdit(); render();
+};
 $('undoBtn').onclick=()=>{
   if(!history.length) return;
-  history.pop(); draw=null; recSel=[]; save(); render();
+  history.pop(); draw=null; recSel=[]; edit=null; renderEdit(); save(); render();
 };
 
 /* ---------- 라운드 기록 저장 ---------- */
@@ -631,8 +752,9 @@ function renderArch(){
     return '<details class="arch" data-id="'+r.id+'"><summary><b>'+title+'</b><small>'+sub+'</small></summary>'+
       '<div class="body"><div class="totals">'+totalsHTML(t,r.names,r.history)+'</div>'+
       '<div class="potline"><span>홀당 '+fmt(r.fee)+'원</span><b>총 '+fmt(pot)+'원</b></div>'+
-      '<div class="histwrap" style="margin-top:8px"><table><thead><tr><th>홀</th><th>배</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead><tbody>'+
+      '<div class="histwrap" style="margin-top:8px"><table><thead><tr><th>홀</th><th>이월</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead><tbody>'+
       histRows(r.history,r.fee,r.names)+'</tbody></table></div>'+
+      (r.history.some(h=>h.scores)?scorecardHTML(r.history,r.names,parsOf(r.course,r.front,r.back)):'')+
       '<button class="btn warn del" data-del="'+r.id+'">이 기록 삭제</button></div></details>';
   }).join('');
 }
@@ -650,7 +772,7 @@ $('resetBtn').onclick=()=>{
   if(!resetArmed){ resetArmed=true; $('resetBtn').textContent='정말 초기화?'; setTimeout(()=>{resetArmed=false; $('resetBtn').textContent='새 라운드';},2500); return; }
   resetArmed=false; $('resetBtn').textContent='새 라운드';
   archiveCurrent();
-  history=[]; started=false; draw=null; roundId=null; date=todayStr(); save(); loadSetupUI(); render();
+  history=[]; started=false; draw=null; roundId=null; edit=null; renderEdit(); date=todayStr(); save(); loadSetupUI(); render();
 };
 
 /* ---------- 화면 전환 ---------- */
@@ -665,7 +787,7 @@ function render(){
   $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
   const m=curMult();
   $('multChip').hidden=!started || done || m<=1;
-  $('multChip').textContent='배판 ×'+m;
+  $('multChip').textContent='이월 ×'+m;
   const info=roundTitle(date,course)+(courseKey(course)&&front?' · '+front+' → '+back:'');
   $('roundInfo').hidden=!started || !info;
   $('roundInfo').textContent=info;
