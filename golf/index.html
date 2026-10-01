@@ -261,6 +261,13 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
     <button data-dm="app" aria-pressed="true">앱에서 뽑기</button>
     <button data-dm="rec" aria-pressed="false">결과만 기록</button>
   </div>
+  <div id="orderWrap">
+    <div class="label" style="margin-top:14px">뽑기 시점</div>
+    <div class="seg" id="ordSeg" role="group" aria-label="뽑기 시점">
+      <button data-ord="post" aria-pressed="true">스코어 먼저 → 뽑기</button>
+      <button data-ord="pre" aria-pressed="false">뽑기 먼저 → 스코어</button>
+    </div>
+  </div>
   <div class="hintline" id="dmHint">흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편입니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).</div>
   <div style="margin-top:12px"><button class="btn main" id="startBtn">라운드 시작</button></div>
 </section>
@@ -305,9 +312,16 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 <!-- 뽑기 -->
 <section class="panel" id="drawPanel" hidden>
  <div id="appDraw">
+  <div id="preArea" hidden>
+    <div class="turnline"><b>스코어 입력</b><small>다 넣고 뽑기</small></div>
+    <div class="scrows" id="preRows" style="margin-top:0"></div>
+    <button class="btn main resbtn" id="preBtn">스코어 입력 완료 · 뽑기</button>
+  </div>
+  <div id="drawArea">
   <div class="turnline"><b id="turnName"></b><small id="turnHint">카드를 눌러 뽑으세요</small></div>
   <div class="bigwrap" id="bigwrap"></div>
   <div class="drawnrow" id="drawnRow"></div>
+  </div>
  </div>
  <div id="recArea" hidden>
   <div class="turnline"><b>진 팀 기록</b><small>진 팀 두 명을 누르세요</small></div>
@@ -386,7 +400,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 <script>
 const $=id=>document.getElementById(id);
 const fmt=n=>n.toLocaleString('ko-KR');
-let names=['',''  ,'',''], fee=5000, started=false, drawMode='app';
+let names=['',''  ,'',''], fee=5000, started=false, drawMode='app', order='post';   // order: post=스코어 먼저 후 뽑기, pre=뽑기 먼저
 let history=[];            // app: {colors:[4], joker, result:'W'|'G'|'T'} / 기록: {result:'L', losers:[i,j]} 또는 {result:'T'}
 let draw=null;             // {pool:[5], taken, colors:[4], busy}
 let recSel=[];             // 기록 모드에서 선택된 진 팀
@@ -407,12 +421,13 @@ let rounds=[];             // 저장된 라운드: {id, date, course, names, fee
 
 /* ---------- 저장/복원 ---------- */
 function save(){ try{
-  localStorage.setItem('gd2', JSON.stringify({names,fee,started,history,drawMode,date,course,roundId,front,back}));
+  localStorage.setItem('gd2', JSON.stringify({names,fee,started,history,drawMode,order,date,course,roundId,front,back}));
 }catch(e){} }
 try{
   const s=JSON.parse(localStorage.getItem('gd2')||'null');
   if(s){ names=s.names||names; fee=s.fee||5000; started=!!s.started; history=Array.isArray(s.history)?s.history:[];
     if(s.drawMode==='rec') drawMode='rec';
+    if(s.order==='pre') order='pre';
     if(s.date) date=s.date; course=s.course||''; roundId=s.roundId||null; front=s.front||''; back=s.back||''; }
 }catch(e){}
 function saveRounds(){ try{ localStorage.setItem('gd2-rounds', JSON.stringify(rounds)); }catch(e){} }
@@ -509,10 +524,16 @@ $('dmSeg').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   drawMode=b.dataset.dm; save(); syncDmUI();
 });
+$('ordSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  order=b.dataset.ord; save(); syncDmUI();
+});
 function syncDmUI(){
   [...$('dmSeg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.dm===drawMode?'true':'false'));
+  [...$('ordSeg').children].forEach(x=>x.setAttribute('aria-pressed', x.dataset.ord===order?'true':'false'));
+  $('orderWrap').hidden = drawMode!=='app';
   $('dmHint').textContent = drawMode==='app'
-    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편이고, 팀 계산에선 타수와 상관없이 무조건 +1입니다. 홀이 끝나면 각자 파 대비 ±를 넣으면 팀 합산이 많은 쪽이 진 팀으로 기록됩니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).'
+    ? '흰 2 · 녹 2 · 조커 1 중 한 장씩 뽑아 같은 색끼리 팀. 조커는 혼자 남은 색 편이고, 팀 계산에선 타수와 상관없이 무조건 +1입니다. 각자 파 대비 ±를 넣으면 팀 합산이 많은 쪽이 진 팀으로 기록됩니다. 동점 홀 금액은 다음 홀로 이월돼 더해집니다 (×2, 연속되면 ×3…).'
     : '뽑기는 현장에서 직접 하고, 홀마다 진 팀 두 명만 기록하면 이월까지 자동 정산됩니다.';
 }
 $('startBtn').onclick=()=>{
@@ -525,14 +546,32 @@ $('startBtn').onclick=()=>{
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 const LABT={W:'흰',G:'녹',J:'조커'};
 function startDraw(){
-  draw={ pool:shuffle(['W','W','G','G','J']), taken:0, colors:[null,null,null,null], busy:false };
+  draw={ pool:shuffle(['W','W','G','G','J']), taken:0, colors:[null,null,null,null], busy:false, scores:[0,0,0,0],
+    phase: order==='post' ? 'score' : 'draw' };
   renderDraw();
 }
+/* 스코어 먼저: 팀 모르는 상태로 4명 ± 입력 → 뽑기 */
+function renderPre(){
+  $('preRows').innerHTML=names.map((n,p)=>
+    '<div class="scrow"><span class="ball wait" style="border-style:dashed"></span><span class="nm">'+esc(n)+'</span>'+
+    '<button class="stepbtn" data-pp="'+p+'" data-d="-1" aria-label="'+esc(n)+' 한 타 줄이기">−</button>'+
+    '<span class="val"><b>'+sgn(draw.scores[p])+'</b><small>'+(SCNAME[draw.scores[p]]||'')+'</small></span>'+
+    '<button class="stepbtn" data-pp="'+p+'" data-d="1" aria-label="'+esc(n)+' 한 타 늘리기">＋</button></div>').join('');
+}
+$('preRows').addEventListener('click',e=>{
+  const b=e.target.closest('[data-pp]'); if(!b||!draw) return;
+  const p=+b.dataset.pp; draw.scores[p]=Math.max(-3,Math.min(10,draw.scores[p]+(+b.dataset.d)));
+  renderPre();
+});
+$('preBtn').onclick=()=>{ if(!draw) return; draw.phase='draw'; renderDraw(); };
 function drawOrder(k){ return k; }  // 뽑는 순서 고정: 등록 순서대로
 
 function ballHTML(c,extra){ return '<span class="ball '+c+(extra||'')+'">'+(c==='J'?'J':'')+'</span>'; }
 function renderDraw(){
   $('teamsArea').hidden=true;
+  const pre=draw.phase==='score';
+  $('preArea').hidden=!pre; $('drawArea').hidden=pre;
+  if(pre){ renderPre(); return; }
   renderBigCard();
   renderDrawnRow();
   updateTurnLine();
@@ -587,7 +626,7 @@ function showTeams(){
   $('memW').innerHTML=W.join('<br>'); $('memG').innerHTML=G.join('<br>');
   const m=curMult();
   $('stakeLine').innerHTML='이번 홀: 진 팀 1인당 <b>'+fmt(fee*m)+'원</b> 적립'+(m>1?' (이월 ×'+m+')':'');
-  draw.scores=[0,0,0,0];
+  if(!draw.scores) draw.scores=[0,0,0,0];
   renderScoreInput();
   $('teamsArea').hidden=false;
 }
@@ -883,7 +922,7 @@ $('mkRoomBtn').onclick=async()=>{
   const nm=[0,1,2,3].map(i=>$('n'+i).value.trim()||('P'+(i+1)));
   $('roomMsg').textContent='방 만드는 중…';
   const j=await api('POST',{op:'create', names:nm, fee, date:$('dateIn').value||todayStr(), course:$('courseIn').value.trim(),
-    front:courseKey($('courseIn').value)?front:'', back:courseKey($('courseIn').value)?back:''});
+    front:courseKey($('courseIn').value)?front:'', back:courseKey($('courseIn').value)?back:'', order});
   if(j.error){ $('roomMsg').textContent=roomErr(j); return; }
   $('roomMsg').textContent='';
   room={code:j.code, me:null, archId:Date.now()}; saveRoom(); setRs(j); startPoll();
@@ -969,31 +1008,39 @@ function renderRoom(){
     const t=calcTotals(H,rs.fee), mx=Math.max(...t), worst=nm.filter((_,i)=>t[i]===mx&&mx>0);
     html='<div class="finale"><h2>18홀 종료</h2><p>'+(mx>0?'오늘의 물주: '+esc(worst.join(', '))+' ('+fmt(mx)+'원)':'전홀 동점?!')+'</p></div>';
   }else{
-    const P=rs.plays, allDrawn=P.every(x=>x.drawn);
+    const P=rs.plays, allDrawn=P.every(x=>x.drawn), allDone=P.every(x=>x.done), post=rs.order!=='pre';
+    const mine=P[me], v=myScore.v;
+    const status=x=> post
+      ? (allDone ? (x.drawn?'뽑음':'') : (x.done?'✓ 입력':'입력 중'))
+      : (allDrawn ? (x.done?'✓ '+sgn(x.score):'입력 중') : (x.drawn?'뽑음':''));
     html+='<div class="stat">'+P.map(x=>'<span class="s'+(x.p===me?' me':'')+'">'+
-      (x.color?ballHTML(x.color):'<span class="ball wait"></span>')+esc(nm[x.p])+
-      '<em>'+(allDrawn?(x.done?'✓ '+sgn(x.score):'입력 중'):(x.drawn?'뽑음':''))+'</em></span>').join('')+'</div>';
-    if(!P[me].drawn){
-      html+='<div class="turnline"><b>'+esc(nm[me])+' 차례</b><small>내 카드를 눌러 뽑으세요</small></div>'+
-        '<div class="bigwrap"><button class="card big" id="myCard" aria-label="내 카드 뽑기"><span class="inner"><span class="face back"></span></span></button></div>';
-    }else if(!allDrawn){
-      html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>';
-    }else{
-      const colors=P.map(x=>x.color), h={colors};
+      (x.color?ballHTML(x.color):'<span class="ball wait"></span>')+esc(nm[x.p])+'<em>'+status(x)+'</em></span>').join('')+'</div>';
+    const myInput=(label)=>'<div class="mybox"><div class="scrow">'+(mine.color?ballHTML(mine.color):'<span class="ball wait" style="border-style:dashed"></span>')+'<span class="nm">'+esc(nm[me])+'</span>'+
+      '<button class="stepbtn" data-my="-1" aria-label="한 타 줄이기">−</button>'+
+      '<span class="val"><b>'+sgn(v)+'</b><small>'+(mine.color?scLabel(P.map(x=>x.color),me,v):(SCNAME[v]||''))+'</small></span>'+
+      '<button class="stepbtn" data-my="1" aria-label="한 타 늘리기">＋</button></div>'+
+      '<button class="btn main resbtn" id="scoreBtn">'+label+'</button></div>';
+    const myCard=()=>'<div class="turnline"><b>'+esc(nm[me])+' 차례</b><small>내 카드를 눌러 뽑으세요</small></div>'+
+      '<div class="bigwrap"><button class="card big" id="myCard" aria-label="내 카드 뽑기"><span class="inner"><span class="face back"></span></span></button></div>';
+    const teamsHTML=()=>{ const colors=P.map(x=>x.color), h={colors};
       const mem=c=>teamOf(h,c).map(p=>esc(nm[p])+(colors[p]==='J'?'<span class="jk">JOKER</span>':'')).join('<br>');
-      html+='<div class="teams"><div class="team W"><h3>흰팀</h3><div class="mem">'+mem('W')+'</div></div>'+
-        '<div class="team G"><h3>녹팀</h3><div class="mem">'+mem('G')+'</div></div></div>';
-      const mine=P[me];
-      if(mine.done){
-        html+='<div class="mybox"><div class="waitline" style="margin:0 0 8px">내 ± <b>'+sgn(mine.score)+'</b> 확정 · 다른 사람 기다리는 중 ('+P.filter(x=>x.done).length+'/4)</div>'+
+      return '<div class="teams"><div class="team W"><h3>흰팀</h3><div class="mem">'+mem('W')+'</div></div>'+
+        '<div class="team G"><h3>녹팀</h3><div class="mem">'+mem('G')+'</div></div></div>'; };
+    if(post){
+      // 스코어 먼저 → 다 확정되면 각자 뽑기 → 다 뽑으면 자동 마감
+      if(!mine.done) html+=myInput('내 스코어 확정');
+      else if(!allDone) html+='<div class="mybox"><div class="waitline" style="margin:0 0 8px">내 ± <b>'+sgn(v)+'</b> 확정 · 다른 사람 입력 기다리는 중 ('+P.filter(x=>x.done).length+'/4)</div>'+
+        '<button class="btn ghost wide" id="unscoreBtn" style="margin-top:0">고치기</button></div>';
+      else if(!mine.drawn) html+=myCard();
+      else html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>';
+    }else{
+      if(!mine.drawn) html+=myCard();
+      else if(!allDrawn) html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>';
+      else{
+        html+=teamsHTML();
+        if(mine.done) html+='<div class="mybox"><div class="waitline" style="margin:0 0 8px">내 ± <b>'+sgn(mine.score)+'</b> 확정 · 다른 사람 기다리는 중 ('+P.filter(x=>x.done).length+'/4)</div>'+
           '<button class="btn ghost wide" id="unscoreBtn" style="margin-top:0">고치기</button></div>';
-      }else{
-        const v=myScore.v;
-        html+='<div class="mybox"><div class="scrow '+(teamOf(h,'W').includes(me)?'W':'G')+'">'+ballHTML(colors[me])+'<span class="nm">'+esc(nm[me])+'</span>'+
-          '<button class="stepbtn" data-my="-1" aria-label="한 타 줄이기">−</button>'+
-          '<span class="val"><b>'+sgn(v)+'</b><small>'+scLabel(colors,me,v)+'</small></span>'+
-          '<button class="stepbtn" data-my="1" aria-label="한 타 늘리기">＋</button></div>'+
-          '<button class="btn main resbtn" id="scoreBtn">내 ± 확정</button></div>';
+        else html+=myInput('내 ± 확정');
       }
     }
     html+='<div class="stake">이번 홀: 진 팀 1인당 <b>'+fmt(rs.fee*m)+'원</b> 적립'+(m>1?' (이월 ×'+m+')':'')+'</div>';

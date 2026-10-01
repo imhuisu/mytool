@@ -4,7 +4,7 @@
  * 테이블은 첫 요청 때 자동으로 만든다. 연결이 없으면 503 {error:'no_db'}.
  *
  * GET  ?code=1234                         방 상태
- * POST {op:'create', names, fee, date, course, front, back}
+ * POST {op:'create', names, fee, date, course, front, back, order}   order: 'post'=스코어 먼저 후 뽑기, 'pre'=뽑기 먼저
  * POST {op:'draw',  code, hole, p}         p번 사람이 자기 카드 뒤집기
  * POST {op:'score', code, hole, p, score}  p번 사람이 자기 ± 확정. 4명 다 확정되면 홀 마감
  * POST {op:'unscore', code, hole, p}       확정 취소 (다른 사람이 다 넣기 전까지)
@@ -60,11 +60,11 @@ async function state(db, code) {
   if (!room) return json({ error: 'no_room' }, 404);
   const plays = await getPlays(db, code, room.hole);
   const pool = poolFor(room.seed, room.hole);
-  const allDrawn = plays.every(x => x.drawn);
+  const allDrawn = plays.every(x => x.drawn), allDone = plays.every(x => x.done);
   return json({
     code, hole: room.hole, updated: room.updated, ...room.data,
     // 아직 안 뒤집은 사람 카드는 숨김
-    plays: plays.map(x => ({ ...x, color: x.drawn ? pool[x.p] : null, score: allDrawn ? x.score : null })),
+    plays: plays.map(x => ({ ...x, color: x.drawn ? pool[x.p] : null, score: (allDrawn || allDone) ? x.score : null })),
   });
 }
 
@@ -110,6 +110,7 @@ export async function onRequest({ request, env }) {
     const data = {
       names, fee: intIn(b.fee, 100, 10000000) ? b.fee : 5000,
       date: clampStr(b.date, 10), course: clampStr(b.course, 20), front: clampStr(b.front, 10), back: clampStr(b.back, 10),
+      order: b.order === 'pre' ? 'pre' : 'post',
       history: [],
     };
     // 오래된 방 정리 (2일)
@@ -134,13 +135,22 @@ export async function onRequest({ request, env }) {
   if (hole >= 18 && b.op !== 'undo') return state(db, code);
 
   if (b.op === 'draw' && intIn(b.p, 0, 3)) {
+    if (room.data.order !== 'pre') {   // 스코어 먼저 방식: 4명 다 확정해야 뽑기
+      const plays = await getPlays(db, code, hole);
+      if (!plays.every(x => x.done)) return state(db, code);
+    }
     await db.prepare(`INSERT INTO golf_plays (code, hole, p, drawn) VALUES (?,?,?,1)
       ON CONFLICT(code, hole, p) DO UPDATE SET drawn=1`).bind(code, hole, b.p).run();
+    await tryFinish(db, code, hole);
   } else if (b.op === 'score' && intIn(b.p, 0, 3) && intIn(b.score, -3, 10)) {
-    await db.prepare(`INSERT INTO golf_plays (code, hole, p, drawn, score, done) VALUES (?,?,?,1,?,1)
+    await db.prepare(`INSERT INTO golf_plays (code, hole, p, drawn, score, done) VALUES (?,?,?,0,?,1)
       ON CONFLICT(code, hole, p) DO UPDATE SET score=excluded.score, done=1`).bind(code, hole, b.p, b.score).run();
     await tryFinish(db, code, hole);
   } else if (b.op === 'unscore' && intIn(b.p, 0, 3)) {
+    if (room.data.order !== 'pre') {   // 스코어 먼저 방식: 누가 뽑기 시작했으면 못 고침
+      const plays = await getPlays(db, code, hole);
+      if (plays.some(x => x.drawn)) return state(db, code);
+    }
     await db.prepare('UPDATE golf_plays SET done=0 WHERE code=? AND hole=? AND p=?').bind(code, hole, b.p).run();
   } else if (b.op === 'undo' && hole > 0) {
     // 직전 홀은 카드는 그대로 두고 ± 확정만 풀어서 다시 입력하게
