@@ -46,9 +46,12 @@ header .sp{flex:1}
 .btn.warn{background:var(--flag-soft); color:var(--flag)}
 
 .names{display:grid; grid-template-columns:1fr 1fr; gap:8px}
-.names input,.feein input{width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink);
+.meta{display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:8px}
+.names input,.feein input,.meta input{width:100%; min-width:0; border:1px solid var(--line); background:var(--bg); color:var(--ink);
   border-radius:10px; padding:9px 12px; font:inherit}
-.names input:focus,.feein input:focus{outline:2px solid var(--green); outline-offset:1px}
+.meta input[type=date]{padding:8px 8px}
+.names input:focus,.feein input:focus,.meta input:focus{outline:2px solid var(--green); outline-offset:1px}
+.roundinfo{margin:-6px 0 10px; font-size:13.5px; font-weight:700; color:var(--muted)}
 .feein{display:flex; align-items:center; gap:8px; margin-top:12px}
 .feein input{text-align:right; font-variant-numeric:tabular-nums; flex:1}
 .feein .unit{color:var(--muted); font-weight:700}
@@ -136,8 +139,17 @@ table{border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric
 th,td{padding:5px 8px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap}
 th{color:var(--muted); font-size:11.5px; letter-spacing:.05em}
 td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.res-T{color:var(--gold); font-weight:700}
-.toolrow{display:flex; gap:8px; margin-top:12px}
-.toolrow .btn{flex:1; font-size:13.5px; padding:9px 6px}
+.toolrow{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px}
+.toolrow .btn{font-size:13.5px; padding:9px 6px}
+.btn.save{background:var(--green); color:#fff}
+.arch{border:1px solid var(--line); border-radius:11px; margin-top:8px; background:var(--bg)}
+.arch summary{list-style:none; cursor:pointer; padding:10px 12px; display:flex; flex-direction:column; gap:1px}
+.arch summary::-webkit-details-marker{display:none}
+.arch summary b{font-size:14.5px}
+.arch summary small{color:var(--muted); font-size:12.5px}
+.arch[open] summary{border-bottom:1px solid var(--line)}
+.arch .body{padding:10px 12px}
+.arch .del{margin-top:10px; width:100%; font-size:13px; padding:8px}
 .finale{text-align:center; padding:6px 0 2px}
 .finale h2{font-family:"Jua",sans-serif; font-weight:400; font-size:22px; margin:0 0 4px}
 .finale p{margin:0; color:var(--muted); font-size:13.5px}
@@ -150,10 +162,16 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <span class="multchip" id="multChip" hidden>배판 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span>
 </header>
+<div class="roundinfo" id="roundInfo" hidden></div>
 
 <!-- 설정 -->
 <section class="panel" id="setupPanel">
-  <div class="label">참가자 4명</div>
+  <div class="label">일자 · 골프장</div>
+  <div class="meta">
+    <input id="dateIn" type="date" aria-label="일자">
+    <input id="courseIn" maxlength="20" placeholder="골프장 이름" autocomplete="off" aria-label="골프장">
+  </div>
+  <div class="label" style="margin-top:14px">참가자 4명</div>
   <div class="names">
     <input id="n0" maxlength="8" placeholder="플레이어 1" autocomplete="off">
     <input id="n1" maxlength="8" placeholder="플레이어 2" autocomplete="off">
@@ -227,10 +245,18 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   </div>
   <div class="empty" id="histEmpty">아직 끝난 홀이 없습니다</div>
   <div class="toolrow">
-    <button class="btn ghost" id="undoBtn">이전 홀 취소</button>
+    <button class="btn save" id="archBtn">기록 저장</button>
     <button class="btn ghost" id="switchBtn">방식 전환</button>
+    <button class="btn ghost" id="undoBtn">이전 홀 취소</button>
     <button class="btn warn" id="resetBtn">새 라운드</button>
   </div>
+  <div class="hintline">새 라운드를 누르면 지금 기록은 자동으로 저장됩니다</div>
+</section>
+
+<!-- 지난 기록 -->
+<section class="panel" id="archPanel" hidden>
+  <div class="label">지난 기록</div>
+  <div id="archList"></div>
 </section>
 </div>
 
@@ -242,34 +268,48 @@ let history=[];            // app: {colors:[4], joker, result:'W'|'G'|'T'} / 기
 let draw=null;             // {pool:[5], taken, colors:[4], busy}
 let recSel=[];             // 기록 모드에서 선택된 진 팀
 let resetArmed=false;
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+let date=todayStr(), course='', roundId=null;
+let rounds=[];             // 저장된 라운드: {id, date, course, names, fee, history, savedAt}
 
 /* ---------- 저장/복원 ---------- */
 function save(){ try{
-  localStorage.setItem('gd2', JSON.stringify({names,fee,started,history,drawMode}));
+  localStorage.setItem('gd2', JSON.stringify({names,fee,started,history,drawMode,date,course,roundId}));
 }catch(e){} }
 try{
   const s=JSON.parse(localStorage.getItem('gd2')||'null');
   if(s){ names=s.names||names; fee=s.fee||5000; started=!!s.started; history=Array.isArray(s.history)?s.history:[];
-    if(s.drawMode==='rec') drawMode='rec'; }
+    if(s.drawMode==='rec') drawMode='rec';
+    if(s.date) date=s.date; course=s.course||''; roundId=s.roundId||null; }
 }catch(e){}
+function saveRounds(){ try{ localStorage.setItem('gd2-rounds', JSON.stringify(rounds)); }catch(e){} }
+try{ const r=JSON.parse(localStorage.getItem('gd2-rounds')||'[]'); if(Array.isArray(r)) rounds=r; }catch(e){}
 
 /* ---------- 파생 값 ---------- */
 function curHole(){ return history.length+1; }
-function multAt(i){ let m=1; for(let k=0;k<i;k++) m = history[k].result==='T' ? m*2 : 1; return m; }
+function multAtH(hist,i){ let m=1; for(let k=0;k<i;k++) m = hist[k].result==='T' ? m*2 : 1; return m; }
+function multAt(i){ return multAtH(history,i); }
 function curMult(){ return multAt(history.length); }
 function losersOf(h){
   if(h.result==='T') return [];
   if(h.result==='L') return h.losers||[];
   return teamOf(h, h.result==='W'?'G':'W');
 }
-function totals(){
+function calcTotals(hist,fe){
   const t=[0,0,0,0];
-  history.forEach((h,i)=>{
-    const m=multAt(i);
-    losersOf(h).forEach(p=>t[p]+=fee*m);
+  hist.forEach((h,i)=>{
+    const m=multAtH(hist,i);
+    losersOf(h).forEach(p=>t[p]+=fe*m);
   });
   return t;
 }
+function totals(){ return calcTotals(history,fee); }
+const WD='일월화수목금토';
+function fmtDate(s){
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||''); if(!m) return '';
+  return m[1]+'.'+m[2]+'.'+m[3]+' ('+WD[new Date(+m[1],m[2]-1,+m[3]).getDay()]+')';
+}
+function roundTitle(d,c){ return [fmtDate(d), c].filter(Boolean).join(' · '); }
 function teamOf(h,color){
   const team=[];
   h.colors.forEach((c,p)=>{ if(c===color || (c==='J' && jokerSide(h)===color)) team.push(p); });
@@ -284,7 +324,10 @@ function jokerSide(h){
 function loadSetupUI(){
   for(let i=0;i<4;i++) $('n'+i).value=names[i]||'';
   $('feeIn').value=fmt(fee);
+  $('dateIn').value=date; $('courseIn').value=course;
 }
+$('dateIn').addEventListener('change',()=>{ date=$('dateIn').value||todayStr(); save(); });
+$('courseIn').addEventListener('change',()=>{ course=$('courseIn').value.trim(); save(); });
 $('feeIn').addEventListener('change',()=>{
   const v=parseInt($('feeIn').value.replace(/[^\d]/g,''),10);
   fee=isNaN(v)||v<100?5000:v; $('feeIn').value=fmt(fee); save(); render();
@@ -303,7 +346,8 @@ function syncDmUI(){
 }
 $('startBtn').onclick=()=>{
   for(let i=0;i<4;i++){ const v=$('n'+i).value.trim(); names[i]=v||('P'+(i+1)); }
-  started=true; save(); render();
+  date=$('dateIn').value||todayStr(); course=$('courseIn').value.trim();
+  roundId=Date.now(); started=true; save(); render();
 };
 
 /* ---------- 뽑기 ---------- */
@@ -416,23 +460,28 @@ $('recTie').onclick=()=>{
 };
 
 /* ---------- 스코어보드 ---------- */
-function renderScore(){
-  const t=totals();
-  $('totals').innerHTML=t.map((v,i)=>
-    '<div class="tot"><div class="n">'+names[i]+'</div><div class="v'+(v>0?' pay':'')+'">'+fmt(v)+'</div></div>').join('');
-  $('potSum').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
-  const rows=history.map((h,i)=>{
-    const m=multAt(i);
+function totalsHTML(t,nm){
+  return t.map((v,i)=>
+    '<div class="tot"><div class="n">'+esc(nm[i])+'</div><div class="v'+(v>0?' pay':'')+'">'+fmt(v)+'</div></div>').join('');
+}
+function histRows(hist,fe,nm){
+  return hist.map((h,i)=>{
+    const m=multAtH(hist,i);
     let res,paid='—',who='—';
     if(h.result==='T'){ res='동점'; }
     else{
       res=h.result==='W'?'흰팀 승':h.result==='G'?'녹팀 승':'승부';
-      paid=fmt(fee*m);
-      who=losersOf(h).map(p=>names[p]).join('·');
+      paid=fmt(fe*m);
+      who=losersOf(h).map(p=>esc(nm[p])).join('·');
     }
     return '<tr><td>'+(i+1)+'</td><td>'+(m>1?'×'+m:'')+'</td><td class="res-'+h.result+'">'+res+'</td><td>'+paid+'</td><td>'+who+'</td></tr>';
   }).join('');
-  $('histBody').innerHTML=rows;
+}
+function renderScore(){
+  const t=totals();
+  $('totals').innerHTML=totalsHTML(t,names);
+  $('potSum').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
+  $('histBody').innerHTML=histRows(history,fee,names);
   $('histTable').hidden=!history.length;
   $('histEmpty').hidden=!!history.length;
 }
@@ -440,6 +489,45 @@ $('undoBtn').onclick=()=>{
   if(!history.length) return;
   history.pop(); draw=null; recSel=[]; save(); render();
 };
+
+/* ---------- 라운드 기록 저장 ---------- */
+// 같은 라운드는 다시 저장하면 덮어씀 (roundId 기준)
+function archiveCurrent(){
+  if(!history.length) return false;
+  if(!roundId){ roundId=Date.now(); save(); }
+  const entry={id:roundId, date, course, names:[...names], fee, history:history.map(h=>({...h})), savedAt:Date.now()};
+  const k=rounds.findIndex(r=>r.id===roundId);
+  if(k>=0) rounds[k]=entry; else rounds.push(entry);
+  rounds.sort((a,b)=>(b.date||'').localeCompare(a.date||'') || b.id-a.id);
+  saveRounds(); renderArch();
+  return true;
+}
+$('archBtn').onclick=()=>{
+  const b=$('archBtn');
+  b.textContent = archiveCurrent() ? '저장됨 ✓' : '끝난 홀이 없어요';
+  setTimeout(()=>{ b.textContent='기록 저장'; },1500);
+};
+let delArmed=null;
+function renderArch(){
+  $('archPanel').hidden=!rounds.length;
+  $('archList').innerHTML=rounds.map(r=>{
+    const t=calcTotals(r.history,r.fee), pot=t.reduce((a,b)=>a+b,0);
+    const title=esc(roundTitle(r.date,r.course)||'일자 없음');
+    const sub=r.history.length+'홀 · 총 '+fmt(pot)+'원 · '+r.names.map(esc).join(', ');
+    return '<details class="arch" data-id="'+r.id+'"><summary><b>'+title+'</b><small>'+sub+'</small></summary>'+
+      '<div class="body"><div class="totals">'+totalsHTML(t,r.names)+'</div>'+
+      '<div class="potline"><span>홀당 '+fmt(r.fee)+'원</span><b>총 '+fmt(pot)+'원</b></div>'+
+      '<div class="histwrap" style="margin-top:8px"><table><thead><tr><th>홀</th><th>배</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead><tbody>'+
+      histRows(r.history,r.fee,r.names)+'</tbody></table></div>'+
+      '<button class="btn warn del" data-del="'+r.id+'">이 기록 삭제</button></div></details>';
+  }).join('');
+}
+$('archList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-del]'); if(!b) return;
+  const id=+b.dataset.del;
+  if(delArmed!==id){ delArmed=id; b.textContent='한 번 더 누르면 삭제'; setTimeout(()=>{ if(delArmed===id){ delArmed=null; b.textContent='이 기록 삭제'; } },2500); return; }
+  delArmed=null; rounds=rounds.filter(r=>r.id!==id); saveRounds(); renderArch();
+});
 $('switchBtn').onclick=()=>{
   drawMode = drawMode==='app' ? 'rec' : 'app';
   draw=null; recSel=[]; save(); syncDmUI(); render();
@@ -447,7 +535,8 @@ $('switchBtn').onclick=()=>{
 $('resetBtn').onclick=()=>{
   if(!resetArmed){ resetArmed=true; $('resetBtn').textContent='정말 초기화?'; setTimeout(()=>{resetArmed=false; $('resetBtn').textContent='새 라운드';},2500); return; }
   resetArmed=false; $('resetBtn').textContent='새 라운드';
-  history=[]; started=false; draw=null; save(); loadSetupUI(); render();
+  archiveCurrent();
+  history=[]; started=false; draw=null; roundId=null; date=todayStr(); save(); loadSetupUI(); render();
 };
 
 /* ---------- 화면 전환 ---------- */
@@ -462,6 +551,9 @@ function render(){
   const m=curMult();
   $('multChip').hidden=!started || done || m<=1;
   $('multChip').textContent='배판 ×'+m;
+  const info=roundTitle(date,course);
+  $('roundInfo').hidden=!started || !info;
+  $('roundInfo').textContent=info;
   if(started && !done){
     const app = drawMode==='app';
     $('appDraw').hidden=!app;
@@ -480,6 +572,7 @@ function render(){
 loadSetupUI();
 syncDmUI();
 render();
+renderArch();
 </script>
 
 </body></html>
