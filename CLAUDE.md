@@ -60,6 +60,8 @@ golf/                 골프 뽑기 (4인 팀 뽑기·배판·정산)
                       동점 홀 금액은 다음 홀로 이월(합산): ×2, ×3… (배로 늘지 않음, multAtH)
                       지난 홀 줄을 누르면 수정. 스코어카드 패널은 ± 기록이 생기면 항상 표시, 머리의 "스코어" 버튼으로 이동
 zephyr/               서풍의 광시곡 아이템 지도
+pal/                  팰월드 펠 도감 (287종: 번호·한국어 이름·속성·작업 적성·설명, 포획 체크)
+                      데이터 출처: github.com/oMaN-Rod/palworld-save-pal data/json (pals.json + l10n/ko, 2026-09 기준). 업데이트 땐 같은 파일에서 다시 뽑기
 _server/golf.js       골프 함께하기 서버 (보관 중. 켤 때 functions/api/golf.js 로 옮김)
 ```
 
@@ -88,6 +90,7 @@ _server/golf.js       골프 함께하기 서버 (보관 중. 켤 때 functions/
 | idle | `armory_calc_v2` |
 | golf | `gd2` |
 | zephyr | `seopung-check-v1` |
+| pal | `pal-dex-v1` |
 | golf (지난 기록·함께하기 방) | `gd2-rounds`, `gd2-room` |
 
 ## 서비스 워커
