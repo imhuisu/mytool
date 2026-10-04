@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>산소 미포함 방 가이드</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icons/favicon.png">
+<script src="../hub.js" defer></script>
+<style>
+:root{ --bg:#eef3f6; --card:#fff; --ink:#18232b; --muted:#62717c; --line:#dbe3e8; --brand:#1c8a8a; --soft:#e2f2f1; --ok:#1f9d63; --ng:#d1493a; --warn:#b8860b; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#10171b; --card:#18222a; --ink:#e6eef2; --muted:#93a4ae; --line:#2a3842; --brand:#4fc3c3; --soft:#16302f; --ok:#4cc38a; --ng:#e0604f; --warn:#e0b84e; }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px 32px}
+.wrap{max-width:640px; margin:0 auto}
+h1{font-size:21px; margin:2px 0 10px}
+.tabs{display:flex; gap:4px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:3px; margin-bottom:12px}
+.tabs button{flex:1; border:0; background:none; color:var(--muted); font:inherit; font-weight:700; padding:8px; border-radius:9px; cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--brand); color:#fff}
+.chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:5px 11px; font:inherit; font-size:13px; font-weight:600; cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brand); border-color:var(--brand); color:#fff}
+.room{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px}
+.rh{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.rh b{font-size:16.5px}
+.rh .en{font-size:12px; color:var(--muted)}
+.rh .sz{margin-left:auto; font-size:12.5px; font-weight:700; color:var(--brand); white-space:nowrap}
+.eff{margin:6px 0 8px; padding:7px 10px; background:var(--soft); border-radius:9px; font-size:13.5px; font-weight:600}
+ul{margin:0; padding-left:18px; font-size:13.5px}
+li{margin:1px 0}
+li.no{color:var(--ng)}
+.up{margin-top:6px; font-size:12.5px; color:var(--muted)}
+.up b{color:var(--ink)}
+.panel{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px}
+.label{font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.05em; margin:0 0 6px}
+.dims{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+@media (max-width:420px){ .dims{grid-template-columns:1fr} }
+.num{display:flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:10px; padding:4px 6px; background:var(--bg)}
+.num span{flex:1; font-size:13px; color:var(--muted); padding-left:4px; white-space:nowrap}
+.num input{width:52px; border:0; background:none; color:var(--ink); font:inherit; font-weight:700; font-size:17px; text-align:center}
+.num button,.cnt button{width:30px; height:30px; border:1px solid var(--line); background:var(--card); color:var(--brand); border-radius:8px; font-weight:800; cursor:pointer}
+.grp{margin-top:12px}
+.items{display:grid; grid-template-columns:1fr 1fr; gap:6px}
+.it{display:flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:13px; cursor:pointer; background:var(--bg); min-width:0}
+.it.on{border-color:var(--brand); background:var(--soft); font-weight:700}
+.it .t{flex:1; min-width:0; line-height:1.25}
+.it.cn{flex-wrap:wrap; row-gap:4px}
+.it.cn .t{flex-basis:100%}
+.it.cn .cnt{margin-left:auto}
+.it .t small{display:block; color:var(--muted); font-weight:500; font-size:11px}
+.cnt{display:flex; align-items:center; gap:4px}
+.cnt b{min-width:18px; text-align:center}
+.res{margin-top:4px}
+.best{font-size:18px; font-weight:800; margin:2px 0 8px}
+.best small{font-size:13px; font-weight:600; color:var(--muted)}
+.near{border-top:1px dashed var(--line); padding-top:8px; margin-top:8px}
+.near h4{margin:0 0 4px; font-size:14px}
+.ok{color:var(--ok); font-weight:700}
+.reset{margin-top:10px; width:100%; border:1px solid var(--line); background:var(--card); color:var(--muted); border-radius:10px; padding:9px; font:inherit; font-weight:700; cursor:pointer}
+.foot{margin-top:16px; font-size:12px; color:var(--muted); line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>산소 미포함 방 가이드</h1>
+<div class="tabs" id="tabs"><button data-t="plan" aria-pressed="true">내 구역 판정</button><button data-t="list" aria-pressed="false">방 목록</button></div>
+
+<!-- 판정기 -->
+<div id="plan">
+  <div class="panel res" id="result"></div>
+  <div class="panel">
+    <div class="label">구역 크기</div>
+    <div class="dims">
+      <div class="num"><span>타일 수</span><button data-dim="tiles" data-d="-1">−</button><input id="tiles" inputmode="numeric" aria-label="타일 수"><button data-dim="tiles" data-d="1">＋</button></div>
+      <div class="num"><span>높이</span><button data-dim="height" data-d="-1">−</button><input id="height" inputmode="numeric" aria-label="높이"><button data-dim="height" data-d="1">＋</button></div>
+    </div>
+    <div id="items"></div>
+    <button class="reset" id="reset">모두 지우기</button>
+  </div>
+</div>
+
+<!-- 목록 -->
+<div id="list" hidden>
+  <div class="chips" id="cats"></div>
+  <div id="rooms"></div>
+</div>
+
+<div class="foot">
+  · 방은 벽·문으로 완전히 막힌 구역이어야 해요. 타일 수는 안쪽 빈칸 기준, 높이는 바닥~천장 칸 수.<br>
+  · <b>공업 기계</b>: 발전기, 정제기, 펌프 같은 산업용 건물. 하나라도 있으면 대부분의 생활 방이 안 돼요.<br>
+  · 수치는 영문 위키 기준(2025~2026). 한국어 이름 중 일부는 게임 표기와 다를 수 있어 영어 이름을 같이 적었어요.
+</div>
+</div>
+
+<script>
+/* ---------- 구역 안의 건물 (판정기 입력) ---------- */
+const ITEMS = [
+  {g:'화장실', k:'outhouse', n:'옥외 화장실', e:'Outhouse'},
+  {g:'화장실', k:'lavatory', n:'수세식 화장실', e:'Lavatory'},
+  {g:'화장실', k:'basin', n:'세면대', e:'Wash Basin'},
+  {g:'화장실', k:'sink', n:'싱크대 (배관)', e:'Sink'},
+  {g:'침실', k:'cot', n:'간이침대', e:'Cot'},
+  {g:'침실', k:'comfy', n:'편안한 침대', e:'Comfy Bed', c:1},
+  {g:'식당·주방', k:'mess', n:'식탁', e:'Mess Table'},
+  {g:'식당·주방', k:'communal', n:'공용 식탁', e:'Communal Table'},
+  {g:'식당·주방', k:'spice', n:'향신료 분쇄기', e:'Spice Grinder'},
+  {g:'식당·주방', k:'cook', n:'조리 기구', e:'Electric Grill / Gas Range'},
+  {g:'식당·주방', k:'fridge', n:'냉장고', e:'Refrigerator'},
+  {g:'장식·오락', k:'decor', n:'장식품', e:'Decor item', c:1},
+  {g:'장식·오락', k:'decor20', n:'장식 20+ 작품', e:'Decor 20+ item'},
+  {g:'장식·오락', k:'ornament', n:'전시된 장식품', e:'Displayed ornament'},
+  {g:'장식·오락', k:'rec', n:'오락 건물', e:'Recreation building'},
+  {g:'장식·오락', k:'massage', n:'마사지 테이블', e:'Massage Table'},
+  {g:'자연', k:'parksign', n:'공원 표지판', e:'Park Sign'},
+  {g:'자연', k:'wild', n:'야생 식물', e:'Wild plants', c:1},
+  {g:'농사·목축', k:'farmst', n:'농장 스테이션', e:'Farm Station'},
+  {g:'농사·목축', k:'ranch', n:'목장 건물', e:'Grooming Station 등'},
+  {g:'전력·연구', k:'heavygen', n:'대형 발전기', e:'Heavy-duty generator'},
+  {g:'전력·연구', k:'power', n:'전력 건물', e:'Power buildings (발전기 포함)', c:1},
+  {g:'전력·연구', k:'science', n:'연구 건물', e:'Science buildings', c:1},
+  {g:'전력·연구', k:'light', n:'조명', e:'Light source'},
+  {g:'의료', k:'medbed', n:'의료 침대', e:'Triage Cot 등'},
+  {g:'금지 요소', k:'industrial', n:'공업 기계 있음', e:'Industrial machinery'},
+];
+
+/* ---------- 방 정의 (영문 위키 기준) ---------- */
+const NO_IND = ['공업 기계 없음', s=>!s.industrial];
+const ROOMS = [
+  {id:'latrine', cat:'화장실', n:'변소', e:'Latrine', min:12, max:64, eff:'사기 +1',
+    req:[['화장실 1개 이상 (옥외/수세식)', s=>s.outhouse||s.lavatory], ['세면대 또는 싱크대 1개 이상', s=>s.basin||s.sink], NO_IND],
+    up:'washroom'},
+  {id:'washroom', cat:'화장실', n:'세척실', e:'Washroom', min:12, max:64, eff:'사기 +2',
+    req:[['수세식 화장실 1개 이상', s=>s.lavatory], ['싱크대(배관) 1개 이상', s=>s.sink], ['옥외 화장실 없음', s=>!s.outhouse], NO_IND],
+    from:'latrine'},
+  {id:'barracks', cat:'침실', n:'막사', e:'Barracks', min:12, max:64, eff:'사기 +1 · 잠잘 때 기력 회복 증가',
+    req:[['침대 1개 이상 (간이/편안한)', s=>s.cot||s.comfy], NO_IND], up:'luxury'},
+  {id:'luxury', cat:'침실', n:'호화 막사', e:'Luxury Barracks', min:12, max:64, h:4, eff:'사기 +2',
+    req:[['편안한 침대 1개 이상', s=>s.comfy>=1], ['간이침대 없음', s=>!s.cot], ['장식품 1개 이상', s=>s.decor>=1], NO_IND],
+    from:'barracks', up:'private'},
+  {id:'private', cat:'침실', n:'개인 침실', e:'Private Bedroom', min:24, max:64, h:4, eff:'사기 +3 · 기력 회복 더 증가',
+    req:[['편안한 침대 딱 1개', s=>s.comfy===1], ['간이침대 없음', s=>!s.cot], ['장식품 2개 이상', s=>s.decor>=2], NO_IND],
+    from:'luxury'},
+  {id:'mess', cat:'식당', n:'식당', e:'Mess Hall', min:12, max:64, eff:'식사할 때 사기 +3',
+    req:[['식탁 1개 이상', s=>s.mess], NO_IND], up:'great'},
+  {id:'great', cat:'식당', n:'큰 회관', e:'Great Hall', min:32, max:120, eff:'식사할 때 사기 +4',
+    req:[['식탁 1개 이상', s=>s.mess], ['장식 20+ 작품 1개 이상', s=>s.decor20], ['오락 건물 1개 이상', s=>s.rec], NO_IND],
+    from:'mess', up:'banquet'},
+  {id:'banquet', cat:'식당', n:'연회장', e:'Banquet Hall', min:32, max:120, eff:'식사할 때 사기 +6',
+    req:[['공용 식탁 1개 이상', s=>s.communal], ['식탁(Mess Table) 없음', s=>!s.mess], ['장식품 1개 이상', s=>s.decor>=1||s.decor20], ['오락 건물 1개 이상', s=>s.rec], ['전시된 장식품 1개 이상', s=>s.ornament], NO_IND],
+    from:'great'},
+  {id:'kitchen', cat:'작업', n:'주방', e:'Kitchen', min:12, max:96, eff:'향신료 분쇄기 사용 가능 → 요리에 향신료 효과',
+    req:[['향신료 분쇄기 1개 이상', s=>s.spice], ['조리 기구 1개 이상 (전기 그릴/가스레인지)', s=>s.cook], ['냉장고 1개 이상', s=>s.fridge], ['식탁 없음', s=>!s.mess]]},
+  {id:'greenhouse', cat:'작업', n:'온실', e:'Greenhouse', min:12, max:96, eff:'농장 스테이션 비료로 작물 성장 속도 증가',
+    req:[['농장 스테이션 1개 이상', s=>s.farmst]]},
+  {id:'stable', cat:'작업', n:'축사', e:'Stable', min:12, max:96, eff:'손질 스테이션·털깎기·크리터 콘도·급수대·착유 스테이션 사용 가능',
+    req:[['목장 건물 1개 이상', s=>s.ranch]]},
+  {id:'powerplant', cat:'작업', n:'발전소', e:'Power Plant', min:12, max:96, eff:'전력 제어 스테이션 마이크로칩으로 발전기 출력 증가',
+    req:[['대형 발전기 1개 이상', s=>s.heavygen], ['전력 건물 2개 이상', s=>s.power>=2]]},
+  {id:'lab', cat:'작업', n:'실험실', e:'Laboratory', min:32, max:120, eff:'연구 건물 효율 증가 · 지오튜너·미션 컨트롤 사용 가능',
+    req:[['연구 건물 2개 이상', s=>s.science>=2], ['조명 1개 이상', s=>s.light], NO_IND]},
+  {id:'hospital', cat:'기타', n:'병원', e:'Hospital', min:12, max:96, eff:'직접 보너스 없음 (환자를 한곳에 모아 병 확산 방지)',
+    req:[['의료 침대 1개 이상', s=>s.medbed], ['화장실 1개 이상', s=>s.outhouse||s.lavatory], ['식탁 1개 이상', s=>s.mess], NO_IND]},
+  {id:'massage', cat:'기타', n:'마사지 클리닉', e:'Massage Clinic', min:12, max:64, eff:'마사지 테이블 스트레스 감소 2배 (분당 −3% → −6%)',
+    req:[['마사지 테이블 1개 이상', s=>s.massage], ['장식품 1개 이상', s=>s.decor>=1||s.decor20], NO_IND]},
+  {id:'rec', cat:'기타', n:'오락실', e:'Recreation Room', min:12, max:64, eff:'휴식 시간에 오락 건물 이용 → 스트레스 감소 효과',
+    req:[['오락 건물 1개 이상', s=>s.rec], ['장식품 1개 이상', s=>s.decor>=1||s.decor20], NO_IND]},
+  {id:'park', cat:'자연', n:'공원', e:'Park', min:12, max:64, eff:'지나갈 때 사기 +3',
+    req:[['공원 표지판 1개 이상', s=>s.parksign], ['야생 식물 2개 이상', s=>s.wild>=2], NO_IND], up:'reserve'},
+  {id:'reserve', cat:'자연', n:'자연 보호구역', e:'Nature Reserve', min:32, max:120, eff:'지나갈 때 사기 +6 (약 0.5주기)',
+    req:[['공원 표지판 1개 이상', s=>s.parksign], ['야생 식물 4개 이상', s=>s.wild>=4], NO_IND], from:'park'},
+];
+const byId=Object.fromEntries(ROOMS.map(r=>[r.id,r]));
+const RANK=['private','luxury','barracks','banquet','great','mess','washroom','latrine','reserve','park','hospital','massage','rec','lab','kitchen','powerplant','greenhouse','stable'];
+
+const KEY='oni-rooms-v1';
+let st={tab:'plan', cat:'전체', tiles:24, height:4, s:{}};
+try{ Object.assign(st, JSON.parse(localStorage.getItem(KEY))||{}); }catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} };
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* 판정: 크기 조건 포함 각 조건 결과 */
+function check(r){
+  const s=st.s, out=[];
+  out.push(['크기 '+r.min+'~'+r.max+'칸', st.tiles>=r.min && st.tiles<=r.max]);
+  if(r.h) out.push(['높이 '+r.h+'칸 이상', st.height>=r.h]);
+  r.req.forEach(([t,f])=>out.push([t, !!f(s)]));
+  return out;
+}
+
+/* ---------- 판정기 화면 ---------- */
+function renderItems(){
+  const groups=[...new Set(ITEMS.map(i=>i.g))];
+  $('items').innerHTML=groups.map(g=>'<div class="grp"><div class="label">'+g+'</div><div class="items">'+
+    ITEMS.filter(i=>i.g===g).map(i=>{
+      const v=st.s[i.k]||0;
+      if(i.c) return '<div class="it cn'+(v?' on':'')+'"><span class="t">'+i.n+'<small>'+i.e+'</small></span>'+
+        '<span class="cnt"><button data-c="'+i.k+'" data-d="-1" aria-label="'+i.n+' 줄이기">−</button><b>'+v+'</b><button data-c="'+i.k+'" data-d="1" aria-label="'+i.n+' 늘리기">＋</button></span></div>';
+      return '<div class="it'+(v?' on':'')+'" data-t="'+i.k+'" role="button" aria-pressed="'+(!!v)+'"><span class="t">'+i.n+'<small>'+i.e+'</small></span>'+(v?'✓':'')+'</div>';
+    }).join('')+'</div></div>').join('');
+}
+function renderResult(){
+  const res=ROOMS.map(r=>{ const c=check(r); return {r,c,miss:c.filter(x=>!x[1])}; });
+  const ok=res.filter(x=>!x.miss.length).sort((a,b)=>RANK.indexOf(a.r.id)-RANK.indexOf(b.r.id));
+  let html='<div class="label">판정 결과</div>';
+  if(ok.length){
+    const b=ok[0].r;
+    html+='<div class="best">✅ '+b.n+' <small>'+b.e+'</small></div><div class="eff">'+esc(b.eff)+'</div>';
+    if(ok.length>1) html+='<div class="up">조건은 '+ok.slice(1).map(x=>x.r.n).join(', ')+'도 만족 (게임에서는 위의 방 하나로 판정돼요)</div>';
+    if(b.up){ const u=byId[b.up], m=check(u).filter(x=>!x[1]);
+      html+='<div class="near"><h4>⬆ 다음 단계: '+u.n+' <small style="color:var(--muted);font-weight:600">'+esc(u.eff)+'</small></h4><div class="up" style="margin:0 0 2px">더 필요한 것</div><ul>'+m.map(x=>'<li class="no">'+esc(x[0])+'</li>').join('')+'</ul></div>'; }
+  }else{
+    html+='<div class="best">❌ 아직 방이 아니에요</div>';
+  }
+  // 거의 된 방 (빠진 조건 1~2개)
+  const started=r=>r.req.some(([t,f])=>!t.includes('없음') && f(st.s));
+  const near=res.filter(x=>x.miss.length>=1 && x.miss.length<=2 && started(x.r) && !ok.some(o=>o.r.id===x.r.id) && !(ok[0]&&ok[0].r.up===x.r.id))
+    .sort((a,b)=>a.miss.length-b.miss.length || RANK.indexOf(a.r.id)-RANK.indexOf(b.r.id)).slice(0,4);
+  if(near.length) html+='<div class="near"><h4>조금만 더 하면 되는 방</h4>'+near.map(x=>
+    '<div style="margin-top:6px"><b>'+x.r.n+'</b> <small style="color:var(--muted)">'+esc(x.r.eff)+'</small><ul>'+x.miss.map(m=>'<li class="no">'+esc(m[0])+'</li>').join('')+'</ul></div>').join('')+'</div>';
+  $('result').innerHTML=html;
+}
+function renderPlan(){ $('tiles').value=st.tiles; $('height').value=st.height; renderItems(); renderResult(); }
+$('items').addEventListener('click',e=>{
+  const c=e.target.closest('[data-c]');
+  if(c){ const k=c.dataset.c; st.s[k]=Math.max(0,Math.min(20,(st.s[k]||0)+(+c.dataset.d))); save(); renderPlan(); return; }
+  const t=e.target.closest('[data-t]');
+  if(t){ const k=t.dataset.t; st.s[k]=st.s[k]?0:1; save(); renderPlan(); }
+});
+document.querySelectorAll('[data-dim]').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.dim; st[k]=Math.max(1,Math.min(200,(+st[k]||0)+(+b.dataset.d))); save(); renderPlan();
+});
+['tiles','height'].forEach(k=>$(k).addEventListener('change',()=>{ const v=parseInt($(k).value,10); st[k]=isNaN(v)?st[k]:Math.max(1,Math.min(200,v)); save(); renderPlan(); }));
+$('reset').onclick=()=>{ st.s={}; st.tiles=24; st.height=4; save(); renderPlan(); };
+
+/* ---------- 목록 화면 ---------- */
+const CATS=['전체',...new Set(ROOMS.map(r=>r.cat))];
+function renderList(){
+  $('cats').innerHTML=CATS.map(c=>'<button class="chip" data-cat="'+c+'" aria-pressed="'+(c===st.cat)+'">'+c+'</button>').join('');
+  $('rooms').innerHTML=ROOMS.filter(r=>st.cat==='전체'||r.cat===st.cat).map(r=>
+    '<div class="room"><div class="rh"><b>'+r.n+'</b><span class="en">'+r.e+'</span><span class="sz">'+r.min+'~'+r.max+'칸'+(r.h?' · 높이 '+r.h+'+':'')+'</span></div>'+
+    '<div class="eff">'+esc(r.eff)+'</div><ul>'+r.req.map(x=>'<li>'+esc(x[0])+'</li>').join('')+'</ul>'+
+    ((r.from||r.up)?'<div class="up">'+(r.from?'아래 단계: <b>'+byId[r.from].n+'</b>':'')+(r.from&&r.up?' · ':'')+(r.up?'다음 단계: <b>'+byId[r.up].n+'</b>':'')+'</div>':'')+
+    '</div>').join('');
+}
+$('cats').onclick=e=>{ const b=e.target.closest('[data-cat]'); if(!b) return; st.cat=b.dataset.cat; save(); renderList(); };
+
+function renderTab(){
+  [...$('tabs').children].forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===st.tab?'true':'false'));
+  $('plan').hidden=st.tab!=='plan'; $('list').hidden=st.tab!=='list';
+  st.tab==='plan'?renderPlan():renderList();
+}
+$('tabs').onclick=e=>{ const b=e.target.closest('[data-t]'); if(!b) return; st.tab=b.dataset.t; save(); renderTab(); };
+renderTab();
+</script>
+</body>
+</html>
