@@ -34,6 +34,7 @@ h1{font-size:21px; margin:2px 0 10px}
 ul{margin:0; padding-left:18px; font-size:13.5px}
 li{margin:1px 0}
 li.no{color:var(--ng)}
+.ex{font-size:12px; color:var(--muted); margin:1px 0 3px}
 .up{margin-top:6px; font-size:12.5px; color:var(--muted)}
 .up b{color:var(--ink)}
 .panel{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px}
@@ -128,6 +129,27 @@ const ITEMS = [
   {g:'금지 요소', k:'industrial', n:'공업 기계 있음', e:'Industrial machinery'},
 ];
 
+/* ---------- 묶음 이름에 들어가는 실제 건물 예시 (영문 이름 병기) ---------- */
+const EX = [
+  ['장식 20+', '걸작급 조각·그림 (Sculpture/Painting 고품질), 장식 수치 20 이상인 물건'],
+  ['전시된 장식품', '받침대(Pedestal) 등에 올려 둔 장식품'],
+  ['장식품', '그림(Canvas), 조각(Sculpture), 화분에 심은 장식 식물(Flower Pot), 받침대 전시'],
+  ['오락 건물', '아케이드(Arcade Cabinet), 에스프레소 머신, 주크봇(Jukebot), 워터 쿨러, 소다 분수, 사우나, 온수 욕조(Hot Tub), 비치 체어, 전화(Party Line Phone), 기계식 서핑보드'],
+  ['공업 기계', '발전기 전부, 펌프, 정수기(Water Sieve), 전해조(Electrolyzer), 쇄석기(Rock Crusher), 금속 정련기, 퇴비통 등'],
+  ['연구 건물', '연구 스테이션(Research Station), 슈퍼컴퓨터, 가상 천체투영관, 망원경 등'],
+  ['목장 건물', '손질 스테이션(Grooming Station), 털깎기 스테이션, 크리터 콘도, 크리터 급수대, 착유 스테이션'],
+  ['대형 발전기', '석탄 발전기, 천연가스 발전기, 석유 발전기 등'],
+  ['전력 건물', '발전기, 배터리, 변압기, 전력 제어 스테이션'],
+  ['의료 침대', '간이 진료 침대(Triage Cot / Sick Bay), 질병 클리닉(Disease Clinic)'],
+  ['조명', '천장 조명(Ceiling Light), 램프(Lamp), 태양 램프(Sun Lamp)'],
+  ['조리 기구', '전기 그릴(Electric Grill), 가스레인지(Gas Range)'],
+  ['야생 식물', '화분이 아닌 땅에 자연으로 자라는 식물 (농장 타일·화분 제외)'],
+  ['공원 표지판', '공원 표지판(Park Sign) 1개'],
+];
+const exOf = t => { const e=EX.find(x=>t.includes(x[0])); return e?e[1]:''; };
+/* 최소 칸 수를 만드는 가로×세로 예 (높이 조건 고려) */
+const shape = (n,h) => { const hh=Math.max(h||3, n<=12?3:4); return Math.ceil(n/hh)+'×'+hh; };
+
 /* ---------- 방 정의 (영문 위키 기준) ---------- */
 const NO_IND = ['공업 기계 없음', s=>!s.industrial];
 const ROOMS = [
@@ -201,9 +223,10 @@ function renderItems(){
       const v=st.s[i.k]||0;
       if(i.c) return '<div class="it cn'+(v?' on':'')+'"><span class="t">'+i.n+'<small>'+i.e+'</small></span>'+
         '<span class="cnt"><button data-c="'+i.k+'" data-d="-1" aria-label="'+i.n+' 줄이기">−</button><b>'+v+'</b><button data-c="'+i.k+'" data-d="1" aria-label="'+i.n+' 늘리기">＋</button></span></div>';
-      return '<div class="it'+(v?' on':'')+'" data-t="'+i.k+'" role="button" aria-pressed="'+(!!v)+'"><span class="t">'+i.n+'<small>'+i.e+'</small></span>'+(v?'✓':'')+'</div>';
+      return '<div class="it'+(v?' on':'')+'" data-t="'+i.k+'" role="button" aria-pressed="'+(!!v)+'" title="'+esc(exOf(i.n))+'"><span class="t">'+i.n+'<small>'+i.e+'</small></span>'+(v?'✓':'')+'</div>';
     }).join('')+'</div></div>').join('');
 }
+const missLi = m => { const ex=exOf(m[0]); return '<li class="no">'+esc(m[0])+(ex?'<div class="ex">'+esc(ex)+'</div>':'')+'</li>'; };
 function renderResult(){
   const res=ROOMS.map(r=>{ const c=check(r); return {r,c,miss:c.filter(x=>!x[1])}; });
   const ok=res.filter(x=>!x.miss.length).sort((a,b)=>RANK.indexOf(a.r.id)-RANK.indexOf(b.r.id));
@@ -213,7 +236,7 @@ function renderResult(){
     html+='<div class="best">✅ '+b.n+' <small>'+b.e+'</small></div><div class="eff">'+esc(b.eff)+'</div>';
     if(ok.length>1) html+='<div class="up">조건은 '+ok.slice(1).map(x=>x.r.n).join(', ')+'도 만족 (게임에서는 위의 방 하나로 판정돼요)</div>';
     if(b.up){ const u=byId[b.up], m=check(u).filter(x=>!x[1]);
-      html+='<div class="near"><h4>⬆ 다음 단계: '+u.n+' <small style="color:var(--muted);font-weight:600">'+esc(u.eff)+'</small></h4><div class="up" style="margin:0 0 2px">더 필요한 것</div><ul>'+m.map(x=>'<li class="no">'+esc(x[0])+'</li>').join('')+'</ul></div>'; }
+      html+='<div class="near"><h4>⬆ 다음 단계: '+u.n+' <small style="color:var(--muted);font-weight:600">'+esc(u.eff)+'</small></h4><div class="up" style="margin:0 0 2px">더 필요한 것</div><ul>'+m.map(missLi).join('')+'</ul></div>'; }
   }else{
     html+='<div class="best">❌ 아직 방이 아니에요</div>';
   }
@@ -222,7 +245,7 @@ function renderResult(){
   const near=res.filter(x=>x.miss.length>=1 && x.miss.length<=2 && started(x.r) && !ok.some(o=>o.r.id===x.r.id) && !(ok[0]&&ok[0].r.up===x.r.id))
     .sort((a,b)=>a.miss.length-b.miss.length || RANK.indexOf(a.r.id)-RANK.indexOf(b.r.id)).slice(0,4);
   if(near.length) html+='<div class="near"><h4>조금만 더 하면 되는 방</h4>'+near.map(x=>
-    '<div style="margin-top:6px"><b>'+x.r.n+'</b> <small style="color:var(--muted)">'+esc(x.r.eff)+'</small><ul>'+x.miss.map(m=>'<li class="no">'+esc(m[0])+'</li>').join('')+'</ul></div>').join('')+'</div>';
+    '<div style="margin-top:6px"><b>'+x.r.n+'</b> <small style="color:var(--muted)">'+esc(x.r.eff)+'</small><ul>'+x.miss.map(missLi).join('')+'</ul></div>').join('')+'</div>';
   $('result').innerHTML=html;
 }
 function renderPlan(){ $('tiles').value=st.tiles; $('height').value=st.height; renderItems(); renderResult(); }
@@ -244,7 +267,9 @@ function renderList(){
   $('cats').innerHTML=CATS.map(c=>'<button class="chip" data-cat="'+c+'" aria-pressed="'+(c===st.cat)+'">'+c+'</button>').join('');
   $('rooms').innerHTML=ROOMS.filter(r=>st.cat==='전체'||r.cat===st.cat).map(r=>
     '<div class="room"><div class="rh"><b>'+r.n+'</b><span class="en">'+r.e+'</span><span class="sz">'+r.min+'~'+r.max+'칸'+(r.h?' · 높이 '+r.h+'+':'')+'</span></div>'+
-    '<div class="eff">'+esc(r.eff)+'</div><ul>'+r.req.map(x=>'<li>'+esc(x[0])+'</li>').join('')+'</ul>'+
+    '<div class="eff">'+esc(r.eff)+'</div>'+
+    '<div class="up" style="margin:0 0 6px">📐 타일: 안쪽 빈칸 <b>'+r.min+'~'+r.max+'칸</b>'+(r.h?', 높이 <b>'+r.h+'칸 이상</b>':'')+' · 최소 크기 예: 가로×세로 <b>'+shape(r.min,r.h)+'</b></div>'+
+    '<ul>'+r.req.map(x=>{ const ex=exOf(x[0]); return '<li>'+esc(x[0])+(ex?'<div class="ex">'+esc(ex)+'</div>':'')+'</li>'; }).join('')+'</ul>'+
     ((r.from||r.up)?'<div class="up">'+(r.from?'아래 단계: <b>'+byId[r.from].n+'</b>':'')+(r.from&&r.up?' · ':'')+(r.up?'다음 단계: <b>'+byId[r.up].n+'</b>':'')+'</div>':'')+
     '</div>').join('');
 }
