@@ -62,11 +62,22 @@ header .sp{flex:1}
 .seg{display:flex; border:1px solid var(--line); border-radius:11px; overflow:hidden; background:var(--card); flex:none}
 .seg button{border:0; background:none; padding:0 10px; font-weight:700; font-size:13px; color:var(--muted); cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--brand); color:#fff}
+.fab{position:fixed; z-index:6; right:max(16px, calc(50% - 344px)); bottom:calc(70px + env(safe-area-inset-bottom,0px));
+  width:56px; height:56px; border-radius:50%; border:0; background:var(--brand); color:#fff; font-size:30px; font-weight:400; line-height:1;
+  box-shadow:0 4px 14px rgba(20,40,90,.3); cursor:pointer}
+.fab:active{transform:scale(.94)}
+/* 앱으로 설치했을 때: 도구함 홈 버튼을 빠른 추가 칸 위로, 아래 여백 확보 */
+@media (display-mode: standalone){
+  html body .hub-home{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  html body{padding-bottom:calc(140px + env(safe-area-inset-bottom,0px)) !important}
+}
+body{padding-bottom:140px}
 .go{border:0; background:var(--brand); color:#fff; border-radius:11px; padding:0 14px; font-weight:800; cursor:pointer; flex:none}
 /* 달력 */
 .cal-h{display:flex; align-items:center; gap:8px; margin-bottom:8px}
 .cal-h b{flex:1; text-align:center; font-size:17px}
-.grid{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:2px}
+.grid{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:2px; touch-action:pan-y; user-select:none; transition:transform .18s, opacity .18s}
+.grid.sw-l{transform:translateX(-24px); opacity:.3} .grid.sw-r{transform:translateX(24px); opacity:.3}
 .grid .wd{font-size:11.5px; font-weight:800; color:var(--muted); text-align:center; padding:2px 0}
 .grid .wd:first-child,.day.sun .dn{color:var(--ng)} .grid .wd:last-child,.day.sat .dn{color:var(--brand)}
 .day{min-height:62px; border-radius:9px; padding:3px 3px 2px; cursor:pointer; border:1px solid transparent; overflow:hidden; background:none; text-align:left; display:flex; flex-direction:column; gap:1px}
@@ -87,6 +98,7 @@ header .sp{flex:1}
 .f{display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:12.5px; font-weight:700; color:var(--muted)}
 .f input,.f select,.f textarea{border:1px solid var(--line); background:var(--bg); border-radius:10px; padding:9px 11px; font-weight:500; font-size:15px; color:var(--ink); min-width:0; width:100%}
 .f textarea{min-height:70px; resize:vertical}
+.f input[type=date],.f input[type=time]{min-height:42px; cursor:pointer}
 .two{display:grid; grid-template-columns:1fr 1fr; gap:8px}
 .cats{display:flex; gap:6px; flex-wrap:wrap}
 .cats button{border:1.5px solid var(--line); background:var(--bg); border-radius:999px; padding:5px 12px; font-weight:700; font-size:13px; cursor:pointer; color:var(--ink)}
@@ -147,6 +159,7 @@ body.mini .quick input{padding:7px 10px}
   </div>
 </div>
 
+<button class="fab full" id="fab" aria-label="새로 추가">＋</button>
 <div id="sheetRoot"></div>
 
 <script>
@@ -302,7 +315,17 @@ $('tabs').onclick=e=>{ const b=e.target.closest('[data-v]'); if(!b) return; dev.
 $('qkind').onclick=e=>{ const b=e.target.closest('[data-k]'); if(!b) return; dev.kind=b.dataset.k; saveDev(); render(); $('qin').focus(); };
 $('miniBtn').onclick=()=>{ dev.mini=true; saveDev(); render(); };
 $('bigBtn').onclick=()=>{ dev.mini=false; saveDev(); render(); };
+/* 달력 좌우로 밀어서 달 넘기기 (손가락·마우스 모두) */
+function moveMonth(d){ const [y,m]=calMonth.split('-').map(Number); calMonth=ymd(new Date(y,m-1+d,1)).slice(0,7); render(); }
+let sw=null, swiped=false;
+$('main').addEventListener('pointerdown',e=>{ const g=e.target.closest('.grid'); if(!g) return; sw={x:e.clientX, y:e.clientY, g}; swiped=false; });
+$('main').addEventListener('pointermove',e=>{ if(!sw) return; const dx=e.clientX-sw.x;
+  if(Math.abs(dx)>12 && Math.abs(dx)>Math.abs(e.clientY-sw.y)) sw.g.style.transform='translateX('+Math.max(-60,Math.min(60,dx/2))+'px)'; });
+addEventListener('pointerup',e=>{ if(!sw) return; const dx=e.clientX-sw.x, dy=e.clientY-sw.y, g=sw.g; sw=null; g.style.transform='';
+  if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5){ swiped=true; setTimeout(()=>{ swiped=false; },350); g.classList.add(dx<0?'sw-l':'sw-r'); setTimeout(()=>moveMonth(dx<0?1:-1),120); } });
+addEventListener('pointercancel',()=>{ if(sw){ sw.g.style.transform=''; sw=null; } });
 $('main').onclick=e=>{
+  if(swiped){ swiped=false; return; }   // 밀기 끝에 따라오는 클릭은 무시
   const ck=e.target.closest('[data-ck]');
   if(ck){ const t=doc.tk[ck.dataset.ck]; t.done=!t.done; t.da=t.done?Date.now():null; t.u=Date.now(); saveDoc(); render(); return; }
   const ev=e.target.closest('[data-ev]'); if(ev){ editEv(doc.ev[ev.dataset.ev]); return; }
@@ -340,7 +363,9 @@ $('qin').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.isComposing){ e.
 
 /* ---------- 편집 시트 ---------- */
 function sheet(html){ $('sheetRoot').innerHTML='<div class="sheet-bg" id="sbg"><div class="sheet">'+html+'</div></div>';
-  $('sbg').onclick=e=>{ if(e.target.id==='sbg') closeSheet(); }; }
+  $('sbg').onclick=e=>{ if(e.target.id==='sbg') closeSheet(); };
+  // 날짜·시각 칸은 어디를 눌러도 달력/시계 선택창이 뜨게 (안드로이드에서 빈 칸이 반응 안 하는 문제)
+  $('sbg').querySelectorAll('input[type=date],input[type=time]').forEach(i=>i.addEventListener('click',()=>{ try{ i.showPicker(); }catch(e){} })); }
 function closeSheet(){ $('sheetRoot').innerHTML=''; }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
 const catBtns=c=>'<div class="cats" id="fc">'+CATS.map((x,i)=>'<button type="button" data-c="'+i+'" aria-pressed="'+(i===(c||0))+'"><span class="d" style="background:var('+x.v+')"></span>'+x.n+'</button>').join('')+'</div>';
@@ -353,7 +378,7 @@ function editEv(e, day){
   const n=!e; e=e||{t:'', d:day||today(), d2:'', s:'', e:'', r:'', c:0, m:''};
   sheet('<h2>'+(n?'새 일정':'일정 수정')+'</h2>'+
     '<label class="f">제목<input id="ft" value="'+esc(e.t)+'"></label>'+
-    '<div class="two"><label class="f">날짜<input id="fd" type="date" value="'+e.d+'"></label><label class="f">끝나는 날 (여러 날일 때)<input id="fd2" type="date" value="'+(e.d2||'')+'"></label></div>'+
+    '<div class="two"><label class="f">날짜<input id="fd" type="date" value="'+e.d+'"></label><label class="f">끝나는 날<input id="fd2" type="date" min="'+e.d+'" value="'+(e.d2||e.d)+'"></label></div>'+
     '<label class="chkline"><input type="checkbox" id="fall" '+(e.s?'':'checked')+'> 종일</label>'+
     '<div class="two" id="ftimes" '+(e.s?'':'hidden')+'><label class="f">시작<input id="fs" type="time" value="'+(e.s||'09:00')+'"></label><label class="f">끝<input id="fe" type="time" value="'+(e.e||'')+'"></label></div>'+
     '<label class="f">반복<select id="fr">'+[['','안 함'],['d','매일'],['w','매주'],['m','매월'],['y','매년']].map(([k,v])=>'<option value="'+k+'"'+(k===(e.r||'')?' selected':'')+'>'+v+'</option>').join('')+'</select></label>'+
@@ -362,34 +387,43 @@ function editEv(e, day){
     '<div class="btns">'+(n?'':'<button class="btn del" id="fdel">삭제</button>')+'<button class="btn gh" id="fx">취소</button><button class="btn pri" id="fok">저장</button></div>');
   bindCats();
   $('fall').onchange=()=>{ $('ftimes').hidden=$('fall').checked; };
+  // 시작일을 바꾸면 끝나는 날도 따라가게 (끝나는 날이 시작보다 앞서지 않게)
+  $('fd').onchange=()=>{ const d=$('fd').value; if(!d) return; $('fd2').min=d; if(!$('fd2').value||$('fd2').value<d) $('fd2').value=d; };
   $('fx').onclick=closeSheet;
   $('fok').onclick=()=>{
     const t=$('ft').value.trim(); if(!t){ $('ft').focus(); return; }
     const d=$('fd').value||today(); let d2=$('fd2').value; if(d2&&d2<=d) d2='';
     const o=n?{id:uid()}:doc.ev[e.id];
     Object.assign(o,{u:Date.now(), t, d, d2, s:$('fall').checked?'':$('fs').value, e:$('fall').checked?'':$('fe').value, r:$('fr').value, c:curCat(), m:$('fm').value.trim()});
-    doc.ev[o.id]=o; saveDoc(); closeSheet(); render();
+    doc.ev[o.id]=o; selDay=d; calMonth=d.slice(0,7); saveDoc(); closeSheet(); render();
   };
   delBtn(()=>{ const o=doc.ev[e.id]; o.del=1; o.u=Date.now(); saveDoc(); closeSheet(); render(); });
   if(n) setTimeout(()=>$('ft').focus(),50);
 }
-function editTk(t){
-  sheet('<h2>할 일</h2>'+
+function editTk(t, due){
+  const n=!t; if(n){ const now=Date.now(); t={id:uid(), u0:now, t:'', due:due||'', star:false, done:false, c:0, m:''}; }
+  sheet('<h2>'+(n?'새 할 일':'할 일')+'</h2>'+
     '<label class="f">내용<input id="ft" value="'+esc(t.t)+'"></label>'+
     '<div class="two"><label class="f">마감일<input id="fdue" type="date" value="'+(t.due||'')+'"></label>'+
       '<div class="f">&nbsp;<label class="chkline" style="margin:6px 0 0"><input type="checkbox" id="fstar" '+(t.star?'checked':'')+'> ★ 중요</label></div></div>'+
     '<div class="f">분류'+catBtns(t.c)+'</div>'+
     '<label class="f">메모<textarea id="fm">'+esc(t.m||'')+'</textarea></label>'+
-    '<div class="btns"><button class="btn del" id="fdel">삭제</button><button class="btn gh" id="fx">취소</button><button class="btn pri" id="fok">저장</button></div>');
+    '<div class="btns">'+(n?'':'<button class="btn del" id="fdel">삭제</button>')+'<button class="btn gh" id="fx">취소</button><button class="btn pri" id="fok">저장</button></div>');
   bindCats();
   $('fx').onclick=closeSheet;
   $('fok').onclick=()=>{
     const v=$('ft').value.trim(); if(!v){ $('ft').focus(); return; }
     Object.assign(t,{u:Date.now(), t:v, due:$('fdue').value||'', star:$('fstar').checked, c:curCat(), m:$('fm').value.trim()});
-    saveDoc(); closeSheet(); render();
+    doc.tk[t.id]=t; saveDoc(); closeSheet(); render();
   };
   delBtn(()=>{ t.del=1; t.u=Date.now(); saveDoc(); closeSheet(); render(); });
+  if(n) setTimeout(()=>$('ft').focus(),50);
 }
+/* 떠 있는 ＋ 버튼: 달력이면 고른 날 일정, 할 일 탭이면 새 할 일, 오늘이면 오늘 일정 */
+$('fab').onclick=()=>{
+  if(dev.view==='todo') editTk(null);
+  else editEv(null, dev.view==='cal'?selDay:today());
+};
 
 /* ---------- 설정 ---------- */
 function openSettings(){
