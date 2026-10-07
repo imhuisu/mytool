@@ -66,6 +66,11 @@ pal/                  팰월드 펠 도감 (287종: 번호·한국어 이름·�
 oni/                  산소 미포함 방 가이드 (방 18종 조건·보너스 목록 + 내 구역 판정기)
                       수치는 영문 위키 검색 결과 기준(위키 직접 접속은 막혀 있었음). 한국어 방 이름 중 막사·호화 막사·개인 침실·식당·큰 회관·세척실·변소만 확인됨, 나머지는 추정 → 게임 표기 받으면 고치기
 functions/api/golf.js 골프 함께하기 서버 (Cloudflare Pages Functions, D1 바인딩 GOLF_DB)
+sched/                일정 (달력·할 일·위젯 모드). 자체 manifest가 있어 "일정" 앱으로 따로 설치 가능 (예외적으로 ../manifest 대신 sched/manifest.webmanifest)
+                      위젯 모드 = body.mini (?mini=1 / ?mini=0 로 전환, 기기별 기억). 폰 홈 화면 진짜 위젯은 웹앱으로 불가 → 아이콘 한 번에 위젯 화면
+                      동기화: 비밀번호 → id(SHA-256) + AES-GCM 키(PBKDF2 31만 회). 브라우저에서 암호화해 올림, 서버엔 암호문만. 항목별 u(수정 시각)로 병합, del 표시는 90일 뒤 정리
+                      알림: 창이 열려 있을 때만 시각 있는 일정 10분 전 (Notification API). 폰 푸시 알림(Web Push + 크론 Worker)은 다음 단계
+functions/api/sched.js 일정 동기화 서버 (같은 D1, 테이블 sched_store, 버전 비교로 충돌 감지 409)
 ```
 
 ## 규칙
@@ -95,6 +100,7 @@ functions/api/golf.js 골프 함께하기 서버 (Cloudflare Pages Functions, D1
 | zephyr | `seopung-check-v1` |
 | pal | `pal-dex-v1` |
 | oni | `oni-rooms-v1` |
+| sched | `sched-v1` (일정·할 일), `sched-dev-v1` (기기별 설정·동기화 키) |
 | golf (지난 기록·함께하기 방) | `gd2-rounds`, `gd2-room` |
 
 ## 서비스 워커

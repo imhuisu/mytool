@@ -5,7 +5,7 @@
  *
  * 보통은 건드릴 일 없음. hub.js나 아이콘을 바꿨는데 폰에 안 바뀌면 VERSION 숫자만 올리기.
  */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = 'tools-' + VERSION;
 
 const CORE = [
