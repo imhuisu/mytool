@@ -67,10 +67,17 @@ oni/                  산소 미포함 방 가이드 (방 18종 조건·보너�
                       수치는 영문 위키 검색 결과 기준(위키 직접 접속은 막혀 있었음). 한국어 방 이름 중 막사·호화 막사·개인 침실·식당·큰 회관·세척실·변소만 확인됨, 나머지는 추정 → 게임 표기 받으면 고치기
 functions/api/golf.js 골프 함께하기 서버 (Cloudflare Pages Functions, D1 바인딩 GOLF_DB)
 sched/                일정 (달력·할 일·위젯 모드). 자체 manifest가 있어 "일정" 앱으로 따로 설치 가능 (예외적으로 ../manifest 대신 sched/manifest.webmanifest)
-                      위젯 모드 = body.mini (?mini=1 / ?mini=0 로 전환, 기기별 기억). 폰 홈 화면 진짜 위젯은 웹앱으로 불가 → 아이콘 한 번에 위젯 화면
+                      위젯 모드 = body.mini (?mini=1 / ?mini=0 로 전환, 기기별 기억). 폰 홈 화면 진짜 위젯은 아래 android/ 앱으로
                       동기화: 비밀번호 → id(SHA-256) + AES-GCM 키(PBKDF2 31만 회). 브라우저에서 암호화해 올림, 서버엔 암호문만. 항목별 u(수정 시각)로 병합, del 표시는 90일 뒤 정리
                       알림: 창이 열려 있을 때만 시각 있는 일정 10분 전 (Notification API). 폰 푸시 알림(Web Push + 크론 Worker)은 다음 단계
 functions/api/sched.js 일정 동기화 서버 (같은 D1, 테이블 sched_store, 버전 비교로 충돌 감지 409)
+android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, AndroidX 없음). 읽기 전용: 서버에서 받아 복호화 → 오늘 일정·내일·할 일 표시, 누르면 웹 sched/ 열림
+                      암호·일정 규칙은 Sched.kt 가 sched/index.html 과 같아야 함 (id·PBKDF2·AES-GCM·occurs·정렬). 한쪽 바꾸면 다른 쪽도
+                      빌드: powershell -ExecutionPolicy Bypass -File android\build.ps1 → app\sched-widget.apk, app\version.json 갱신
+                      버전 올릴 때 app/build.gradle.kts 의 versionCode +1 (앱이 version.json 과 비교해 "새 버전" 표시)
+                      빌드 도구는 이 PC의 %LOCALAPPDATA%\mytool-android (JDK17·SDK35·Gradle 8.9). 경로에 한글이 있으면 빌드 거부라 영문 경로로 복사해서 빌드
+                      **서명 키는 이 PC에만 있음**: %USERPROFILE%\.mytool\sched-release.jks, 비밀번호는 %USERPROFILE%\.gradle\gradle.properties (MYTOOL_STORE_*). 잃으면 폰에서 지우고 새로 설치해야 함 → 백업해 둘 것. 클라우드 세션에서는 APK 빌드 불가
+app/                  위젯 APK 다운로드 페이지 (sched-widget.apk, version.json)
 ```
 
 ## 규칙
