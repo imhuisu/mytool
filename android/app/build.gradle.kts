@@ -16,8 +16,8 @@ android {
         applicationId = "com.imhuisu.mytool.sched"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2          // 올릴 때마다 +1, ../../app/version.json 도 같이
-        versionName = "1.1"
+        versionCode = 3          // 올릴 때마다 +1, ../../app/version.json 도 같이
+        versionName = "1.2"
     }
 
     signingConfigs {
