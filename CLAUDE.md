@@ -15,12 +15,13 @@
    - 차원별 체스트헌트 예측
    - 장비 교체 시 영혼 보너스 배수 변화 예측
 6. **PC·폰 데이터 동기화** (나중) — 지금은 기기마다 따로 저장됨. 골프 함께하기와 같은 D1을 쓰면 됨
-   - **골프 뽑기 함께하기** — 코드 완료 (2026-10-01), 서버 연결만 남음. 방 만들기 → 4자리 코드/공유 링크(`golf/?room=1234`)로 입장 → 이름 선택 → 각자 자기 카드 뽑기·자기 ± 확정 → 4명 다 확정되면 홀 마감. 2초 폴링
-   - **주의 (2026-10-01)**: `functions/api/golf.js`를 넣은 뒤로 Cloudflare 배포가 실패해서 사이트가 예전 버전에 멈췄음. 그래서 `_server/golf.js`로 빼 둠. 다시 켤 때: Cloudflare 배포 로그로 실패 원인 먼저 확인 → D1 바인딩 → `functions/api/golf.js`로 옮겨 push → 배포 성공 확인
-   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v10)
+   - **골프 뽑기 함께하기** — 서버 연결 완료 (2026-10-07). 방 만들기 → 4자리 코드/공유 링크(`golf/?room=1234`)로 입장 → 이름 선택 → 각자 자기 카드 뽑기·자기 ± 확정 → 4명 다 확정되면 홀 마감. 2초 폴링
+   - Cloudflare: D1 데이터베이스 `mytool` (id d365edaf-4e8c-4433-956c-598e58bd8fd9, APAC), Pages 프로젝트 mytool에 production·preview 모두 `GOLF_DB`로 바인딩. 계정 id 7329d7fb645b557134a323309af8d05b
+   - PC에는 `npx wrangler login` 되어 있음 → 배포 상태는 `npx wrangler pages deployment list --project-name mytool` 또는 Cloudflare API로 확인 가능
+   - 참고 (2026-10-01 오해): 그때 "functions 넣고 배포 실패"라고 판단해 서버 코드를 뺐었는데, 실제로는 실패가 아니라 push를 몰아서 해 **빌드 대기 줄이 밀린 것**이었음 (모든 배포 success). push는 한 번에 모아서 하기
+   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v11)
    - 서버: `functions/api/golf.js` (Cloudflare Pages Functions + **D1**). KV는 쓰기 반영이 느릴 수 있어 D1로 바꿨음. 테이블은 첫 요청 때 자동 생성. 카드는 방 seed+홀 번호로 결정적 셔플
-   - 연결 전에는 "서버가 아직 연결되지 않았어요" 메시지만 뜨고 폰 하나 모드는 그대로 동작
-   - **희수가 할 일**: Cloudflare 대시보드 → Workers & Pages → D1 → 데이터베이스 만들기(이름 아무거나, 예: mytool) → Pages 프로젝트 mytool → 설정 → 바인딩 → D1 데이터베이스 추가, 변수 이름 `GOLF_DB` → 다시 배포(아무 커밋 push 또는 대시보드에서 재배포)
+   - 서버 응답이 없으면 "서버가 아직 연결되지 않았어요" 메시지만 뜨고 폰 하나 모드는 그대로 동작
    - 로컬 테스트: Node 22 `node:sqlite`로 D1 흉내 내는 서버를 만들어 4개 브라우저로 확인함 (저장소에는 안 넣음)
 7. **새 도구 아이디어**
    - 하데스2 조합표·아이템 정리 (이미지 포함)
@@ -64,7 +65,7 @@ pal/                  팰월드 펠 도감 (287종: 번호·한국어 이름·�
                       데이터 출처: github.com/oMaN-Rod/palworld-save-pal data/json (pals.json + l10n/ko, 2026-09 기준). 업데이트 땐 같은 파일에서 다시 뽑기
 oni/                  산소 미포함 방 가이드 (방 18종 조건·보너스 목록 + 내 구역 판정기)
                       수치는 영문 위키 검색 결과 기준(위키 직접 접속은 막혀 있었음). 한국어 방 이름 중 막사·호화 막사·개인 침실·식당·큰 회관·세척실·변소만 확인됨, 나머지는 추정 → 게임 표기 받으면 고치기
-_server/golf.js       골프 함께하기 서버 (보관 중. 켤 때 functions/api/golf.js 로 옮김)
+functions/api/golf.js 골프 함께하기 서버 (Cloudflare Pages Functions, D1 바인딩 GOLF_DB)
 ```
 
 ## 규칙
