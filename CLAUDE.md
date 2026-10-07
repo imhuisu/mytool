@@ -79,7 +79,7 @@ android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, Andr
                       빌드 도구는 이 PC의 %LOCALAPPDATA%\mytool-android (JDK17·SDK35·Gradle 8.9). 경로에 한글이 있으면 빌드 거부라 영문 경로로 복사해서 빌드
                       **서명 키는 이 PC에만 있음**: %USERPROFILE%\.mytool\sched-release.jks, 비밀번호는 %USERPROFILE%\.gradle\gradle.properties (MYTOOL_STORE_*). 잃으면 폰에서 지우고 새로 설치해야 함 → 백업해 둘 것. 클라우드 세션에서는 APK 빌드 불가
 app/                  위젯 APK 다운로드 페이지 (sched-widget.apk, version.json)
-                      **빌드 대기 (2026-10-07, 폰 세션)**: v1.2 소스만 수정됨 — 달력 위젯 ‹ › 누르는 칸을 제목 양옆 전체 폭으로 키움 (month_widget.xml, versionCode 3). APK·version.json은 아직 v1.1 → PC에서 build.ps1 실행 후 push
+                      **빌드 대기 (2026-10-07, 폰 세션)**: v1.2 소스만 수정됨 — 달력 위젯 머리줄 키움: ‹ › 누르는 칸을 제목 양옆 전체 폭으로, 높이 48dp, 달 제목 21sp, + 버튼 40dp, 요일 12.5sp (month_widget.xml·widget_styles.xml, versionCode 3). APK·version.json은 아직 v1.1 → PC에서 build.ps1 실행 후 push
 ```
 
 ## 규칙
