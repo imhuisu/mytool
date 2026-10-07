@@ -71,7 +71,8 @@ sched/                일정 (달력·할 일·위젯 모드). 자체 manifest�
                       동기화: 비밀번호 → id(SHA-256) + AES-GCM 키(PBKDF2 31만 회). 브라우저에서 암호화해 올림, 서버엔 암호문만. 항목별 u(수정 시각)로 병합, del 표시는 90일 뒤 정리
                       알림: 창이 열려 있을 때만 시각 있는 일정 10분 전 (Notification API). 폰 푸시 알림(Web Push + 크론 Worker)은 다음 단계
 functions/api/sched.js 일정 동기화 서버 (같은 D1, 테이블 sched_store, 버전 비교로 충돌 감지 409)
-android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, AndroidX 없음). 읽기 전용: 서버에서 받아 복호화 → 오늘 일정·내일·할 일 표시, 누르면 웹 sched/ 열림
+android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, AndroidX 없음). 읽기 전용: 서버에서 받아 복호화
+                      위젯 2종: "일정 달력"(MonthWidget, 월 달력·‹ › 이동·날짜 누르면 웹 sched/?day=YYYY-MM-DD) / "일정 목록"(SchedWidget, 오늘·내일 일정 + 할 일)
                       암호·일정 규칙은 Sched.kt 가 sched/index.html 과 같아야 함 (id·PBKDF2·AES-GCM·occurs·정렬). 한쪽 바꾸면 다른 쪽도
                       빌드: powershell -ExecutionPolicy Bypass -File android\build.ps1 → app\sched-widget.apk, app\version.json 갱신
                       버전 올릴 때 app/build.gradle.kts 의 versionCode +1 (앱이 version.json 과 비교해 "새 버전" 표시)

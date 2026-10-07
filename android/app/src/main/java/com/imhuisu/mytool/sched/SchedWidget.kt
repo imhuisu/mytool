@@ -33,7 +33,7 @@ class SchedWidget : AppWidgetProvider() {
             val app = c.applicationContext
             render(app, loading = true)
             Thread {
-                try { if (Sched.isLinked(app)) Sched.fetch(app); render(app) }
+                try { if (Sched.isLinked(app)) Sched.fetch(app); render(app); MonthWidget.render(app) }
                 finally { pending?.finish() }
             }.start()
         }

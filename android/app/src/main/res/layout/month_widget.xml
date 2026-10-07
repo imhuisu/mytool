@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@drawable/widget_bg" android:padding="10dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/prev" android:layout_width="34dp" android:layout_height="32dp" android:gravity="center"
+            android:text="‹" android:textSize="22sp" android:textColor="@color/muted" />
+        <TextView android:id="@+id/title" android:layout_width="0dp" android:layout_height="32dp" android:layout_weight="1"
+            android:gravity="center" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/ink" />
+        <TextView android:id="@+id/next" android:layout_width="34dp" android:layout_height="32dp" android:gravity="center"
+            android:text="›" android:textSize="22sp" android:textColor="@color/muted" />
+        <TextView android:id="@+id/add" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp"
+            android:gravity="center" android:text="+" android:textSize="20sp" android:textColor="@android:color/white"
+            android:background="@drawable/add_bg" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+        <TextView style="@style/Wd" android:text="일" android:textColor="@color/c2" />
+        <TextView style="@style/Wd" android:text="월" />
+        <TextView style="@style/Wd" android:text="화" />
+        <TextView style="@style/Wd" android:text="수" />
+        <TextView style="@style/Wd" android:text="목" />
+        <TextView style="@style/Wd" android:text="금" />
+        <TextView style="@style/Wd" android:text="토" android:textColor="@color/c0" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/weeks" android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:orientation="vertical" />
+</LinearLayout>

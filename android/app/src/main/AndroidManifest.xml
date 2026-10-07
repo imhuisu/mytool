@@ -16,7 +16,14 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".SchedWidget" android:exported="true" android:label="일정">
+        <receiver android:name=".MonthWidget" android:exported="true" android:label="일정 달력">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/month_widget_info" />
+        </receiver>
+
+        <receiver android:name=".SchedWidget" android:exported="true" android:label="일정 목록">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />

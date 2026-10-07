@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cell" android:layout_width="0dp" android:layout_height="match_parent"
+    android:layout_weight="1" android:orientation="vertical" android:paddingTop="2dp" android:paddingStart="1dp" android:paddingEnd="1dp">
+    <TextView android:id="@+id/num" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" android:minWidth="20dp" android:gravity="center"
+        android:paddingStart="3dp" android:paddingEnd="3dp" android:textSize="12sp" android:textStyle="bold" />
+    <TextView android:id="@+id/e1" style="@style/Ev" />
+    <TextView android:id="@+id/e2" style="@style/Ev" />
+    <TextView android:id="@+id/more" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center" android:textSize="9sp" android:textColor="@color/muted" android:visibility="gone" />
+</LinearLayout>

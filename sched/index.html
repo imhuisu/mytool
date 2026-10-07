@@ -194,6 +194,9 @@ function saveDoc(){ try{ localStorage.setItem(KEY, JSON.stringify(doc)); }catch(
 { const q=new URLSearchParams(location.search).get('mini'); if(q!==null){ dev.mini=q==='1'; saveDev(); } }
 
 let selDay=today(), calMonth=today().slice(0,7);
+/* ?day=YYYY-MM-DD : 그 날짜를 고른 달력으로 열기 (안드로이드 달력 위젯에서 날짜 누를 때) */
+{ const q=new URLSearchParams(location.search).get('day');
+  if(q && /^\d{4}-\d{2}-\d{2}$/.test(q)){ selDay=q; calMonth=q.slice(0,7); dev.view='cal'; dev.mini=false; dev.kind='ev'; saveDev(); } }
 const live=coll=>Object.values(doc[coll]).filter(x=>!x.del);
 
 /* ---------- 일정 계산 ---------- */
