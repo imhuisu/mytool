@@ -60,6 +60,18 @@ header{flex-wrap:wrap; row-gap:6px}
   font:inherit; font-weight:700; padding:11px 12px; cursor:pointer}
 .csug button:last-child{border-bottom:0}
 .csug button small{display:block; color:var(--muted); font-weight:500; font-size:12px}
+.pedit{margin-top:8px; border:1px dashed var(--line); border-radius:11px; padding:10px}
+.pedit .pnote{font-size:12.5px; color:var(--muted); margin-bottom:6px}
+.pedit .prow{margin-top:8px}
+.pedit .prow input{width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:9px; padding:7px 10px; font:inherit; font-weight:700}
+.pedit .pbtns{display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:3px; margin-top:5px}
+.pedit .pbtns button{border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:7px; padding:6px 0; font-family:"Jua",sans-serif; font-size:17px; cursor:pointer}
+.pedit .pbtns button.p3{color:var(--flag)} .pedit .pbtns button.p5{color:var(--green-deep)}
+.pedit .hn{display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:3px; font-size:10.5px; color:var(--muted); text-align:center; margin-top:2px}
+.pedit .act{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px}
+.pedit .act .btn{padding:9px}
+.parlink{margin-top:6px; font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.parlink button{border:1px solid var(--line); background:var(--surface); color:var(--green-deep); border-radius:8px; padding:4px 10px; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer}
 .subc{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px}
 .subc label{display:flex; flex-direction:column; gap:3px; font-size:12px; font-weight:700; color:var(--muted)}
 .subc select{width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:9px 10px; font:inherit}
@@ -228,7 +240,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v11</span>
+  <h1>골프 뽑기</h1><span class="ver">v12</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
@@ -248,6 +260,8 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
     <label>전반 (1~9홀)<select id="frontSel"></select><span class="pars" id="parF"></span></label>
     <label>후반 (10~18홀)<select id="backSel"></select><span class="pars" id="parB"></span></label>
   </div>
+  <div class="parlink" id="parLink" hidden></div>
+  <div class="pedit" id="parEdit" hidden></div>
   <div class="label" style="margin-top:14px">참가자 4명</div>
   <div class="names">
     <input id="n0" maxlength="8" placeholder="플레이어 1" autocomplete="off">
@@ -419,6 +433,11 @@ let date=todayStr(), course='', roundId=null, front='', back='';
 const COURSES={
   '힐데스하임':{ '레이크':[4,3,5,4,3,5,4,4,4], '힐':[4,3,4,5,4,4,5,3,4], '밸리':[4,4,3,4,4,5,4,3,5] },
 };
+/* 직접 입력한 골프장 파 (스코어카드 보고 입력) — 기본 COURSES 위에 덧붙임 */
+let myCourses={};
+try{ myCourses=JSON.parse(localStorage.getItem('gd2-courses')||'{}')||{}; }catch(e){}
+Object.assign(COURSES, myCourses);
+const isMine=k=>!!myCourses[k];
 function courseKey(c){ const t=(c||'').replace(/\s/g,''); return Object.keys(COURSES).find(k=>t.includes(k))||null; }
 function parsOf(cn,f,b){
   const c=COURSES[courseKey(cn)]; if(!c||!c[f]||!c[b]) return null;
@@ -488,6 +507,7 @@ function courseOptions(){
   const seen=new Set(), out=[];
   Object.keys(COURSES).forEach(k=>{ seen.add(k); out.push({name:k, sub:Object.keys(COURSES[k]).join('·')}); });
   rounds.forEach(r=>{ const c=(r.course||'').trim(); if(c && !courseKey(c) && !seen.has(c)){ seen.add(c); out.push({name:c, sub:'지난 기록'}); } });
+  if(!seen.has('프린세스')) out.push({name:'프린세스', sub:'파인·밸리 · 파 입력 필요'});
   return out;
 }
 function showSug(){
@@ -505,8 +525,49 @@ $('cSug').addEventListener('click',e=>{
   $('cSug').hidden=true; $('courseIn').blur();
 });
 $('courseIn').addEventListener('blur',()=>setTimeout(()=>{ $('cSug').hidden=true; },150));
+let pe=null;   // 편집 중: {name, parts:[[이름,[9]],[이름,[9]]]}
+function openParEdit(){
+  const k=courseKey(course), nm=k||course.trim(); if(!nm) return;
+  const c=COURSES[k];
+  const parts = c ? Object.entries(c).slice(0,2).map(([n,a])=>[n,[...a]])
+    : (nm.includes('프린세스') ? [['파인',Array(9).fill(4)],['밸리',Array(9).fill(4)]] : [['전반',Array(9).fill(4)],['후반',Array(9).fill(4)]]);
+  while(parts.length<2) parts.push(['후반',Array(9).fill(4)]);
+  pe={name:nm, parts};
+  renderParEdit();
+}
+function renderParEdit(){
+  const box=$('parEdit'); box.hidden=!pe; $('parLink').hidden=!!pe || !(course||'').trim();
+  if(!pe) return;
+  box.innerHTML='<div class="pnote"><b>'+esc(pe.name)+'</b> 파 입력 · 숫자를 누르면 4 → 5 → 3 순서로 바뀌어요. 코스 이름도 고칠 수 있어요.</div>'+
+    pe.parts.map(([n,a],i)=>'<div class="prow"><input data-pn="'+i+'" value="'+esc(n)+'" maxlength="8" aria-label="코스 이름">'+
+      '<div class="pbtns">'+a.map((v,h)=>'<button type="button" class="p'+v+'" data-pp="'+i+'" data-ph="'+h+'">'+v+'</button>').join('')+'</div>'+
+      '<div class="hn">'+a.map((_,h)=>'<span>'+(h+1)+'</span>').join('')+'</div>'+
+      '<div class="pnote" style="margin:4px 0 0">합계 파 '+a.reduce((x,y)=>x+y,0)+'</div></div>').join('')+
+    '<div class="act"><button type="button" class="btn ghost" id="peCancel">취소</button><button type="button" class="btn save" id="peSave">저장</button></div>';
+}
+$('parLink').addEventListener('click',e=>{ if(e.target.closest('#parNew,#parFix')) openParEdit(); });
+$('parEdit').addEventListener('click',e=>{
+  const b=e.target.closest('[data-pp]');
+  if(b){ const a=pe.parts[+b.dataset.pp][1], h=+b.dataset.ph; a[h]= a[h]===4?5 : a[h]===5?3 : 4; renderParEdit(); return; }
+  if(e.target.closest('#peCancel')){ pe=null; renderParEdit(); syncSubC(); return; }
+  if(e.target.closest('#peSave')){
+    const used=new Set(), parts={};
+    pe.parts.forEach(([n,a],i)=>{ let k=(n||'').trim()||(i?'후반':'전반'); if(used.has(k)) k+=' '+(i+1); used.add(k); parts[k]=a; });
+    myCourses[pe.name]=parts; COURSES[pe.name]=parts;
+    try{ localStorage.setItem('gd2-courses', JSON.stringify(myCourses)); }catch(err){}
+    const ks=Object.keys(parts); front=ks[0]; back=ks[1]||ks[0];
+    if(!courseKey(course)){ course=pe.name; $('courseIn').value=course; }
+    pe=null; renderParEdit(); save(); syncSubC();
+  }
+});
+$('parEdit').addEventListener('input',e=>{ const t=e.target.closest('[data-pn]'); if(t&&pe) pe.parts[+t.dataset.pn][0]=t.value; });
 function syncSubC(){
   const k=courseKey(course), c=COURSES[k];
+  const nm=(course||'').trim();
+  $('parLink').hidden=!nm || !$('parEdit').hidden;
+  $('parLink').innerHTML = !c ? '파 정보 없음 <button type="button" id="parNew">스코어카드 보고 파 입력</button>'
+    : isMine(k) ? '직접 입력한 파 <button type="button" id="parFix">파 수정</button>' : '';
+  if(c && !isMine(k)) $('parLink').hidden=true;
   $('subC').hidden=!c; if(!c) return;
   const ks=Object.keys(c);
   if(!c[front]) front=ks[0];
