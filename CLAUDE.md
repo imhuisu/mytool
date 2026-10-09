@@ -19,7 +19,7 @@
    - Cloudflare: D1 데이터베이스 `mytool` (id d365edaf-4e8c-4433-956c-598e58bd8fd9, APAC), Pages 프로젝트 mytool에 production·preview 모두 `GOLF_DB`로 바인딩. 계정 id 7329d7fb645b557134a323309af8d05b
    - PC에는 `npx wrangler login` 되어 있음 → 배포 상태는 `npx wrangler pages deployment list --project-name mytool` 또는 Cloudflare API로 확인 가능
    - 참고 (2026-10-01 오해): 그때 "functions 넣고 배포 실패"라고 판단해 서버 코드를 뺐었는데, 실제로는 실패가 아니라 push를 몰아서 해 **빌드 대기 줄이 밀린 것**이었음 (모든 배포 success). push는 한 번에 모아서 하기
-   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v12)
+   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v13)
    - 서버: `functions/api/golf.js` (Cloudflare Pages Functions + **D1**). KV는 쓰기 반영이 느릴 수 있어 D1로 바꿨음. 테이블은 첫 요청 때 자동 생성. 카드는 방 seed+홀 번호로 결정적 셔플
    - 서버 응답이 없으면 "서버가 아직 연결되지 않았어요" 메시지만 뜨고 폰 하나 모드는 그대로 동작
    - 로컬 테스트: Node 22 `node:sqlite`로 D1 흉내 내는 서버를 만들어 4개 브라우저로 확인함 (저장소에는 안 넣음)
@@ -57,6 +57,7 @@ golf/                 골프 뽑기 (4인 팀 뽑기·배판·정산)
                       골프장 코스 파는 `COURSES` 맵 (힐데스하임: 레이크·힐·밸리). 골프장 이름에 키가 들어 있으면 전반/후반 코스 선택이 뜸
                       파 정보 없는 골프장은 "스코어카드 보고 파 입력"으로 직접 입력 → localStorage `gd2-courses`에 저장돼 COURSES에 합쳐짐 (기기별). 프린세스(공주)는 웹에서 홀별 파를 못 찾아 코스 이름(파인·밸리)만 미리 채움 — 파 확인되면 COURSES에 넣기
                       뽑기 시점 설정 `order`: post(기본)=4명 스코어 먼저 입력 → 뽑기 → 결과, pre=뽑기 먼저. 함께하기 방도 동일(방 data.order)
+                      진행 방식 `drawMode`: app(앱 뽑기) / rec(결과만 기록) / score(스코어만: 개인 기록용, 1~4명, 빈 이름 칸은 '' 로 두고 화면·스코어카드에서 뺌, 홀은 result 'N'). 저장 기록엔 mode 필드
                       몸풀기 홀: result 'N' = 내기 없이 스코어만 (이월 계산에서 건너뜀). 함께하기는 op 'skip'
                       조커는 팀 계산에서 실제 타수와 상관없이 무조건 +1 (JOKER_VAL, 서버도 동일). 스코어카드엔 실제 ±
                       동점 홀 금액은 다음 홀로 이월(합산): ×2, ×3… (배로 늘지 않음, multAtH)
