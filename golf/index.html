@@ -241,7 +241,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v13</span>
+  <h1>골프 뽑기</h1><span class="ver">v14</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
@@ -434,10 +434,13 @@ let date=todayStr(), course='', roundId=null, front='', back='';
 /* 골프장별 코스 파 (1~9홀). 출처: 예약·야디지 사이트 스코어카드, 2026-10 */
 const COURSES={
   '힐데스하임':{ '레이크':[4,3,5,4,3,5,4,4,4], '힐':[4,3,4,5,4,4,5,3,4], '밸리':[4,4,3,4,4,5,4,3,5] },
+  /* 포웰CC 프린세스 (공주, 옛 프린세스CC). 옛 이름 파인=이스트, 밸리=웨스트. 출처: 희수가 보낸 표(옛 파인·밸리 자료 기준), 2026-10 */
+  '프린세스':{ '이스트':[4,4,4,3,5,4,5,3,4], '웨스트':[5,3,4,3,5,4,3,4,5] },
 };
 /* 직접 입력한 골프장 파 (스코어카드 보고 입력) — 기본 COURSES 위에 덧붙임 */
 let myCourses={};
 try{ myCourses=JSON.parse(localStorage.getItem('gd2-courses')||'{}')||{}; }catch(e){}
+if(myCourses['프린세스'] && myCourses['프린세스']['파인']){ delete myCourses['프린세스']; try{ localStorage.setItem('gd2-courses', JSON.stringify(myCourses)); }catch(e){} }
 Object.assign(COURSES, myCourses);
 const isMine=k=>!!myCourses[k];
 function courseKey(c){ const t=(c||'').replace(/\s/g,''); return Object.keys(COURSES).find(k=>t.includes(k))||null; }
@@ -507,9 +510,9 @@ function loadSetupUI(){
 /* 골프장 칸을 누르면 목록: 파 정보 있는 곳 + 지난 기록의 골프장 */
 function courseOptions(){
   const seen=new Set(), out=[];
-  Object.keys(COURSES).forEach(k=>{ seen.add(k); out.push({name:k, sub:Object.keys(COURSES[k]).join('·')}); });
+  const ALIAS={'프린세스':'포웰CC · '};
+  Object.keys(COURSES).forEach(k=>{ seen.add(k); out.push({name:k, sub:(ALIAS[k]||'')+Object.keys(COURSES[k]).join('·')}); });
   rounds.forEach(r=>{ const c=(r.course||'').trim(); if(c && !courseKey(c) && !seen.has(c)){ seen.add(c); out.push({name:c, sub:'지난 기록'}); } });
-  if(!seen.has('프린세스')) out.push({name:'프린세스', sub:'파인·밸리 · 파 입력 필요'});
   return out;
 }
 function showSug(){
@@ -532,7 +535,7 @@ function openParEdit(){
   const k=courseKey(course), nm=k||course.trim(); if(!nm) return;
   const c=COURSES[k];
   const parts = c ? Object.entries(c).slice(0,2).map(([n,a])=>[n,[...a]])
-    : (nm.includes('프린세스') ? [['파인',Array(9).fill(4)],['밸리',Array(9).fill(4)]] : [['전반',Array(9).fill(4)],['후반',Array(9).fill(4)]]);
+    : [['전반',Array(9).fill(4)],['후반',Array(9).fill(4)]];
   while(parts.length<2) parts.push(['후반',Array(9).fill(4)]);
   pe={name:nm, parts};
   renderParEdit();
