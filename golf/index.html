@@ -163,6 +163,9 @@ body.sonly #totals, body.sonly #totals + .potline, body.sonly #switchBtn, body.s
 .scrow .val{width:58px; text-align:center; line-height:1.15}
 .scrow .val b{display:block; font-family:"Jua",sans-serif; font-weight:400; font-size:19px; font-variant-numeric:tabular-nums}
 .scrow .val small{display:block; font-size:10.5px; color:var(--muted); font-weight:700}
+.mulbtn{flex:none; border:1.5px solid var(--line); background:var(--surface); color:var(--muted); border-radius:8px; height:40px; padding:0 4px; font:inherit; font-size:10.5px; font-weight:700; cursor:pointer; line-height:1.1}
+.mulbtn.on{border-color:var(--gold); background:var(--gold-soft); color:var(--gold)}
+.sc-card td .ml{font-size:9px; color:var(--gold); font-weight:800; vertical-align:super; margin-left:1px}
 .scrow .stepbtn{background:var(--surface)}
 .scsum{display:flex; justify-content:space-around; margin-top:10px; font-size:13.5px; color:var(--muted)}
 .scsum b{font-family:"Jua",sans-serif; font-weight:400; font-size:17px; color:var(--ink); font-variant-numeric:tabular-nums}
@@ -241,7 +244,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v14</span>
+  <h1>골프 뽑기</h1><span class="ver">v15</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
@@ -635,12 +638,19 @@ function startDraw(){
 /* 스코어 먼저: 팀 모르는 상태로 4명 ± 입력 → 뽑기 */
 function renderPre(){
   $('preRows').innerHTML=names.map((n,p)=> drawMode==='score'&&!n ? '' :
-    '<div class="scrow"><span class="ball wait" style="border-style:dashed"></span><span class="nm">'+esc(n)+'</span>'+
+    '<div class="scrow"><span class="nm">'+esc(n)+'</span>'+
     '<button class="stepbtn" data-pp="'+p+'" data-d="-1" aria-label="'+esc(n)+' 한 타 줄이기">−</button>'+
     '<span class="val"><b>'+sgn(draw.scores[p])+'</b><small>'+(SCNAME[draw.scores[p]]||'')+'</small></span>'+
-    '<button class="stepbtn" data-pp="'+p+'" data-d="1" aria-label="'+esc(n)+' 한 타 늘리기">＋</button></div>').join('');
+    '<button class="stepbtn" data-pp="'+p+'" data-d="1" aria-label="'+esc(n)+' 한 타 늘리기">＋</button>'+
+    mulBtn(p, draw.mull)+'</div>').join('');
 }
+/* 멀리건: 누를 때마다 0 → 1 → 2 → 0 */
+function mulBtn(p, arr){ const m=(arr&&arr[p])||0;
+  return '<button class="mulbtn'+(m?' on':'')+'" data-mul="'+p+'" aria-label="'+esc(names[p])+' 멀리건">멀리건'+(m?'<br>'+m+'개':'')+'</button>'; }
+function bumpMul(arr,p){ arr[p]=((arr[p]||0)+1)%3; }
 $('preRows').addEventListener('click',e=>{
+  const mb=e.target.closest('[data-mul]');
+  if(mb&&draw){ if(!draw.mull) draw.mull=[0,0,0,0]; bumpMul(draw.mull,+mb.dataset.mul); renderPre(); return; }
   const b=e.target.closest('[data-pp]'); if(!b||!draw) return;
   const p=+b.dataset.pp; draw.scores[p]=Math.max(-3,Math.min(10,draw.scores[p]+(+b.dataset.d)));
   renderPre();
@@ -649,7 +659,7 @@ $('preBtn').onclick=()=>{ if(!draw) return; draw.phase='draw'; renderDraw(); };
 /* 몸풀기 홀: 내기 없이 스코어만 기록 (이월에도 영향 없음) */
 $('freeBtn').onclick=()=>{
   if(!draw) return;
-  history.push({result:'N', scores:[...draw.scores]});
+  history.push({result:'N', scores:[...draw.scores], ...(draw.mull&&draw.mull.some(Boolean)?{mull:[...draw.mull]}:{})});
   draw=null; save(); render();
 };
 $('toFreeBtn').onclick=()=>{ if(!draw||draw.taken) return; draw.phase='free'; renderDraw(); };
@@ -760,7 +770,7 @@ function memHTML(p,h){
 }
 function finishHole(result){
   const jk=draw.colors.indexOf('J');
-  history.push({colors:draw.colors, joker:jk>=0?jk:null, result, scores:[...draw.scores]});
+  history.push({colors:draw.colors, joker:jk>=0?jk:null, result, scores:[...draw.scores], ...(draw.mull&&draw.mull.some(Boolean)?{mull:[...draw.mull]}:{})});
   draw=null; save(); render();
 }
 $('resBtn').onclick=()=>{ if(draw&&draw.scores) finishHole(scoreResult({colors:draw.colors, scores:draw.scores})); };
@@ -842,7 +852,8 @@ function scorecardHTML(hist,nm,pars){
   const cell=(i,p)=>{
     const h=hist[i]; if(!h||!h.scores) return '';
     const v=h.scores[p], txt=pars?String(pars[i]+v):sgn(v);
-    return v<0?'<span class="u">'+txt+'</span>':v>=2?'<span class="o2">'+txt+'</span>':v===1?'<span class="o">'+txt+'</span>':txt;
+    const ml=h.mull&&h.mull[p]?'<span class="ml">M'+(h.mull[p]>1?h.mull[p]:'')+'</span>':'';
+    return (v<0?'<span class="u">'+txt+'</span>':v>=2?'<span class="o2">'+txt+'</span>':v===1?'<span class="o">'+txt+'</span>':txt)+ml;
   };
   const half=k=>{
     const idx=[...Array(9)].map((_,j)=>k*9+j);
@@ -859,7 +870,8 @@ function scorecardHTML(hist,nm,pars){
     return t+'</tbody></table></div>';
   };
   const tot=nm.map((n,p)=>{ if(!n) return ''; let st=0,pm=0; hist.forEach((h,i)=>{ if(h.scores){ pm+=h.scores[p]; if(pars) st+=pars[i]+h.scores[p]; } });
-    return '<div>'+esc(n)+'<b>'+(pars?st+' ':'')+'<small>('+sgn(pm)+')</small></b></div>'; }).join('');
+    const mc=hist.reduce((a,h)=>a+((h.mull&&h.mull[p])||0),0);
+    return '<div>'+esc(n)+'<b>'+(pars?st+' ':'')+'<small>('+sgn(pm)+')</small></b>'+(mc?'<small style="color:var(--gold);font-weight:700">멀리건 '+mc+'</small>':'')+'</div>'; }).join('');
   return half(0)+half(1)+'<div class="sc-sum">'+tot+'</div>';
 }
 $('scJump').onclick=()=>{
@@ -872,7 +884,7 @@ let edit=null;   // {i, scores?, losers?, tie?}
 $('histBody').addEventListener('click',e=>{
   const tr=e.target.closest('[data-edit]'); if(!tr) return;
   const i=+tr.dataset.edit, h=history[i];
-  edit = h.result==='N' ? {i, scores:[...(h.scores||[0,0,0,0])], free:true}
+  edit = h.result==='N' ? {i, scores:[...(h.scores||[0,0,0,0])], mull:[...(h.mull||[0,0,0,0])], free:true}
        : h.colors ? {i, scores:h.scores?[...h.scores]:[0,0,0,0], manual:h.scores?null:h.result}
                   : {i, losers:h.result==='L'?[...h.losers]:[], tie:h.result==='T'};
   renderEdit(); renderScore();
@@ -891,10 +903,10 @@ function renderEdit(){
   if(edit.free){
     $('edHint').textContent='내기 없는 홀';
     $('edBody').innerHTML='<div class="scrows">'+names.map((n,p)=> !n ? '' :
-      '<div class="scrow"><span class="ball wait" style="border-style:dashed"></span><span class="nm">'+esc(n)+'</span>'+
+      '<div class="scrow"><span class="nm">'+esc(n)+'</span>'+
       '<button class="stepbtn" data-ep="'+p+'" data-d="-1" aria-label="'+esc(n)+' 한 타 줄이기">−</button>'+
       '<span class="val"><b>'+sgn(edit.scores[p])+'</b><small>'+(SCNAME[edit.scores[p]]||'')+'</small></span>'+
-      '<button class="stepbtn" data-ep="'+p+'" data-d="1" aria-label="'+esc(n)+' 한 타 늘리기">＋</button></div>').join('')+'</div>';
+      '<button class="stepbtn" data-ep="'+p+'" data-d="1" aria-label="'+esc(n)+' 한 타 늘리기">＋</button>'+mulBtn(p,edit.mull)+'</div>').join('')+'</div>';
   }else if(h.colors){
     $('edHint').textContent='승패 자동 재계산';
     const hh={colors:h.colors, scores:edit.scores};
@@ -916,6 +928,7 @@ function renderEdit(){
   $('edSave').disabled = !edit.free && !h.colors && !edit.tie && edit.losers.length!==2;
 }
 $('edBody').addEventListener('click',e=>{
+  { const mb=e.target.closest('[data-mul]'); if(mb&&edit&&edit.mull){ bumpMul(edit.mull,+mb.dataset.mul); renderEdit(); return; } }
   const b=e.target.closest('button'); if(!b||!edit) return;
   if(b.dataset.ep!==undefined){ const p=+b.dataset.ep; edit.scores[p]=Math.max(-3,Math.min(10,edit.scores[p]+(+b.dataset.d))); edit.manual=null; }
   else if(b.dataset.el!==undefined){
@@ -929,7 +942,7 @@ $('edCancel').onclick=()=>{ edit=null; renderEdit(); renderScore(); };
 $('edSave').onclick=()=>{
   if(!edit) return;
   const h=history[edit.i], r=editResult();
-  if(edit.free){ h.scores=[...edit.scores]; }
+  if(edit.free){ h.scores=[...edit.scores]; if(edit.mull.some(Boolean)) h.mull=[...edit.mull]; else delete h.mull; }
   else if(h.colors){ h.result=r; if(!edit.manual) h.scores=[...edit.scores]; }
   else if(r==='T'){ history[edit.i]={result:'T'}; }
   else { history[edit.i]={result:'L', losers:[...edit.losers].sort()}; }
