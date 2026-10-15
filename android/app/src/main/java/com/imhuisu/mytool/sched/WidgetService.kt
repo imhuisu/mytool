@@ -9,12 +9,18 @@ import android.widget.RemoteViewsService
 
 /* 위젯 목록 줄 만들기 (저장된 문서로 계산, 네트워크 없음) */
 class WidgetService : RemoteViewsService() {
-    override fun onGetViewFactory(intent: Intent): RemoteViewsFactory = Factory(applicationContext)
+    companion object { const val EXTRA_TASKS = "tasksOnly" }
 
-    class Factory(private val c: Context) : RemoteViewsFactory {
+    override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
+        Factory(applicationContext, intent.getBooleanExtra(EXTRA_TASKS, false))
+
+    class Factory(private val c: Context, private val tasksOnly: Boolean) : RemoteViewsFactory {
         private var rows: List<Sched.Row> = emptyList()
         override fun onCreate() {}
-        override fun onDataSetChanged() { rows = if (Sched.isLinked(c)) Sched.rows(Sched.cachedDoc(c)) else emptyList() }
+        override fun onDataSetChanged() {
+            val doc = Sched.cachedDoc(c)
+            rows = if (!Sched.isLinked(c)) emptyList() else if (tasksOnly) Sched.taskRows(doc) else Sched.rows(doc)
+        }
         override fun onDestroy() {}
         override fun getCount() = rows.size
         override fun getViewTypeCount() = 4

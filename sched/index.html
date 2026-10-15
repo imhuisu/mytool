@@ -119,6 +119,8 @@ details.donebox summary{cursor:pointer; font-size:13px; font-weight:700; color:v
 body.mini{padding:8px 10px 64px; font-size:13.5px}
 body.mini .full{display:none !important}
 body.mini .hub-home{display:none !important}
+html.desk .hub-home{display:none !important}
+html.desk body.mini{padding-top:8px}
 .minihead{display:none}
 body.mini .minihead{display:flex; align-items:baseline; gap:8px; margin-bottom:6px}
 .minihead .clock{font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.5px}
@@ -196,7 +198,10 @@ function saveDoc(){ try{ localStorage.setItem(KEY, JSON.stringify(doc)); }catch(
 let selDay=today(), calMonth=today().slice(0,7);
 /* ?day=YYYY-MM-DD : 그 날짜를 고른 달력으로 열기 (안드로이드 달력 위젯에서 날짜 누를 때) */
 { const q=new URLSearchParams(location.search).get('day');
-  if(q && /^\d{4}-\d{2}-\d{2}$/.test(q)){ selDay=q; calMonth=q.slice(0,7); dev.view='cal'; dev.mini=false; dev.kind='ev'; saveDev(); } }
+  if(q && /^\d{4}-\d{2}-\d{2}$/.test(q)){ selDay=q; calMonth=q.slice(0,7); dev.view='cal'; dev.mini=false; dev.kind='ev'; saveDev(); }
+  /* ?view=todo|cal|today : 그 탭으로 열기 (할 일 위젯 등) */
+  const v=new URLSearchParams(location.search).get('view');
+  if(['todo','cal','today'].includes(v)){ dev.view=v; dev.mini=false; if(v==='todo') dev.kind='tk'; saveDev(); } }
 const live=coll=>Object.values(doc[coll]).filter(x=>!x.del);
 
 /* ---------- 일정 계산 ---------- */
@@ -317,7 +322,10 @@ function renderTodo(){
 $('tabs').onclick=e=>{ const b=e.target.closest('[data-v]'); if(!b) return; dev.view=b.dataset.v; dev.kind=dev.view==='cal'?'ev':dev.view==='todo'?'tk':dev.kind; saveDev(); render(); scrollTo(0,0); };
 $('qkind').onclick=e=>{ const b=e.target.closest('[data-k]'); if(!b) return; dev.kind=b.dataset.k; saveDev(); render(); $('qin').focus(); };
 $('miniBtn').onclick=()=>{ dev.mini=true; saveDev(); render(); };
-$('bigBtn').onclick=()=>{ dev.mini=false; saveDev(); render(); };
+/* desk=1: PC 바탕화면 위젯 프로그램(desktop/) 안. 크게 보기는 브라우저 새 창으로 */
+const DESK=new URLSearchParams(location.search).get('desk')==='1';
+if(DESK) document.documentElement.classList.add('desk');
+$('bigBtn').onclick=()=>{ if(DESK){ window.open('./?mini=0','_blank'); return; } dev.mini=false; saveDev(); render(); };
 /* 달력 좌우로 밀어서 달 넘기기 (손가락·마우스 모두) */
 function moveMonth(d){ const [y,m]=calMonth.split('-').map(Number); calMonth=ymd(new Date(y,m-1+d,1)).slice(0,7); render(); }
 let sw=null, swiped=false;

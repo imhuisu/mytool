@@ -70,7 +70,7 @@ class MainActivity : Activity() {
         }
         update = button("") { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Sched.BASE + "app/"))) }.apply { visibility = android.view.View.GONE }
         box.addView(update)
-        box.addView(text("\n홈 화면에 붙이기: 홈 화면 빈 곳을 길게 누르기 → 위젯 → '일정 달력'(월 달력) 또는 '일정 목록'(오늘·할 일) → 끌어다 놓기.\n크기는 놓은 뒤 위젯을 길게 눌러 테두리를 끌면 바꿀 수 있어요.\n위젯은 30분마다, 그리고 ⟳ 를 누르면 새로 받아요. 위젯을 누르면 일정 화면이 열려요.", 13f))
+        box.addView(text("\n홈 화면에 붙이기: 홈 화면 빈 곳을 길게 누르기 → 위젯 → '일정 달력'(월 달력), '일정 목록'(오늘·할 일), '할 일 목록'(할 일만) 중 → 끌어다 놓기.\n크기는 놓은 뒤 위젯을 길게 눌러 테두리를 끌면 바꿀 수 있어요.\n위젯은 30분마다, 그리고 ⟳ 를 누르면 새로 받아요. 위젯을 누르면 일정 화면이 열려요.", 13f))
         box.addView(text("버전 ${packageManager.getPackageInfo(packageName, 0).versionName}", 12f).apply { gravity = Gravity.END })
         showStatus()
     }

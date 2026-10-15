@@ -2,4 +2,5 @@
 <resources>
     <string name="widget_desc">오늘 일정과 할 일 목록</string>
     <string name="month_desc">한 달 달력과 일정</string>
+    <string name="task_desc">남은 할 일 목록</string>
 </resources>

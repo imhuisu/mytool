@@ -140,6 +140,30 @@ object Sched {
         return now + sorted.filter { it !in now }
     }
 
+    private fun tkRow(it: JSONObject, today: LocalDate): Row.Tk {
+        val due = it.optString("due")
+        var label = ""; var kind = 0
+        if (due.isNotEmpty()) runCatching {
+            val diff = ChronoUnit.DAYS.between(today, LocalDate.parse(due, F)).toInt()
+            label = when { diff == 0 -> "오늘"; diff == 1 -> "내일"; diff == -1 -> "어제"; diff < 0 -> "${-diff}일 지남"; diff < 7 -> "${diff}일 뒤"; else -> dayLabel(LocalDate.parse(due, F)) }
+            kind = if (diff < 0) 2 else if (diff == 0) 1 else 0
+        }
+        return Row.Tk(it.optString("t"), it.optBoolean("star"), label, kind)
+    }
+
+    /** 할 일 위젯: 오늘까지(기한 지남 포함) / 그 밖 으로 나눠 최대 40개 */
+    fun taskRows(doc: JSONObject?): List<Row> {
+        val today = LocalDate.now(); val t = today.format(F)
+        val tasks = openTasks(doc, today)
+        if (tasks.isEmpty()) return listOf(Row.Empty("남은 할 일이 없어요"))
+        val now = tasks.filter { val d = it.optString("due"); d.isNotEmpty() && d <= t }
+        val rest = tasks.filter { it !in now }
+        val out = mutableListOf<Row>()
+        if (now.isNotEmpty()) { out += Row.Head("오늘까지 ${now.size}"); now.forEach { out += tkRow(it, today) } }
+        if (rest.isNotEmpty()) { out += Row.Head(if (now.isEmpty()) "할 일 ${rest.size}" else "그 밖 ${rest.size}"); rest.forEach { out += tkRow(it, today) } }
+        return if (out.size > 42) out.take(42) + Row.Empty("외 ${out.size - 42}개") else out
+    }
+
     fun rows(doc: JSONObject?): List<Row> {
         val today = LocalDate.now(); val now = LocalTime.now().toString().substring(0, 5)
         val out = mutableListOf<Row>()
@@ -156,16 +180,7 @@ object Sched {
         val tasks = openTasks(doc, today)
         out += Row.Head("할 일 ${tasks.size}")
         if (tasks.isEmpty()) out += Row.Empty("할 일이 없어요")
-        tasks.take(15).forEach {
-            val due = it.optString("due")
-            var label = ""; var kind = 0
-            if (due.isNotEmpty()) runCatching {
-                val diff = ChronoUnit.DAYS.between(today, LocalDate.parse(due, F)).toInt()
-                label = when { diff == 0 -> "오늘"; diff == 1 -> "내일"; diff == -1 -> "어제"; diff < 0 -> "${-diff}일 지남"; diff < 7 -> "${diff}일 뒤"; else -> dayLabel(LocalDate.parse(due, F)) }
-                kind = if (diff < 0) 2 else if (diff == 0) 1 else 0
-            }
-            out += Row.Tk(it.optString("t"), it.optBoolean("star"), label, kind)
-        }
+        tasks.take(15).forEach { out += tkRow(it, today) }
         if (tasks.size > 15) out += Row.Empty("외 ${tasks.size - 15}개")
         return out
     }

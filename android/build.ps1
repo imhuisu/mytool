@@ -1,4 +1,4 @@
-# 일정 위젯 APK 빌드 (Windows PowerShell)
+﻿# 일정 위젯 APK 빌드 (Windows PowerShell)
 #   powershell -ExecutionPolicy Bypass -File android\build.ps1
 # - 안드로이드 빌드는 경로에 한글이 있으면 실패해서, 영문 경로로 복사해 빌드한다
 # - 빌드 도구: %LOCALAPPDATA%\mytool-android (jdk, sdk, gradle)

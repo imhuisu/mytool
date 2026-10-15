@@ -75,14 +75,18 @@ sched/                일정 (달력·할 일·위젯 모드). 자체 manifest�
                       알림: 창이 열려 있을 때만 시각 있는 일정 10분 전 (Notification API). 폰 푸시 알림(Web Push + 크론 Worker)은 다음 단계
 functions/api/sched.js 일정 동기화 서버 (같은 D1, 테이블 sched_store, 버전 비교로 충돌 감지 409)
 android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, AndroidX 없음). 읽기 전용: 서버에서 받아 복호화
-                      위젯 2종: "일정 달력"(MonthWidget, 월 달력·‹ › 이동·날짜 누르면 웹 sched/?day=YYYY-MM-DD) / "일정 목록"(SchedWidget, 오늘·내일 일정 + 할 일)
+                      위젯 3종: "일정 달력"(MonthWidget, 월 달력·‹ › 이동·날짜 누르면 웹 sched/?day=YYYY-MM-DD) / "일정 목록"(SchedWidget, 오늘·내일 일정 + 할 일) / "할 일 목록"(TaskWidget, 할 일만, 웹 sched/?view=todo)
+                      현재 v1.3 (versionCode 4, 2026-10-14 배포)
                       암호·일정 규칙은 Sched.kt 가 sched/index.html 과 같아야 함 (id·PBKDF2·AES-GCM·occurs·정렬). 한쪽 바꾸면 다른 쪽도
                       빌드: powershell -ExecutionPolicy Bypass -File android\build.ps1 → app\sched-widget.apk, app\version.json 갱신
                       버전 올릴 때 app/build.gradle.kts 의 versionCode +1 (앱이 version.json 과 비교해 "새 버전" 표시)
                       빌드 도구는 이 PC의 %LOCALAPPDATA%\mytool-android (JDK17·SDK35·Gradle 8.9). 경로에 한글이 있으면 빌드 거부라 영문 경로로 복사해서 빌드
                       **서명 키는 이 PC에만 있음**: %USERPROFILE%\.mytool\sched-release.jks, 비밀번호는 %USERPROFILE%\.gradle\gradle.properties (MYTOOL_STORE_*). 잃으면 폰에서 지우고 새로 설치해야 함 → 백업해 둘 것. 클라우드 세션에서는 APK 빌드 불가
-app/                  위젯 APK 다운로드 페이지 (sched-widget.apk, version.json)
-                      **빌드 대기 (2026-10-07, 폰 세션)**: v1.2 소스만 수정됨 — 달력 위젯 머리줄 키움: ‹ › 누르는 칸을 제목 양옆 전체 폭으로, 높이 48dp, 달 제목 21sp, + 버튼 40dp, 요일 12.5sp (month_widget.xml·widget_styles.xml, versionCode 3). APK·version.json은 아직 v1.1 → PC에서 build.ps1 실행 후 push
+app/                  위젯 다운로드 페이지 (sched-widget.apk, version.json, sched-desktop.zip)
+desktop/              일정 PC 바탕화면 위젯 (Windows, C# WinForms .NET Framework 4.8 + WebView2). 테두리 없는 창에 웹 sched/?mini=1&desk=1 을 띄움
+                      기본은 다른 창 뒤(HWND_BOTTOM)에 깔림. 트레이 메뉴: 항상 위·위치 잠금·시작 시 실행(HKCU Run). 설정 %APPDATA%\mytool-desktop\settings.txt, 웹 저장소 %LOCALAPPDATA%\mytool-desktop\webview
+                      빌드·설치: powershell -ExecutionPolicy Bypass -File desktop\install.ps1 (이 PC의 %LOCALAPPDATA%\mytool-desktop\dotnet 사용) → %LOCALAPPDATA%\mytool-desktop\app 에 설치, app\sched-desktop.zip 갱신
+                      웹 쪽: html.desk 면 홈 버튼 숨김, ⤢ 는 브라우저 새 창으로. PS 5.1 스크립트(.ps1)는 한글 때문에 UTF-8 BOM 으로 저장할 것
 ```
 
 ## 규칙
