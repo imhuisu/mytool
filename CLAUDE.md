@@ -70,6 +70,7 @@ oni/                  산소 미포함 방 가이드 (방 18종 조건·보너�
                       수치는 영문 위키 검색 결과 기준(위키 직접 접속은 막혀 있었음). 한국어 방 이름 중 막사·호화 막사·개인 침실·식당·큰 회관·세척실·변소만 확인됨, 나머지는 추정 → 게임 표기 받으면 고치기
 functions/api/golf.js 골프 함께하기 서버 (Cloudflare Pages Functions, D1 바인딩 GOLF_DB)
 sched/                일정 (달력·할 일·위젯 모드). 자체 manifest가 있어 "일정" 앱으로 따로 설치 가능 (예외적으로 ../manifest 대신 sched/manifest.webmanifest)
+                      **주의**: sched manifest의 id는 반드시 "/sched/". id는 start_url이 아니라 사이트 루트(origin) 기준으로 풀려서 "./"로 두면 도구함 앱(id "/")과 같은 앱이 돼 도구함 아이콘이 일정으로 열렸음 (2026-10-16 수정)
                       위젯 모드 = body.mini (?mini=1 / ?mini=0 로 전환, 기기별 기억). 폰 홈 화면 진짜 위젯은 아래 android/ 앱으로
                       동기화: 비밀번호 → id(SHA-256) + AES-GCM 키(PBKDF2 31만 회). 브라우저에서 암호화해 올림, 서버엔 암호문만. 항목별 u(수정 시각)로 병합, del 표시는 90일 뒤 정리
                       알림: 창이 열려 있을 때만 시각 있는 일정 10분 전 (Notification API). 폰 푸시 알림(Web Push + 크론 Worker)은 다음 단계
