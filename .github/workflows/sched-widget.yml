@@ -1,0 +1,91 @@
+# 일정 위젯 APK 자동 빌드 (PC 없이)
+# - android/ 가 바뀌어 main 에 올라오면 실행. app/build.gradle.kts 의 versionCode 가
+#   app/version.json 보다 클 때만 빌드한다 (버전 안 올린 수정은 빌드 안 함)
+# - 결과: app/sched-widget.apk, app/version.json 을 커밋해 올림 → Cloudflare 가 배포 → 폰 앱에 "새 버전"
+# - 필요한 저장소 Secrets (한 번만 설정, CLAUDE.md 참고)
+#     MYTOOL_STORE_JKS_B64 : 서명 키 파일(sched-release.jks)을 base64 로 바꾼 글자
+#     MYTOOL_STORE_PASS    : 서명 키 비밀번호
+name: 일정 위젯 APK 빌드
+
+on:
+  push:
+    branches: [main]
+    paths: ['android/**']
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '버전 그대로여도 빌드'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sched-widget
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 버전 확인
+        id: ver
+        run: |
+          code=$(grep -oP 'versionCode\s*=\s*\K\d+' android/app/build.gradle.kts)
+          name=$(grep -oP 'versionName\s*=\s*"\K[^"]+' android/app/build.gradle.kts)
+          cur=$(grep -oP '"versionCode":\s*\K\d+' app/version.json || echo 0)
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          if [ "$code" -gt "$cur" ] || [ "${{ inputs.force }}" = "true" ]; then
+            echo "go=1" >> "$GITHUB_OUTPUT"; echo "빌드: v$name (code $code, 현재 $cur)"
+          else
+            echo "go=0" >> "$GITHUB_OUTPUT"; echo "건너뜀: versionCode $code 가 현재 $cur 보다 크지 않음 (버전 올려야 빌드)"
+          fi
+
+      - name: 서명 키 확인
+        if: steps.ver.outputs.go == '1'
+        env:
+          JKS: ${{ secrets.MYTOOL_STORE_JKS_B64 }}
+          PASS: ${{ secrets.MYTOOL_STORE_PASS }}
+        run: |
+          if [ -z "$JKS" ] || [ -z "$PASS" ]; then
+            echo "::error::저장소 Secrets 에 MYTOOL_STORE_JKS_B64 / MYTOOL_STORE_PASS 가 없어요 (CLAUDE.md 참고)"; exit 1
+          fi
+          echo "$JKS" | base64 -d > "$RUNNER_TEMP/sched-release.jks"
+
+      - uses: actions/setup-java@v4
+        if: steps.ver.outputs.go == '1'
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.ver.outputs.go == '1'
+        with:
+          gradle-version: '8.9'
+
+      - name: APK 빌드
+        if: steps.ver.outputs.go == '1'
+        working-directory: android
+        env:
+          PASS: ${{ secrets.MYTOOL_STORE_PASS }}
+        run: |
+          gradle assembleRelease --console=plain \
+            -PMYTOOL_STORE_FILE="$RUNNER_TEMP/sched-release.jks" -PMYTOOL_STORE_PASS="$PASS"
+
+      - name: app/ 에 넣고 커밋
+        if: steps.ver.outputs.go == '1'
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk app/sched-widget.apk
+          printf '{ "versionCode": %s, "versionName": "%s", "apk": "sched-widget.apk" }\n' \
+            "${{ steps.ver.outputs.code }}" "${{ steps.ver.outputs.name }}" > app/version.json
+          rm -f "$RUNNER_TEMP/sched-release.jks"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/sched-widget.apk app/version.json
+          git commit -m "일정 위젯 v${{ steps.ver.outputs.name }} APK 자동 빌드"
+          git pull --rebase origin main
+          git push origin HEAD:main
