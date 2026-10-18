@@ -10,14 +10,14 @@ val storePass = (findProperty("MYTOOL_STORE_PASS") as String?)
 
 android {
     namespace = "com.imhuisu.mytool.sched"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.imhuisu.mytool.sched"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 4          // 올릴 때마다 +1, ../../app/version.json 도 같이
-        versionName = "1.3"
+        targetSdk = 36
+        versionCode = 5          // 올릴 때마다 +1, ../../app/version.json 도 같이
+        versionName = "1.4"
     }
 
     signingConfigs {

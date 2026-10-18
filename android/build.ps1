@@ -19,7 +19,7 @@ robocopy $src $work /MIR /XD .gradle build .kotlin /XF local.properties /NFL /ND
 
 Push-Location $work
 try {
-    & "$tools\gradle\bin\gradle.bat" assembleRelease -q --console=plain
+    & "$tools\gradle\bin\gradle.bat" assembleRelease bundleRelease -q --console=plain
     if ($LASTEXITCODE -ne 0) { throw "빌드 실패" }
 } finally { Pop-Location }
 
@@ -27,9 +27,14 @@ $apk = "$work\app\build\outputs\apk\release\app-release.apk"
 New-Item -ItemType Directory -Force "$repo\app" | Out-Null
 Copy-Item $apk "$repo\app\sched-widget.apk" -Force
 
+# 플레이스토어 업로드용 AAB 는 저장소 밖에 (공개할 필요 없음)
+New-Item -ItemType Directory -Force "$tools\out" | Out-Null
+Copy-Item "$work\app\build\outputs\bundle\release\app-release.aab" "$tools\out\sched-widget.aab" -Force
+
 # 버전 번호를 app/build.gradle.kts 에서 읽어 version.json 에 기록
 $g = Get-Content "$src\app\build.gradle.kts" -Raw
 $code = [regex]::Match($g, 'versionCode\s*=\s*(\d+)').Groups[1].Value
 $name = [regex]::Match($g, 'versionName\s*=\s*"([^"]+)"').Groups[1].Value
 [IO.File]::WriteAllText("$repo\app\version.json", "{ `"versionCode`": $code, `"versionName`": `"$name`", `"apk`": `"sched-widget.apk`" }`n", (New-Object Text.UTF8Encoding $false))
+"AAB: $tools\out\sched-widget.aab"
 "완료: app\sched-widget.apk (v$name, code $code, $([math]::Round((Get-Item "$repo\app\sched-widget.apk").Length/1MB,2)) MB)"

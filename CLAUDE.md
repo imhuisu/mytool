@@ -77,7 +77,9 @@ sched/                일정 (달력·할 일·위젯 모드). 자체 manifest�
 functions/api/sched.js 일정 동기화 서버 (같은 D1, 테이블 sched_store, 버전 비교로 충돌 감지 409)
 android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, AndroidX 없음). 읽기 전용: 서버에서 받아 복호화
                       위젯 3종: "일정 달력"(MonthWidget, 월 달력·‹ › 이동·날짜 누르면 웹 sched/?day=YYYY-MM-DD) / "일정 목록"(SchedWidget, 오늘·내일 일정 + 할 일) / "할 일 목록"(TaskWidget, 할 일만, 웹 sched/?view=todo)
-                      현재 v1.3 (versionCode 4, 2026-10-14 배포)
+                      현재 v1.4 (versionCode 5, targetSdk 36). 패키지 com.imhuisu.mytool.sched
+                      플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드 파일은 build.ps1 이 만드는 %LOCALAPPDATA%\mytool-android\out\sched-widget.aab
+                      Play 앱 서명 사용 → 플레이 버전과 사이트 APK 는 서명이 달라 서로 덮어 설치 안 됨. version.json 의 versionCode 는 플레이 버전과 맞춰 둘 것 (앱이 "새 버전" 표시에 씀)
                       암호·일정 규칙은 Sched.kt 가 sched/index.html 과 같아야 함 (id·PBKDF2·AES-GCM·occurs·정렬). 한쪽 바꾸면 다른 쪽도
                       **빌드 (PC 없이, 기본)**: GitHub Actions `.github/workflows/sched-widget.yml`. android/ 수정 + versionCode +1(versionName도) 해서 main에 push → 자동 빌드·서명 → app/sched-widget.apk·version.json 커밋 → 배포. 폰 세션에서도 가능
                         필요 Secrets(한 번만, PC에서): MYTOOL_STORE_JKS_B64 = 서명 키 base64, MYTOOL_STORE_PASS = 키 비밀번호. 설정 전엔 워크플로가 "Secrets 없음"으로 실패함

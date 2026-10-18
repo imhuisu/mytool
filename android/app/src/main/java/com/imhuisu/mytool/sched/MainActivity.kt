@@ -28,7 +28,7 @@ class MainActivity : Activity() {
         super.onCreate(s)
         val dp = resources.displayMetrics.density
         box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding((20 * dp).toInt(), (28 * dp).toInt(), (20 * dp).toInt(), (20 * dp).toInt()) }
-        setContentView(ScrollView(this).apply { addView(box) })
+        setContentView(ScrollView(this).apply { fitsSystemWindows = true; addView(box) })   // API 35+ 전체 화면에서 상태바와 겹치지 않게
         build()
     }
 
