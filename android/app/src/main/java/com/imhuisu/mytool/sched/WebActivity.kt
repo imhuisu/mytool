@@ -35,7 +35,9 @@ class WebActivity : Activity() {
         setContentView(web)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
-        web.settings.userAgentString = web.settings.userAgentString + " MytoolApp/1"
+        // 웹이 앱 버전을 표시할 수 있게 UA 에 버전을 붙임 (예: MytoolApp/1.6)
+        val ver = packageManager.getPackageInfo(packageName, 0).versionName
+        web.settings.userAgentString = web.settings.userAgentString + " MytoolApp/" + ver
         web.addJavascriptInterface(Bridge(), "MytoolApp")
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(v: WebView, r: WebResourceRequest): Boolean {
