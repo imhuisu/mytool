@@ -73,8 +73,10 @@ pal/                  팰월드 펠 도감 (287종: 번호·한국어 이름·�
                       데이터 출처: github.com/oMaN-Rod/palworld-save-pal data/json (pals.json + l10n/ko, 2026-09 기준). 업데이트 땐 같은 파일에서 다시 뽑기
 oni/                  산소 미포함 방 가이드 (방 18종 조건·보너스 목록 + 내 구역 판정기)
                       수치는 영문 위키 검색 결과 기준(위키 직접 접속은 막혀 있었음). 한국어 방 이름 중 막사·호화 막사·개인 침실·식당·큰 회관·세척실·변소만 확인됨, 나머지는 추정 → 게임 표기 받으면 고치기
+fx/                   환율 계산기 (베트남 동 기본, 달러·엔·바트·유로·위안·페소). 1원당 외화 환율을 open.er-api.com → 실패 시 jsDelivr currency-api 에서 받음 (6시간마다 자동), 마지막 값 저장으로 오프라인 계산. 직접 환율 입력 가능. 두 API 모두 이 클라우드 세션에선 접속이 막혀 응답 형식을 실제로 확인 못 함 → 폰에서 "기준 시각"이 뜨는지 확인
 functions/api/golf.js 골프 함께하기 서버 (Cloudflare Pages Functions, D1 바인딩 GOLF_DB)
 sched/                일정 (달력·할 일·위젯 모드). 자체 manifest가 있어 "일정" 앱으로 따로 설치 가능 (예외적으로 ../manifest 대신 sched/manifest.webmanifest)
+                      폰에 이미 설치된 도구함 앱이 계속 일정으로 열리면: 홈 화면의 도구함·일정 아이콘을 지우고 크롬에서 다시 설치 (설치된 앱 정보는 저절로 잘 안 바뀜)
                       **주의**: sched manifest의 id는 반드시 "/sched/". id는 start_url이 아니라 사이트 루트(origin) 기준으로 풀려서 "./"로 두면 도구함 앱(id "/")과 같은 앱이 돼 도구함 아이콘이 일정으로 열렸음 (2026-10-16 수정)
                       위젯 모드 = body.mini (?mini=1 / ?mini=0 로 전환, 기기별 기억). 폰 홈 화면 진짜 위젯은 아래 android/ 앱으로
                       동기화: 비밀번호 → id(SHA-256) + AES-GCM 키(PBKDF2 31만 회). 브라우저에서 암호화해 올림, 서버엔 암호문만. 항목별 u(수정 시각)로 병합, del 표시는 90일 뒤 정리
@@ -132,6 +134,7 @@ desktop/              일정 PC 바탕화면 위젯 (Windows, C# WinForms .NET F
 | zephyr | `seopung-check-v1` |
 | pal | `pal-dex-v1` |
 | oni | `oni-rooms-v1` |
+| fx | `fx-v1` |
 | sched | `sched-v1` (일정·할 일), `sched-dev-v1` (기기별 설정·동기화 키) |
 | golf (지난 기록·함께하기 방·직접 입력한 골프장 파) | `gd2-rounds`, `gd2-room`, `gd2-courses` |
 
