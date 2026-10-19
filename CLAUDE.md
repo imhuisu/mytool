@@ -86,6 +86,7 @@ android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, Andr
                       암호·일정 규칙은 Sched.kt 가 sched/index.html 과 같아야 함 (id·PBKDF2·AES-GCM·occurs·정렬). 한쪽 바꾸면 다른 쪽도
                       **배포 = GitHub Actions** `.github/workflows/sched-widget.yml`: android/ 수정 + versionCode +1(versionName도) 해서 main에 push → 빌드·서명 → **플레이스토어 내부 테스트에 업로드·출시** → app/sched-widget.apk·version.json 커밋. 폰 세션에서도 가능. 같은 versionCode 는 플레이가 거절하니 꼭 +1
                         필요 Secrets(한 번만, PC에서): MYTOOL_STORE_JKS_B64 = 서명 키 base64, MYTOOL_STORE_PASS = 키 비밀번호 (없으면 실패), PLAY_SERVICE_ACCOUNT_JSON = 플레이 업로드용 구글 서비스 계정 JSON (없으면 업로드만 건너뛰고 AAB 를 Artifacts 로 남김)
+                        **설정 완료 (2026-10-19)**: Secrets 3개 등록, 서비스 계정 github-upload@mytool-play.iam.gserviceaccount.com (구글 클라우드 프로젝트 mytool-play, Android Publisher API 사용 중) 을 Play Console 사용자로 초대(마이툴: 테스트 트랙 출시·관리, 프로덕션 권한 없음). 첫 자동 업로드 v1.5(code 7) 성공
                         PC PowerShell: [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\.mytool\sched-release.jks")) | Set-Clipboard → GitHub 저장소 Settings → Secrets and variables → Actions → New repository secret
                         Actions 쪽이 bot 커밋을 push하므로 그 뒤 로컬에서 작업할 땐 git pull 먼저
                       PC 테스트 빌드: powershell -ExecutionPolicy Bypass -File android\build.ps1 → %LOCALAPPDATA%\mytool-android\out 에만 (저장소 app/ 은 안 건드림. 배포 버전과 엇갈리지 않게)
