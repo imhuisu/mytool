@@ -36,6 +36,13 @@ object Sched {
 
     fun unlink(c: Context) { prefs(c).edit().clear().apply() }
 
+    /** 웹 저장소에 넣을 (id, AES 키 base64url). 웹의 crypto.subtle JWK 형식에 맞춤 */
+    fun syncKey(c: Context): Pair<String, String>? {
+        val id = prefs(c).getString("id", null) ?: return null
+        val key = Base64.decode(prefs(c).getString("key", "") ?: return null, Base64.NO_WRAP)
+        return id to Base64.encodeToString(key, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+    }
+
     /* ---------- 암호 ---------- */
     private fun sha256Hex(s: String) = MessageDigest.getInstance("SHA-256").digest(s.toByteArray(Charsets.UTF_8))
         .joinToString("") { "%02x".format(it) }

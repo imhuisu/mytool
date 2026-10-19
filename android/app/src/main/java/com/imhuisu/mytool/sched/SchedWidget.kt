@@ -64,11 +64,11 @@ class SchedWidget : AppWidgetProvider() {
             val base = if (tasksOnly) 20 else 0     // PendingIntent 요청 코드가 두 위젯끼리 겹치지 않게
             val web = if (tasksOnly) Sched.WEB + "?view=todo" else Sched.WEB
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            val openWeb = PendingIntent.getActivity(c, base + 1, Intent(Intent.ACTION_VIEW, Uri.parse(web)), flags)
+            val openWeb = PendingIntent.getActivity(c, base + 1, WebActivity.intent(c, web), flags)
             val openApp = PendingIntent.getActivity(c, base + 2, Intent(c, MainActivity::class.java), flags)
             val refresh = PendingIntent.getBroadcast(c, base + 3, Intent(c, cls).setAction(ACTION_REFRESH), flags)
             // 목록 줄을 누르면 웹 일정 화면 (fill-in 을 받으려면 MUTABLE)
-            val template = PendingIntent.getActivity(c, base + 4, Intent(Intent.ACTION_VIEW, Uri.parse(web)),
+            val template = PendingIntent.getActivity(c, base + 4, WebActivity.intent(c, web),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
 
             for (id in ids) {

@@ -77,7 +77,10 @@ sched/                일정 (달력·할 일·위젯 모드). 자체 manifest�
 functions/api/sched.js 일정 동기화 서버 (같은 D1, 테이블 sched_store, 버전 비교로 충돌 감지 409)
 android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, AndroidX 없음). 읽기 전용: 서버에서 받아 복호화
                       위젯 3종: "일정 달력"(MonthWidget, 월 달력·‹ › 이동·날짜 누르면 웹 sched/?day=YYYY-MM-DD) / "일정 목록"(SchedWidget, 오늘·내일 일정 + 할 일) / "할 일 목록"(TaskWidget, 할 일만, 웹 sched/?view=todo)
-                      현재 v1.4 (versionCode 5, targetSdk 36). 패키지 com.imhuisu.mytool.sched
+                      현재 v1.5 (versionCode 6, targetSdk 36). 패키지 com.imhuisu.mytool.sched, 폰에 보이는 앱 이름 "일정"
+                      v1.5부터 앱 안에서 웹 일정을 엶 (WebActivity, WebView). 연결된 상태면 앱 아이콘 → 바로 일정 화면. 위젯 탭도 크롬 대신 이 화면
+                      앱의 비밀번호 키를 웹 localStorage(sched-dev-v1.sync, JWK)에 넣어 줘서 웹에서 비밀번호 재입력 없음. 웹은 동기화 후 MytoolApp.synced() 로 위젯 새로고침
+                      웹 설정의 mytool://settings 링크 → 앱 연결·버전 화면(MainActivity, extra settings=true). 크롬으로 설치한 "일정" 웹앱 아이콘은 이제 필요 없음
                       플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드 파일은 build.ps1 이 만드는 %LOCALAPPDATA%\mytool-android\out\sched-widget.aab
                       Play 앱 서명 사용 → 플레이 버전과 사이트 APK 는 서명이 달라 서로 덮어 설치 안 됨. version.json 의 versionCode 는 플레이 버전과 맞춰 둘 것 (앱이 "새 버전" 표시에 씀)
                       암호·일정 규칙은 Sched.kt 가 sched/index.html 과 같아야 함 (id·PBKDF2·AES-GCM·occurs·정렬). 한쪽 바꾸면 다른 쪽도

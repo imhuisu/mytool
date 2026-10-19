@@ -60,7 +60,7 @@ class MonthWidget : AppWidgetProvider() {
                 v.setOnClickPendingIntent(R.id.next, bcast(c, ACTION_NEXT, 12))
                 v.setOnClickPendingIntent(R.id.title, bcast(c, ACTION_TODAY, 13))
                 v.setOnClickPendingIntent(R.id.add, PendingIntent.getActivity(c, 14,
-                    if (linked) Intent(Intent.ACTION_VIEW, Uri.parse(Sched.WEB)) else Intent(c, MainActivity::class.java), flags))
+                    if (linked) WebActivity.intent(c) else Intent(c, MainActivity::class.java), flags))
                 v.removeAllViews(R.id.weeks)
                 for (w in 0 until weeks) {
                     val row = RemoteViews(c.packageName, R.layout.month_week)
@@ -90,7 +90,7 @@ class MonthWidget : AppWidgetProvider() {
                         else cell.setViewVisibility(R.id.more, View.GONE)
                         val code = day.year * 10000 + day.monthValue * 100 + day.dayOfMonth
                         cell.setOnClickPendingIntent(R.id.cell, PendingIntent.getActivity(c, code,
-                            Intent(Intent.ACTION_VIEW, Uri.parse(Sched.WEB + "?day=" + day)), flags))
+                            WebActivity.intent(c, Sched.WEB + "?day=" + day), flags))
                         row.addView(R.id.week, cell)
                     }
                     v.addView(R.id.weeks, row)
