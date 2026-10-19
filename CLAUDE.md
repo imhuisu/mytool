@@ -81,14 +81,14 @@ android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, Andr
                       v1.5부터 앱 안에서 웹 일정을 엶 (WebActivity, WebView). 연결된 상태면 앱 아이콘 → 바로 일정 화면. 위젯 탭도 크롬 대신 이 화면
                       앱의 비밀번호 키를 웹 localStorage(sched-dev-v1.sync, JWK)에 넣어 줘서 웹에서 비밀번호 재입력 없음. 웹은 동기화 후 MytoolApp.synced() 로 위젯 새로고침
                       웹 설정의 mytool://settings 링크 → 앱 연결·버전 화면(MainActivity, extra settings=true). 크롬으로 설치한 "일정" 웹앱 아이콘은 이제 필요 없음
-                      플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드 파일은 build.ps1 이 만드는 %LOCALAPPDATA%\mytool-android\out\sched-widget.aab
+                      플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드는 GitHub Actions 가 자동 (아래). v1.4(code 5)까지는 Play Console 에 손으로 올렸음
                       Play 앱 서명 사용 → 플레이 버전과 사이트 APK 는 서명이 달라 서로 덮어 설치 안 됨. version.json 의 versionCode 는 플레이 버전과 맞춰 둘 것 (앱이 "새 버전" 표시에 씀)
                       암호·일정 규칙은 Sched.kt 가 sched/index.html 과 같아야 함 (id·PBKDF2·AES-GCM·occurs·정렬). 한쪽 바꾸면 다른 쪽도
-                      **빌드 (PC 없이, 기본)**: GitHub Actions `.github/workflows/sched-widget.yml`. android/ 수정 + versionCode +1(versionName도) 해서 main에 push → 자동 빌드·서명 → app/sched-widget.apk·version.json 커밋 → 배포. 폰 세션에서도 가능
-                        필요 Secrets(한 번만, PC에서): MYTOOL_STORE_JKS_B64 = 서명 키 base64, MYTOOL_STORE_PASS = 키 비밀번호. 설정 전엔 워크플로가 "Secrets 없음"으로 실패함
+                      **배포 = GitHub Actions** `.github/workflows/sched-widget.yml`: android/ 수정 + versionCode +1(versionName도) 해서 main에 push → 빌드·서명 → **플레이스토어 내부 테스트에 업로드·출시** → app/sched-widget.apk·version.json 커밋. 폰 세션에서도 가능. 같은 versionCode 는 플레이가 거절하니 꼭 +1
+                        필요 Secrets(한 번만, PC에서): MYTOOL_STORE_JKS_B64 = 서명 키 base64, MYTOOL_STORE_PASS = 키 비밀번호 (없으면 실패), PLAY_SERVICE_ACCOUNT_JSON = 플레이 업로드용 구글 서비스 계정 JSON (없으면 업로드만 건너뛰고 AAB 를 Artifacts 로 남김)
                         PC PowerShell: [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\.mytool\sched-release.jks")) | Set-Clipboard → GitHub 저장소 Settings → Secrets and variables → Actions → New repository secret
                         Actions 쪽이 bot 커밋을 push하므로 그 뒤 로컬에서 작업할 땐 git pull 먼저
-                      빌드 (PC 수동, 예비): powershell -ExecutionPolicy Bypass -File android\build.ps1 → app\sched-widget.apk, app\version.json 갱신
+                      PC 테스트 빌드: powershell -ExecutionPolicy Bypass -File android\build.ps1 → %LOCALAPPDATA%\mytool-android\out 에만 (저장소 app/ 은 안 건드림. 배포 버전과 엇갈리지 않게)
                       버전 올릴 때 app/build.gradle.kts 의 versionCode +1 (앱이 version.json 과 비교해 "새 버전" 표시)
                       빌드 도구는 이 PC의 %LOCALAPPDATA%\mytool-android (JDK17·SDK35·Gradle 8.9). 경로에 한글이 있으면 빌드 거부라 영문 경로로 복사해서 빌드
                       **서명 키는 이 PC에만 있음**: %USERPROFILE%\.mytool\sched-release.jks, 비밀번호는 %USERPROFILE%\.gradle\gradle.properties (MYTOOL_STORE_*). 잃으면 폰에서 지우고 새로 설치해야 함 → 백업해 둘 것. 클라우드 세션에서는 APK 빌드 불가

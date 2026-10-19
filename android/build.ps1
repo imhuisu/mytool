@@ -4,7 +4,7 @@
 # - 빌드 도구: %LOCALAPPDATA%\mytool-android (jdk, sdk, gradle)
 # - 서명 키: %USERPROFILE%\.mytool\sched-release.jks, 비밀번호는 %USERPROFILE%\.gradle\gradle.properties
 #   이 키가 없으면 폰에서 덮어 설치(업데이트)가 안 된다. 다른 PC에서 빌드하려면 키 파일과 비밀번호를 옮길 것
-# - 결과: 저장소 app\sched-widget.apk 와 app\version.json 갱신
+# - 테스트용: 결과는 %LOCALAPPDATA%\mytool-android\out 에만 (배포는 GitHub Actions)
 $ErrorActionPreference = 'Stop'
 $tools = "$env:LOCALAPPDATA\mytool-android"
 $src = $PSScriptRoot
@@ -23,18 +23,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "빌드 실패" }
 } finally { Pop-Location }
 
-$apk = "$work\app\build\outputs\apk\release\app-release.apk"
-New-Item -ItemType Directory -Force "$repo\app" | Out-Null
-Copy-Item $apk "$repo\app\sched-widget.apk" -Force
-
-# 플레이스토어 업로드용 AAB 는 저장소 밖에 (공개할 필요 없음)
+# 결과는 저장소 밖(%LOCALAPPDATA%\mytool-android\out)에만. 배포는 GitHub Actions(.github/workflows/sched-widget.yml)가
+# 플레이스토어 업로드와 app/sched-widget.apk·version.json 커밋까지 함 → 여기서 저장소 app/ 을 건드리면 버전이 엇갈림
 New-Item -ItemType Directory -Force "$tools\out" | Out-Null
+Copy-Item "$work\app\build\outputs\apk\release\app-release.apk" "$tools\out\sched-widget.apk" -Force
 Copy-Item "$work\app\build\outputs\bundle\release\app-release.aab" "$tools\out\sched-widget.aab" -Force
-
-# 버전 번호를 app/build.gradle.kts 에서 읽어 version.json 에 기록
 $g = Get-Content "$src\app\build.gradle.kts" -Raw
-$code = [regex]::Match($g, 'versionCode\s*=\s*(\d+)').Groups[1].Value
 $name = [regex]::Match($g, 'versionName\s*=\s*"([^"]+)"').Groups[1].Value
-[IO.File]::WriteAllText("$repo\app\version.json", "{ `"versionCode`": $code, `"versionName`": `"$name`", `"apk`": `"sched-widget.apk`" }`n", (New-Object Text.UTF8Encoding $false))
-"AAB: $tools\out\sched-widget.aab"
-"완료: app\sched-widget.apk (v$name, code $code, $([math]::Round((Get-Item "$repo\app\sched-widget.apk").Length/1MB,2)) MB)"
+"테스트용 빌드 완료 (v$name): $tools\out\sched-widget.apk / .aab"
