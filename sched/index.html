@@ -29,6 +29,8 @@ header{display:flex; align-items:center; gap:8px; margin-bottom:10px}
 h1{font-size:21px; margin:0}
 header .sp{flex:1}
 .sync{font-size:12px; font-weight:700; border-radius:999px; padding:3px 9px; background:var(--soft); color:var(--muted); white-space:nowrap; border:0; cursor:pointer}
+.upd{font-size:12px; font-weight:800; border-radius:999px; padding:3px 10px; background:var(--ng); color:#fff; border:0; cursor:pointer; white-space:nowrap}
+.upd[hidden]{display:none}
 .sync.ok{color:var(--ok)} .sync.err{color:var(--ng)} .sync.busy{color:var(--brand)}
 .ib{border:1px solid var(--line); background:var(--card); border-radius:10px; height:34px; min-width:34px; padding:0 9px; cursor:pointer; font-weight:700; font-size:13px}
 .tabs{display:flex; gap:4px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:3px; margin-bottom:12px}
@@ -138,12 +140,12 @@ body.mini .quick input{padding:7px 10px}
 <div class="wrap">
   <div class="minihead">
     <span class="clock" id="clock"></span><span class="dt" id="mdt"></span><span class="sp"></span>
-    <button class="sync" id="syncMini"></button>
+    <button class="upd" id="updMini" hidden>⬆ 업데이트</button><button class="sync" id="syncMini"></button>
     <button class="ib" id="bigBtn" title="큰 화면으로">⤢</button>
   </div>
   <header class="full">
     <h1>일정</h1><span class="sp"></span>
-    <button class="sync" id="syncBtn"></button>
+    <button class="upd" id="updBtn" hidden>⬆ 업데이트</button><button class="sync" id="syncBtn"></button>
     <button class="ib" id="miniBtn" title="위젯 모드">위젯</button>
     <button class="ib" id="setBtn" aria-label="설정">⚙</button>
   </header>
@@ -453,7 +455,8 @@ function openSettings(){
     '<p class="note">PC에서 위젯 창을 띄워 두면 동작해요. 창을 닫거나 폰 앱이 꺼져 있으면 알림이 오지 않아요.</p>'+
     '<div class="label" style="margin-top:12px">안드로이드 홈 화면 위젯</div>'+
     (window.MytoolApp
-      ? '<p class="note">앱 버전 <b>'+esc(((/MytoolApp\/([\d.]+)/.exec(navigator.userAgent)||[])[1]||'').replace(/^1$/,'1.5'))+'</b> · 위젯은 홈 화면 빈 곳을 길게 눌러 위젯 → 일정에서 놓아요.</p>'+
+      ? '<p class="note">앱 버전 <b>'+esc(((/MytoolApp\/([\d.]+)/.exec(navigator.userAgent)||[])[1]||'').replace(/^1$/,'1.5'))+'</b>'+(appNew?' · <b style="color:var(--ng)">새 버전 '+esc(appNew)+' 있음</b>':'')+' · 위젯은 홈 화면 빈 곳을 길게 눌러 위젯 → 일정에서 놓아요.</p>'+
+        (appNew?'<a href="'+PLAY_URL+'" class="btn pri" style="display:block;text-align:center;text-decoration:none;margin:0 0 6px">플레이스토어에서 업데이트</a>':'')+
         '<a href="mytool://settings" class="btn gh" style="display:block;text-align:center;text-decoration:none;margin:0 0 6px">앱 연결·업데이트 설정</a>'
       : '<p class="note">오늘 일정과 할 일을 홈 화면에 띄우는 위젯 앱이에요. 동기화를 켠 뒤 같은 비밀번호로 연결해요. <a href="../app/" style="color:var(--brand);font-weight:700">위젯 앱 받기 →</a></p>')+
     '<div class="label" style="margin-top:12px">백업</div>'+
@@ -463,7 +466,13 @@ function openSettings(){
   $('fx').onclick=closeSheet;
   if(s){
     $('syncNowBtn').onclick=()=>{ syncNow(); closeSheet(); };
-    $('syncOff').onclick=()=>{ dev.sync=null; saveDev(); closeSheet(); render(); };
+    // 실수로 끄지 않게 두 번 눌러야 꺼짐
+    $('syncOff').onclick=()=>{
+      const b=$('syncOff');
+      if(b.dataset.arm!=='1'){ b.dataset.arm='1'; b.textContent='한 번 더 누르면 꺼져요';
+        setTimeout(()=>{ b.dataset.arm=''; b.textContent='이 기기에서 끄기'; },3000); return; }
+      dev.sync=null; saveDev(); closeSheet(); render();
+    };
   }else{
     $('syncOn').onclick=async()=>{
       const p=$('pw').value;
@@ -522,6 +531,20 @@ function merge(a,b){
   return out;
 }
 let syncState='', syncT=null, syncing=false, again=false;
+/* 안드로이드 앱 안이면 사이트의 app/version.json 과 앱 버전(UA)을 비교해 머리에 "업데이트" 표시 */
+const PLAY_URL='market://details?id=com.imhuisu.mytool.sched';
+const APP_VER=((/MytoolApp\/([\d.]+)/.exec(navigator.userAgent)||[])[1]||'').replace(/^1$/,'1.5');
+let appNew='';
+const verGt=(a,b)=>{ const x=a.split('.').map(Number), y=b.split('.').map(Number);
+  for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0; } return false; };
+async function checkAppUpdate(){
+  if(!window.MytoolApp || !APP_VER) return;
+  try{ const v=await (await fetch('../app/version.json',{cache:'no-store'})).json();
+    appNew = v.versionName && verGt(v.versionName, APP_VER) ? v.versionName : '';
+    ['updBtn','updMini'].forEach(id=>{ $(id).hidden=!appNew; $(id).title=appNew?'새 버전 '+appNew:''; });
+  }catch(e){}
+}
+$('updBtn').onclick=$('updMini').onclick=()=>{ location.href=PLAY_URL; };
 function renderSync(){
   const t=!dev.sync?'☁ 끔':syncState==='busy'?'☁ …':syncState==='err'?'☁ 오류':'☁ 동기화됨';
   const c='sync'+(!dev.sync?'':syncState==='busy'?' busy':syncState==='err'?' err':' ok');
@@ -566,7 +589,7 @@ async function peek(){
     if(j.ver!==dev.sync.ver) syncNow(); else if(syncState!=='ok'){ syncState='ok'; renderSync(); } }catch(e){}
 }
 setInterval(peek,30000);
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ peek(); render(); } });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ peek(); render(); checkAppUpdate(); } });
 addEventListener('online',()=>syncNow());
 
 /* ---------- 시계·알림 (1분마다) ---------- */
@@ -592,6 +615,7 @@ setInterval(()=>{ tick(); checkNotify(); if(today()!==lastDay){ lastDay=today();
 
 render();
 if(dev.sync) syncNow();
+checkAppUpdate();
 checkNotify();
 </script>
 </body>

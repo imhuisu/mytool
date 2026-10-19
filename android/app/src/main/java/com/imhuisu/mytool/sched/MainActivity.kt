@@ -71,7 +71,15 @@ class MainActivity : Activity() {
         } else {
             box.addView(button("지금 새로고침") { status.text = "새로고침 중…"; Thread { Sched.fetch(this); runOnUiThread { showStatus(); SchedWidget.render(this); MonthWidget.render(this) } }.start() })
             box.addView(button("일정 열기 (추가·수정)") { startActivity(WebActivity.intent(this)); finish() })
-            box.addView(button("연결 끊기") { Sched.unlink(this); build(); SchedWidget.render(this); MonthWidget.render(this) })
+            box.addView(button("연결 끊기") {
+                // 실수로 누르지 않게 확인
+                android.app.AlertDialog.Builder(this)
+                    .setTitle("연결을 끊을까요?")
+                    .setMessage("이 폰의 위젯이 일정을 더 받지 않아요. 일정 자체는 서버에 그대로 있고, 같은 비밀번호로 다시 연결하면 돼요.")
+                    .setPositiveButton("끊기") { _, _ -> Sched.unlink(this); build(); SchedWidget.render(this); MonthWidget.render(this) }
+                    .setNegativeButton("취소", null)
+                    .show()
+            })
         }
         // 플레이스토어(내부 테스트)로 설치한 앱이라 업데이트는 플레이스토어에서
         update = button("") { runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))) } }.apply { visibility = android.view.View.GONE }
