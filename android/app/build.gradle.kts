@@ -16,7 +16,7 @@ android {
         applicationId = "com.imhuisu.mytool.sched"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6          // 올릴 때마다 +1, ../../app/version.json 도 같이
+        versionCode = 7          // 올릴 때마다 +1, ../../app/version.json 도 같이
         versionName = "1.5"
     }
 
