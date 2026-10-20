@@ -73,6 +73,8 @@ header .sp{flex:1}
   html body .hub-home{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   html body{padding-bottom:calc(140px + env(safe-area-inset-bottom,0px)) !important}
 }
+html.in-app body .hub-home{bottom:calc(72px + env(safe-area-inset-bottom,0px))}   /* 마이툴 앱 안(hub.js) — 위와 같게 */
+html.in-app body{padding-bottom:calc(140px + env(safe-area-inset-bottom,0px)) !important}
 body{padding-bottom:140px}
 .go{border:0; background:var(--brand); color:#fff; border-radius:11px; padding:0 14px; font-weight:800; cursor:pointer; flex:none}
 /* 달력 */

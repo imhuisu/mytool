@@ -51,7 +51,7 @@
 
 ```
 index.html            첫 화면. TOOLS 배열이 도구 목록
-hub.js                모든 페이지 공통: 서비스 워커 등록 + 설치 앱일 때 홈 버튼
+hub.js                모든 페이지 공통: 서비스 워커 등록 + 설치 앱일 때 홈 버튼(마이툴 안드로이드 앱 안에서도 — UA 'MytoolApp/' 이면 html.in-app, 2026-10-20 희수 "앱에서 일정밖에 안 보인다")
 sw.js                 오프라인 캐시. HTML은 네트워크 우선, 나머지는 저장본 우선
 manifest.webmanifest  앱 이름·아이콘·색
 icons/                앱 아이콘
@@ -86,6 +86,7 @@ android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, Andr
                       위젯 3종: "일정 달력"(MonthWidget, 월 달력·‹ › 이동·날짜 누르면 웹 sched/?day=YYYY-MM-DD) / "일정 목록"(SchedWidget, 오늘·내일 일정 + 할 일) / "할 일 목록"(TaskWidget, 할 일만, 웹 sched/?view=todo)
                       현재 v1.5 (versionCode 6, targetSdk 36). 패키지 com.imhuisu.mytool.sched, 폰에 보이는 앱 이름 "일정"
                       v1.5부터 앱 안에서 웹 일정을 엶 (WebActivity, WebView). 연결된 상태면 앱 아이콘 → 바로 일정 화면. 위젯 탭도 크롬 대신 이 화면
+                      앱 안에서 다른 도구로: 일정 왼쪽 아래 도구함 버튼(hub.js in-app) → 첫 화면 도구 목록. 앱 아이콘을 도구함부터 열게 하려면 Sched.WEB 대신 BASE 로 열고 versionCode +1(희수 결정 전)
                       앱의 비밀번호 키를 웹 localStorage(sched-dev-v1.sync, JWK)에 넣어 줘서 웹에서 비밀번호 재입력 없음. 웹은 동기화 후 MytoolApp.synced() 로 위젯 새로고침
                       웹 설정의 mytool://settings 링크 → 앱 연결·버전 화면(MainActivity, extra settings=true). 크롬으로 설치한 "일정" 웹앱 아이콘은 이제 필요 없음
                       플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드는 GitHub Actions 가 자동 (아래). v1.4(code 5)까지는 Play Console 에 손으로 올렸음

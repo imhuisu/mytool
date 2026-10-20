@@ -1,4 +1,4 @@
-/* 모든 페이지 공통: 오프라인 캐시 등록 + (앱으로 설치했을 때) 홈 버튼
+/* 모든 페이지 공통: 오프라인 캐시 등록 + (앱으로 설치했을 때·마이툴 안드로이드 앱 안) 홈 버튼
  * 도구 페이지 <head>에 한 줄만 넣으면 됨:  <script src="../hub.js" defer></script>
  */
 (function () {
@@ -15,17 +15,20 @@
   const isHub = here === ROOT || here === ROOT + 'index.html';
   if (isHub) return;
 
-  const css = document.createElement('style');
-  css.textContent = `
-    .hub-home{display:none}
-    @media (display-mode: standalone){
-      .hub-home{display:flex;position:fixed;z-index:2147483000;left:12px;
+  /* 마이툴 안드로이드 앱(WebView) 안: display-mode 가 standalone 이 아니라서 따로 알아본다(UA 'MytoolApp/버전') */
+  if (/MytoolApp\//.test(navigator.userAgent) || window.MytoolApp) document.documentElement.classList.add('in-app');
+  const on = p => `
+      ${p}.hub-home{display:flex;position:fixed;z-index:2147483000;left:12px;
         bottom:calc(12px + env(safe-area-inset-bottom,0px));width:42px;height:42px;border-radius:50%;
         align-items:center;justify-content:center;background:rgba(31,59,51,.82);color:#fff;
         box-shadow:0 2px 10px rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent;text-decoration:none}
-      .hub-home:active{transform:scale(.94)}
-      body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px)) !important}
-    }`;
+      ${p}.hub-home:active{transform:scale(.94)}
+      ${p}body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px)) !important}`;
+  const css = document.createElement('style');
+  css.textContent = `
+    .hub-home{display:none}
+    @media (display-mode: standalone){${on('')}
+    }${on('html.in-app ')}`;
   document.head.appendChild(css);
 
   const a = document.createElement('a');
