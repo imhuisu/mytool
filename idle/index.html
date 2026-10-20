@@ -478,7 +478,7 @@ tr.grp .mn{font-size:14.5px}
 <div id="errBox" style="display:none"></div>
 
 <h1>IDLE SLAYER 도구상자
-  <small>병기고 · 몬스터 · 오프라인 · 기록 <span style="color:var(--cool)">· build 90</span></small>
+  <small>병기고 · 몬스터 · 오프라인 · 기록 <span style="color:var(--cool)">· build 91</span></small>
 </h1>
 
 <div class="grid4 tabbar">
@@ -898,7 +898,7 @@ tr.grp .mn{font-size:14.5px}
 const DATA = {
   "검": { lv:200, items:{
     "아드라노스 칼날":{ main:[["영혼 보너스",2]], sub:[["CpS",1.1],["전기 영혼",2],["오프라인 CpS",2]] },
-    "보레아스 칼날":{ main:[["불 속성 영혼",15]], sub:[["보너스 CpS",1],["영혼 보너스",0.2],["불 영혼",2]] },
+    "보레아스 장검":{ main:[["불 속성 영혼",15]], sub:[["보너스 CpS",1],["영혼 보너스",0.2],["불 영혼",2]] },   // 옛 이름 보레아스 칼날(ITEM_RENAME)
     "키샤르 대검":{ main:[["코인 획득 CpS",15]], sub:[["CpS",0.3],["에메랄드",0.4],["소형 몬스터 출현",1],["체헌 영혼",10]] }
   }},
   "방패": { lv:200, items:{
@@ -955,6 +955,7 @@ const DATA = {
 
 const VERIFIED = {
   "아드라노스 칼날":["영혼 보너스","전기 영혼","오프라인 CpS"],
+  "보레아스 장검":["불 속성 영혼","보너스 CpS","영혼 보너스"],   // +3 스크린샷(2026-10-20): 불 유형 영혼 60·초당 골드 4·영혼 보너스 0.8, 요구 레벨 350
   "키샤르 대검":["코인 획득 CpS","체헌 영혼"],
   "아드라노스 원형 방패":["영혼 보너스","자재 드롭","거인 영혼"],
   "키샤르 방패":["치명타 영혼 보너스","거인 영혼","정령 부스트 확률"],
@@ -1037,7 +1038,7 @@ function loadST(){
   }catch(e){ canSave = false; }
   ST.ov = ST.ov||{}; ST.on = ST.on||{}; ST.load = ST.load||{}; ST.sk = ST.sk||{}; ST.cust = ST.cust||{};
   ST.off = ST.off||null; ST.lg = ST.lg||null; ST.logs = ST.logs||null;
-  migrateDims();
+  migrateDims(); migrateItems();
 }
 /* 차원 이름 변경 이관 — 저장된 측정 기록의 옛 이름을 새 이름으로 (게임 노드 설명 표기 기준) */
 const DIM_RENAME = {"\uC2E0\uBE44\uD55C \uACC4\uACE1":"신비의 계곡"};   /* 신비한 계곡 → 신비의 계곡 */
@@ -1046,6 +1047,18 @@ function migrateDims(){
   let changed = false;
   if(ST.lg && ST.lg.dim && fix(ST.lg.dim)!==ST.lg.dim){ ST.lg.dim = fix(ST.lg.dim); changed = true; }
   if(Array.isArray(ST.logs)) ST.logs.forEach(L=>{ if(L && L.dim && fix(L.dim)!==L.dim){ L.dim = fix(L.dim); changed = true; } });
+  if(changed){ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){} }
+}
+/* 아이템 이름 변경 이관 — 게임 표기(스크린샷) 기준. 옵션 수정(ov·on)·스킬(sk)·직접 추가 옵션(cust)의 키 '분류|아이템|…',
+   마지막으로 본 아이템(item), 장착 등록(load[분류].item)을 새 이름으로 옮긴다. 이름을 또 바꿀 땐 여기에 추가 */
+const ITEM_RENAME = {"보레아스 칼날":"보레아스 장검"};   /* 2026-10-20 보레아스 장검 +3 스크린샷 */
+function migrateItems(){
+  let changed = false;
+  const fixKey = k => { const p = k.split('|'); if(p.length>=2 && ITEM_RENAME[p[1]]){ p[1] = ITEM_RENAME[p[1]]; return p.join('|'); } return k; };
+  ['ov','on','sk','cust'].forEach(n=>{ const o = ST[n]; if(!o) return;
+    Object.keys(o).forEach(k=>{ const k2 = fixKey(k); if(k2!==k){ if(o[k2]===undefined) o[k2] = o[k]; delete o[k]; changed = true; } }); });
+  if(ST.item && ITEM_RENAME[ST.item]){ ST.item = ITEM_RENAME[ST.item]; changed = true; }
+  Object.keys(ST.load||{}).forEach(c=>{ const L = ST.load[c]; if(L && ITEM_RENAME[L.item]){ L.item = ITEM_RENAME[L.item]; changed = true; } });
   if(changed){ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){} }
 }
 function saveST(){
