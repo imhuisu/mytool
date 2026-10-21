@@ -28,7 +28,7 @@ class MainActivity : Activity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         if (Sched.isLinked(this) && !intent.getBooleanExtra("settings", false)) {
-            startActivity(WebActivity.intent(this)); finish(); return
+            startActivity(WebActivity.intent(this, Sched.BASE)); finish(); return   // 앱 아이콘 → 도구함 첫 화면
         }
         val dp = resources.displayMetrics.density
         box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding((20 * dp).toInt(), (28 * dp).toInt(), (20 * dp).toInt(), (20 * dp).toInt()) }
@@ -64,7 +64,7 @@ class MainActivity : Activity() {
                         if (!ok) Sched.unlink(this)
                         build(); if (!ok) status.text = "연결 실패: " + err.ifEmpty { "비밀번호와 인터넷을 확인해 주세요" }
                         SchedWidget.refresh(this)
-                        if (ok) { startActivity(WebActivity.intent(this)); finish() }
+                        if (ok) { startActivity(WebActivity.intent(this, Sched.BASE)); finish() }
                     }
                 }.start()
             })

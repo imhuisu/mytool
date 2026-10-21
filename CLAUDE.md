@@ -95,6 +95,8 @@ functions/api/sched.js 일정 동기화 서버 (같은 D1, 테이블 sched_store
 android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, AndroidX 없음). 읽기 전용: 서버에서 받아 복호화
                       위젯 3종: "일정 달력"(MonthWidget, 월 달력·‹ › 이동·날짜 누르면 웹 sched/?day=YYYY-MM-DD) / "일정 목록"(SchedWidget, 오늘·내일 일정 + 할 일) / "할 일 목록"(TaskWidget, 할 일만, 웹 sched/?view=todo)
                       현재 v1.5 (versionCode 6, targetSdk 36). 패키지 com.imhuisu.mytool.sched, 폰에 보이는 앱 이름 "일정"
+                      v1.8부터 앱 이름 "마이툴": 앱 아이콘 → 도구함 첫 화면(Sched.BASE), 위젯 → 일정. hub.js 가 UA 의 MytoolApp/ 을 보고 html.in-app + 도구함 홈 버튼 표시 (설치 PWA 와 같은 방식, 다른 세션 e28ad0a 에서 만든 것)
+                      앱(WebView) 저장소는 크롬과 따로라, 크롬에서 쓰던 도구 기록(골프·도구상자 등)은 앱에 안 보임 → 각 도구의 내보내기/가져오기로 옮김
                       v1.5부터 앱 안에서 웹 일정을 엶 (WebActivity, WebView). 연결된 상태면 앱 아이콘 → 바로 일정 화면. 위젯 탭도 크롬 대신 이 화면
                       앱 안에서 다른 도구로: 일정 왼쪽 아래 도구함 버튼(hub.js in-app) → 첫 화면 도구 목록. 앱 아이콘을 도구함부터 열게 하려면 Sched.WEB 대신 BASE 로 열고 versionCode +1(희수 결정 전)
                       v1.8(code 10): WebView 파일 선택(onShowFileChooser) — 웹 <input type=file capture> 면 카메라(MediaStore 에 저장 자리 만들어 EXTRA_OUTPUT, FileProvider 없이), 아니면 갤러리. 여행 비용 영수증 📷/🖼️ 용. 앱 안에서 사진 안 열리던 문제(2026-10-22)
