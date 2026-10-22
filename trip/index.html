@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>여행 비용</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icons/favicon.png">
+<script src="../hub.js" defer></script>
+<style>
+:root{ --bg:#f2f6f7; --card:#fff; --ink:#18232b; --muted:#62717c; --line:#dbe3e8; --brand:#0e8f8f; --soft:#e0f2f1; --red:#d1493a; --gold:#b8860b; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#10171b; --card:#18222a; --ink:#e6eef2; --muted:#93a4ae; --line:#2a3842; --brand:#4fc3c3; --soft:#16302f; --red:#e0604f; --gold:#e0b84e; }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px 40px}
+.wrap{max-width:560px; margin:0 auto}
+header{display:flex; align-items:center; gap:8px; margin:2px 0 10px}
+h1{font-size:21px; margin:0}
+#tripName{flex:1; min-width:0; border:0; background:none; color:var(--muted); font:inherit; font-weight:700; font-size:14px; text-align:right}
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:10px}
+.lab{font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:6px; display:flex; justify-content:space-between; gap:8px}
+.sum{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.sum div{background:var(--bg); border-radius:12px; padding:10px}
+.sum small{display:block; font-size:12px; color:var(--muted); font-weight:700}
+.sum b{font-size:20px; font-variant-numeric:tabular-nums}
+.sum .big{grid-column:1/-1; background:var(--soft)}
+.sum .big b{font-size:28px}
+.amtrow{display:flex; gap:8px; align-items:center}
+.amtrow input{flex:1; min-width:0; border:1.5px solid var(--line); background:var(--bg); color:var(--ink); border-radius:12px; padding:10px 12px; font:inherit; font-size:24px; font-weight:800; font-variant-numeric:tabular-nums}
+.seg{display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden}
+.seg button{border:0; background:var(--card); color:var(--muted); font:inherit; font-weight:700; padding:9px 10px; cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--brand); color:#fff}
+.conv{font-size:13.5px; color:var(--muted); margin:4px 2px 8px; font-variant-numeric:tabular-nums}
+.conv b{color:var(--ink)}
+.quick{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px}
+.quick button{border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:5px 10px; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer}
+.cats{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px}
+.cats button{border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; padding:7px 2px; font:inherit; font-size:12.5px; font-weight:700; cursor:pointer}
+.cats button[aria-pressed="true"]{border-color:var(--brand); background:var(--soft); color:var(--brand)}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px}
+.row2 select,.row2 input,.memo{width:100%; min-width:0; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:9px 10px; font:inherit}
+.memo{margin-bottom:8px}
+.add{width:100%; border:0; border-radius:12px; padding:13px; background:var(--brand); color:#fff; font:inherit; font-size:17px; font-weight:800; cursor:pointer}
+.add.edit{background:var(--gold)}
+.list .day{font-size:12.5px; font-weight:800; color:var(--muted); margin:12px 0 4px; display:flex; justify-content:space-between}
+.it{display:flex; gap:8px; align-items:center; padding:8px 4px; border-bottom:1px solid var(--line); cursor:pointer}
+.it .ic{flex:none; width:30px; height:30px; border-radius:9px; background:var(--soft); display:grid; place-items:center; font-size:16px}
+.it .t{flex:1; min-width:0}
+.it .t b{display:block; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.it .t small{color:var(--muted); font-size:12px}
+.it .v{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+.it .v b{display:block}
+.it .v small{color:var(--muted); font-size:12px}
+.bar{display:flex; align-items:center; gap:8px; font-size:13.5px; margin:5px 0}
+.bar span:first-child{width:70px; flex:none}
+.bar .g{flex:1; height:10px; background:var(--bg); border-radius:6px; overflow:hidden}
+.bar .g i{display:block; height:100%; background:var(--brand); border-radius:6px}
+.bar b{width:84px; text-align:right; font-variant-numeric:tabular-nums; flex:none}
+.tabs{display:flex; gap:6px; margin-bottom:8px}
+.tabs button{flex:1; border:1px solid var(--line); background:var(--card); color:var(--muted); border-radius:10px; padding:8px; font:inherit; font-weight:700; cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink); color:var(--card)}
+.small{font-size:12.5px; color:var(--muted)}
+.btnline{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+.btnline button{border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:9px; padding:7px 10px; font:inherit; font-size:13px; font-weight:700; cursor:pointer}
+.btnline button.warn{color:var(--red)}
+.people{display:flex; gap:6px; flex-wrap:wrap; margin:6px 0}
+.people span{background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:4px 10px; font-weight:700; font-size:13px}
+.people span button{border:0; background:none; color:var(--muted); cursor:pointer; padding:0 0 0 4px}
+.settle li{margin:3px 0}
+.tblwrap{overflow-x:auto; margin:0 -4px}
+table.t{width:100%; border-collapse:collapse; font-size:12.5px; font-variant-numeric:tabular-nums}
+table.t th{font-size:11.5px; color:var(--muted); text-align:left; padding:6px 4px; border-bottom:1.5px solid var(--line); white-space:nowrap}
+table.t td{padding:7px 4px; border-bottom:1px solid var(--line); white-space:nowrap}
+table.t td.n, table.t th.n{text-align:right}
+table.t tr[data-id]{cursor:pointer}
+table.t tfoot td{font-weight:800; border-bottom:0}
+.rateIn{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); margin-bottom:8px}
+.rateIn input{width:90px; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:9px; padding:6px 8px; font:inherit; font-weight:700}
+.empty{text-align:center; color:var(--muted); padding:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>여행 비용</h1><input id="tripName" maxlength="20" aria-label="여행 이름"></header>
+
+<!-- 합계 -->
+<div class="card">
+  <div class="sum">
+    <div class="big"><small>총 지출</small><b id="totK">0원</b><div class="small" id="totV"></div></div>
+    <div><small>오늘</small><b id="todayK">0원</b></div>
+    <div id="cashBox"><small>남은 현금</small><b id="cashLeft">—</b></div>
+  </div>
+</div>
+
+<!-- 입력 -->
+<div class="card">
+  <div class="lab"><span id="formTitle">지출 적기</span><span id="rateInfo"></span></div>
+  <div class="amtrow">
+    <input id="amt" inputmode="decimal" placeholder="0" autocomplete="off" aria-label="금액">
+    <div class="seg" id="curSeg"><button data-c="VND">동</button><button data-c="KRW">원</button></div>
+  </div>
+  <div class="conv" id="conv">&nbsp;</div>
+  <div class="rateIn">환율 1원 = <input id="rate" inputmode="decimal" aria-label="이 지출 환율"> 동 <span id="rateSrc"></span></div>
+  <div class="quick" id="quick"></div>
+  <div class="cats" id="cats"></div>
+  <div class="row2">
+    <select id="pay" aria-label="결제 수단"><option value="cash">💵 현금</option><option value="card">💳 카드</option></select>
+    <input id="date" type="date" aria-label="날짜">
+  </div>
+  <div class="row2" id="whoRow" hidden>
+    <select id="who" aria-label="낸 사람"></select>
+    <select id="split" aria-label="나눌 사람"><option value="all">모두 같이 나눔</option><option value="me">낸 사람 혼자</option></select>
+  </div>
+  <input class="memo" id="memo" maxlength="40" placeholder="메모 (예: 반미, 그랩 공항→호텔)" autocomplete="off">
+  <button class="add" id="addBtn">추가</button>
+  <div class="btnline" id="editBtns" hidden><button id="cancelEdit">취소</button><button class="warn" id="delBtn">이 지출 삭제</button></div>
+</div>
+
+<!-- 보기 -->
+<div class="card">
+  <div class="tabs" id="tabs"><button data-t="list" aria-pressed="true">내역</button><button data-t="tbl" aria-pressed="false">표</button><button data-t="cat" aria-pressed="false">항목별</button><button data-t="split" aria-pressed="false">정산·설정</button></div>
+  <div id="vList" class="list"></div>
+  <div id="vTbl" hidden><div class="tblwrap"><table class="t" id="tbl"></table></div>
+    <div class="btnline"><button id="copyTbl">표 복사 (엑셀·메모에 붙여넣기)</button></div></div>
+  <div id="vCat" hidden></div>
+  <div id="vSplit" hidden>
+    <div class="lab"><span>일행 (N빵 정산)</span></div>
+    <div class="people" id="people"></div>
+    <div class="row2"><input id="newP" maxlength="8" placeholder="이름 추가" autocomplete="off"><button class="add" id="addP" style="padding:9px;font-size:14px">추가</button></div>
+    <ul class="settle" id="settle"></ul>
+    <div class="lab" style="margin-top:14px"><span>현금 (환전·인출한 동)</span></div>
+    <div class="row2"><input id="cashIn" inputmode="numeric" placeholder="예: 5,000,000" autocomplete="off"><button class="add" id="addCash" style="padding:9px;font-size:14px">현금 더하기</button></div>
+    <div class="small" id="cashLog"></div>
+    <div class="lab" style="margin-top:14px"><span>환율</span></div>
+    <div class="small" id="rateLong"></div>
+    <div class="btnline"><button id="share">내역 복사하기</button><button class="warn" id="resetBtn">새 여행 시작</button></div>
+  </div>
+</div>
+<div class="small" style="text-align:center">이 폰에만 저장돼요 · 인터넷 없이도 돼요 · 환율은 💱 환율 계산기에 저장된 값을 써요</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KEY='trip-v1';
+const CATS=[['food','🍜','식비'],['cafe','☕','카페'],['move','🚕','교통'],['stay','🏨','숙소'],['tour','🏝️','투어'],['spa','💆','마사지'],['shop','🛍️','쇼핑'],['etc','📌','기타']];
+const CAT=Object.fromEntries(CATS.map(c=>[c[0],c]));
+const today=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+let st={name:'나트랑 여행', items:[], people:[], cash:[], cur:'VND', cat:'food', pay:'cash', who:0, split:'all', tab:'list'};
+try{ Object.assign(st, JSON.parse(localStorage.getItem(KEY))||{}); }catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} };
+let editId=null;
+
+/* 환율: 환율 계산기(fx-v1)에 저장된 1원당 동. 없으면 대략값 */
+function vndPerKrw(){
+  try{ const f=JSON.parse(localStorage.getItem('fx-v1')||'null');
+    if(f){ if(f.manual&&f.manual.VND>0) return {r:f.manual.VND, src:'직접 입력'}; if(f.rates&&f.rates.VND>0) return {r:f.rates.VND, src:f.at?new Date(f.at).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})+' 기준':''}; } }catch(e){}
+  return {r:18.6, src:'대략값'};
+}
+const R=()=>vndPerKrw().r;
+const num=s=>parseFloat(String(s).replace(/[^\d.]/g,''))||0;
+const won=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+const dong=n=>Math.round(n).toLocaleString('ko-KR')+'동';
+const rOf=it=> it.r>0 ? it.r : R();   // 지출마다 그때 환율 (없으면 지금 환율)
+const toK=it=> it.c==='KRW' ? it.a : it.a/rOf(it);
+const toV=it=> it.c==='VND' ? it.a : it.a*rOf(it);
+const curRate=()=>{ const v=parseFloat(String($('rate').value).replace(/[^\d.]/g,'')); return v>0?v:R(); };
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dayLabel=d=>{ const [y,m,dd]=d.split('-').map(Number); return m+'/'+dd+' ('+'일월화수목금토'[new Date(y,m-1,dd).getDay()]+')'; };
+
+/* ---------- 입력 ---------- */
+function renderForm(){
+  $('tripName').value=st.name;
+  [...$('curSeg').children].forEach(b=>b.setAttribute('aria-pressed', b.dataset.c===st.cur?'true':'false'));
+  $('cats').innerHTML=CATS.map(c=>'<button data-cat="'+c[0]+'" aria-pressed="'+(c[0]===st.cat)+'">'+c[1]+' '+c[2]+'</button>').join('');
+  $('quick').innerHTML=(st.cur==='VND'?[['×1000','k'],['20k',20000],['50k',50000],['100k',100000],['200k',200000],['500k',500000]]:[['5천',5000],['1만',10000],['3만',30000],['5만',50000],['10만',100000]])
+    .map(([l,v])=>'<button data-q="'+v+'">'+l+'</button>').join('');
+  $('pay').value=st.pay;
+  if(!$('date').value) $('date').value=today();
+  const hasP=st.people.length>=2;
+  $('whoRow').hidden=!hasP;
+  if(hasP){ $('who').innerHTML=st.people.map((p,i)=>'<option value="'+i+'">'+esc(p)+' 냄</option>').join(''); $('who').value=Math.min(st.who,st.people.length-1); $('split').value=st.split; }
+  const vi=vndPerKrw(); $('rateInfo').textContent='1,000동 ≈ '+won(1000/vi.r)+(vi.src?' · '+vi.src:'');
+  if(!editId && !$('rate').value){ $('rate').value=+vi.r.toFixed(3); $('rateSrc').textContent='('+vi.src+')'; }
+  conv();
+}
+function conv(){
+  const a=num($('amt').value);
+  const r=curRate();
+  $('conv').innerHTML = a ? (st.cur==='VND' ? '≈ <b>'+won(a/r)+'</b>' : '≈ <b>'+dong(a*r)+'</b>') : '&nbsp;';
+}
+$('amt').addEventListener('input',()=>{ const raw=$('amt').value.replace(/[^\d.]/g,''); const a=num(raw); $('amt').value= raw===''?'':(raw.endsWith('.')?raw:a.toLocaleString('ko-KR')); conv(); });
+$('rate').addEventListener('input',()=>{ $('rateSrc').textContent='(직접)'; conv(); });
+$('curSeg').onclick=e=>{ const b=e.target.closest('[data-c]'); if(!b) return; st.cur=b.dataset.c; save(); renderForm(); };
+$('quick').onclick=e=>{ const b=e.target.closest('[data-q]'); if(!b) return;
+  if(b.dataset.q==='k'){ const a=num($('amt').value); if(a) $('amt').value=(a*1000).toLocaleString('ko-KR'); }
+  else $('amt').value=(+b.dataset.q).toLocaleString('ko-KR');
+  conv(); };
+$('cats').onclick=e=>{ const b=e.target.closest('[data-cat]'); if(!b) return; st.cat=b.dataset.cat; save(); renderForm(); };
+$('pay').onchange=()=>{ st.pay=$('pay').value; save(); };
+$('who').onchange=()=>{ st.who=+$('who').value; save(); };
+$('split').onchange=()=>{ st.split=$('split').value; save(); };
+$('tripName').onchange=()=>{ st.name=$('tripName').value.trim()||'여행'; save(); };
+
+$('addBtn').onclick=()=>{
+  const a=num($('amt').value); if(!a){ $('amt').focus(); return; }
+  const it={a, c:st.cur, r:curRate(), cat:st.cat, pay:st.pay, d:$('date').value||today(), m:$('memo').value.trim()};
+  if(st.people.length>=2){ it.who=+$('who').value; it.split=$('split').value; }
+  if(editId){ const k=st.items.findIndex(x=>x.id===editId); if(k>=0) st.items[k]={...st.items[k], ...it}; }
+  else{ it.id=Date.now(); st.items.push(it); }
+  editId=null; $('amt').value=''; $('memo').value=''; save(); render();
+};
+function startEdit(id){
+  const it=st.items.find(x=>x.id===id); if(!it) return;
+  editId=id; st.cur=it.c; st.cat=it.cat; st.pay=it.pay; if(it.who!=null) st.who=it.who; if(it.split) st.split=it.split;
+  renderForm();
+  $('amt').value=it.a.toLocaleString('ko-KR'); $('date').value=it.d; $('rate').value=+rOf(it).toFixed(3); $('rateSrc').textContent=''; $('memo').value=it.m||''; conv();
+  $('addBtn').textContent='수정 저장'; $('addBtn').classList.add('edit'); $('editBtns').hidden=false; $('formTitle').textContent='지출 고치기';
+  window.scrollTo({top:$('amt').getBoundingClientRect().top+scrollY-120, behavior:'smooth'});
+}
+function endEdit(){ editId=null; $('rate').value=''; $('addBtn').textContent='추가'; $('addBtn').classList.remove('edit'); $('editBtns').hidden=true; $('formTitle').textContent='지출 적기'; $('amt').value=''; $('memo').value=''; conv(); }
+$('cancelEdit').onclick=()=>endEdit();
+$('delBtn').onclick=()=>{ if(!editId) return; if($('delBtn').dataset.a!=='1'){ $('delBtn').dataset.a='1'; $('delBtn').textContent='한 번 더 누르면 삭제'; setTimeout(()=>{ $('delBtn').dataset.a=''; $('delBtn').textContent='이 지출 삭제'; },2500); return; }
+  st.items=st.items.filter(x=>x.id!==editId); $('delBtn').dataset.a=''; $('delBtn').textContent='이 지출 삭제'; save(); endEdit(); render(); };
+
+/* ---------- 합계·목록 ---------- */
+function render(){
+  if(!editId) endEdit();
+  renderForm();
+  const items=st.items;
+  const totK=items.reduce((s,x)=>s+toK(x),0), totV=items.reduce((s,x)=>s+toV(x),0);
+  $('totK').textContent=won(totK);
+  $('totV').textContent=items.length? dong(totV)+' · '+items.length+'건'+(st.people.length>=2?' · 1인당 '+won(totK/st.people.length):'') : '아직 적은 지출이 없어요';
+  $('todayK').textContent=won(items.filter(x=>x.d===today()).reduce((s,x)=>s+toK(x),0));
+  const cashIn=st.cash.reduce((s,x)=>s+x.a,0);
+  const cashOut=items.filter(x=>x.pay==='cash'&&x.c==='VND').reduce((s,x)=>s+x.a,0);
+  $('cashLeft').textContent= cashIn ? dong(cashIn-cashOut) : '설정 안 함';
+  $('cashLeft').style.color = cashIn && cashIn-cashOut<0 ? 'var(--red)' : '';
+  [...$('tabs').children].forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===st.tab?'true':'false'));
+  $('vList').hidden=st.tab!=='list'; $('vTbl').hidden=st.tab!=='tbl'; $('vCat').hidden=st.tab!=='cat'; $('vSplit').hidden=st.tab!=='split';
+  // 내역 (날짜 최신순)
+  if(!items.length) $('vList').innerHTML='<div class="empty">위에서 금액을 넣고 "추가"를 누르세요</div>';
+  else{
+    const days=[...new Set(items.map(x=>x.d))].sort().reverse();
+    $('vList').innerHTML=days.map(d=>{
+      const di=items.filter(x=>x.d===d).sort((a,b)=>b.id-a.id);
+      return '<div class="day"><span>'+dayLabel(d)+'</span><span>'+won(di.reduce((s,x)=>s+toK(x),0))+'</span></div>'+
+        di.map(x=>{ const c=CAT[x.cat]||CAT.etc;
+          const who = st.people.length>=2 && x.who!=null && st.people[x.who] ? ' · '+esc(st.people[x.who])+(x.split==='me'?' 혼자':'') : '';
+          return '<div class="it" data-id="'+x.id+'"><span class="ic">'+c[1]+'</span><span class="t"><b>'+esc(x.m||c[2])+'</b><small>'+c[2]+' · '+(x.pay==='cash'?'현금':'카드')+who+'</small></span>'+
+            '<span class="v"><b>'+won(toK(x))+'</b><small>'+(x.c==='VND'?dong(x.a):'원화 결제')+'</small></span></div>'; }).join('');
+    }).join('');
+  }
+  // 표: 일자 · 항목 · 결제 · 환율 · 동 · 원
+  const rows=[...items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
+  $('tbl').innerHTML = rows.length ? '<thead><tr><th>일자</th><th>항목</th><th>결제</th><th class="n">환율</th><th class="n">동</th><th class="n">원</th></tr></thead><tbody>'+
+    rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
+      return '<tr data-id="'+x.id+'"><td>'+x.d.slice(5).replace('-','/')+'</td><td>'+c[1]+' '+esc(x.m||c[2])+'</td><td>'+(x.pay==='cash'?'현금':'카드')+'</td>'+
+        '<td class="n">'+(+rOf(x).toFixed(2))+'</td><td class="n">'+Math.round(toV(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(toK(x)).toLocaleString('ko-KR')+'</td></tr>'; }).join('')+
+    '</tbody><tfoot><tr><td colspan="4">합계</td><td class="n">'+Math.round(totV).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(totK).toLocaleString('ko-KR')+'</td></tr></tfoot>'
+    : '<tbody><tr><td class="empty">아직 지출이 없어요</td></tr></tbody>';
+  // 항목별
+  const byCat=CATS.map(c=>[c, items.filter(x=>x.cat===c[0]).reduce((s,x)=>s+toK(x),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  const mx=byCat.length?byCat[0][1]:1;
+  const byPay=['cash','card'].map(p=>items.filter(x=>x.pay===p).reduce((s,x)=>s+toK(x),0));
+  $('vCat').innerHTML = byCat.length ? byCat.map(([c,v])=>'<div class="bar"><span>'+c[1]+' '+c[2]+'</span><span class="g"><i style="width:'+(v/mx*100).toFixed(1)+'%"></i></span><b>'+won(v)+'</b></div>').join('')+
+    '<div class="small" style="margin-top:10px">💵 현금 '+won(byPay[0])+' · 💳 카드 '+won(byPay[1])+'</div>' : '<div class="empty">아직 지출이 없어요</div>';
+  // 정산·설정
+  $('people').innerHTML = st.people.length ? st.people.map((p,i)=>'<span>'+esc(p)+'<button data-rm="'+i+'" aria-label="'+esc(p)+' 빼기">✕</button></span>').join('') : '<span class="small" style="border:0;background:none">혼자면 비워 두세요. 2명 이상이면 "누가 냈는지"를 적고 N빵 정산해 줘요</span>';
+  $('settle').innerHTML=settleHTML();
+  $('cashLog').innerHTML = st.cash.length ? '총 '+dong(cashIn)+' 중 현금으로 쓴 동 '+dong(cashOut)+' → 남은 '+dong(cashIn-cashOut)+
+    '<br>'+st.cash.map((x,i)=>x.d+' +'+dong(x.a)+' <button data-cx="'+i+'" style="border:0;background:none;color:var(--muted);cursor:pointer">✕</button>').join(' · ') : '현금을 넣어 두면 현금 지출을 빼서 남은 현금을 보여줘요';
+  const vi=vndPerKrw(); $('rateLong').textContent='1원 = '+(+vi.r.toFixed(3))+'동 ('+vi.src+'). 바꾸려면 💱 환율 계산기에서 새로 받거나 직접 입력하세요. 원화 금액은 지금 환율로 다시 계산돼요.';
+}
+function settleHTML(){
+  const P=st.people; if(P.length<2) return '';
+  const paid=P.map(()=>0), owe=P.map(()=>0);
+  st.items.forEach(x=>{ const k=toK(x), w=(x.who!=null&&x.who<P.length)?x.who:0; paid[w]+=k;
+    if(x.split==='me') owe[w]+=k; else P.forEach((_,i)=>owe[i]+=k/P.length); });
+  const bal=P.map((_,i)=>paid[i]-owe[i]);
+  let lines=P.map((p,i)=>'<li>'+esc(p)+': 낸 돈 '+won(paid[i])+' · 쓴 몫 '+won(owe[i])+'</li>').join('');
+  // 갚을 사람 → 받을 사람
+  const deb=bal.map((b,i)=>[i,-b]).filter(x=>x[1]>0.5).sort((a,b)=>b[1]-a[1]);
+  const cre=bal.map((b,i)=>[i,b]).filter(x=>x[1]>0.5).sort((a,b)=>b[1]-a[1]);
+  const tx=[]; let di=0,ci=0;
+  while(di<deb.length&&ci<cre.length){ const m=Math.min(deb[di][1],cre[ci][1]); tx.push([deb[di][0],cre[ci][0],m]); deb[di][1]-=m; cre[ci][1]-=m; if(deb[di][1]<0.5) di++; if(cre[ci][1]<0.5) ci++; }
+  lines+= tx.length ? '<li style="margin-top:6px"><b>정산: '+tx.map(([a,b,m])=>esc(P[a])+' → '+esc(P[b])+' '+won(Math.round(m/100)*100)).join(', ')+'</b></li>' : '<li><b>정산할 돈 없음</b></li>';
+  return lines;
+}
+$('tbl').onclick=e=>{ const r=e.target.closest('tr[data-id]'); if(r) startEdit(+r.dataset.id); };
+$('copyTbl').onclick=async()=>{
+  const rows=[...st.items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
+  const tsv=['일자\t항목\t메모\t결제\t환율(1원=동)\t베트남 금액(동)\t한국 금액(원)'].concat(rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
+    return [x.d, c[2], x.m||'', x.pay==='cash'?'현금':'카드', +rOf(x).toFixed(3), Math.round(toV(x)), Math.round(toK(x))].join('\t'); })).join('\n');
+  try{ await navigator.clipboard.writeText(tsv); $('copyTbl').textContent='복사됨 ✓'; }catch(e){ $('copyTbl').textContent='복사 안 됨'; }
+  setTimeout(()=>$('copyTbl').textContent='표 복사 (엑셀·메모에 붙여넣기)',1500);
+};
+$('vList').onclick=e=>{ const r=e.target.closest('[data-id]'); if(r) startEdit(+r.dataset.id); };
+$('tabs').onclick=e=>{ const b=e.target.closest('[data-t]'); if(!b) return; st.tab=b.dataset.t; save(); render(); };
+$('addP').onclick=()=>{ const n=$('newP').value.trim(); if(!n) return; st.people.push(n); $('newP').value=''; save(); render(); };
+$('people').onclick=e=>{ const b=e.target.closest('[data-rm]'); if(!b) return; const i=+b.dataset.rm;
+  st.people.splice(i,1); st.items.forEach(x=>{ if(x.who===i) x.who=0; else if(x.who>i) x.who--; }); save(); render(); };
+$('addCash').onclick=()=>{ const a=num($('cashIn').value); if(!a) return; st.cash.push({a, d:today()}); $('cashIn').value=''; save(); render(); };
+$('cashIn').addEventListener('input',()=>{ const a=num($('cashIn').value); $('cashIn').value=a?a.toLocaleString('ko-KR'):''; });
+$('cashLog').onclick=e=>{ const b=e.target.closest('[data-cx]'); if(!b) return; st.cash.splice(+b.dataset.cx,1); save(); render(); };
+$('share').onclick=async()=>{
+  const totK=st.items.reduce((s,x)=>s+toK(x),0);
+  const txt=st.name+' 지출 '+won(totK)+'\n'+[...st.items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id).map(x=>x.d.slice(5)+' '+(CAT[x.cat]||CAT.etc)[2]+' '+(x.m||'')+' '+(x.c==='VND'?dong(x.a)+' ('+won(toK(x))+')':won(x.a))).join('\n')+
+    (st.people.length>=2?'\n'+settleHTML().replace(/<[^>]+>/g,'\n').replace(/\n+/g,'\n').trim():'');
+  try{ if(navigator.share) await navigator.share({text:txt}); else { await navigator.clipboard.writeText(txt); $('share').textContent='복사됨'; } }catch(e){}
+  setTimeout(()=>$('share').textContent='내역 복사하기',1500);
+};
+$('resetBtn').onclick=()=>{ const b=$('resetBtn'); if(b.dataset.a!=='1'){ b.dataset.a='1'; b.textContent='지금 내역이 지워져요. 한 번 더'; setTimeout(()=>{ b.dataset.a=''; b.textContent='새 여행 시작'; },3000); return; }
+  st.items=[]; st.cash=[]; st.name='새 여행'; b.dataset.a=''; b.textContent='새 여행 시작'; save(); render(); };
+
+render();
+</script>
+</body>
+</html>
