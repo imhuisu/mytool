@@ -104,6 +104,13 @@ table.t tfoot td{font-weight:800; border-bottom:0}
   </div>
 </div>
 
+<!-- 여행 동반자 -->
+<div class="card">
+  <div class="lab"><span>여행 동반자</span><span>나 포함</span></div>
+  <div class="people" id="people2"></div>
+  <div class="row2" style="margin-bottom:0"><input id="newP2" maxlength="8" placeholder="이름 (예: 희수)" autocomplete="off"><button class="add" id="addP2" style="padding:9px;font-size:14px">동반자 추가</button></div>
+</div>
+
 <!-- 입력 -->
 <div class="card">
   <div class="lab"><span id="formTitle">지출 적기</span><span id="rateInfo"></span></div>
@@ -120,7 +127,7 @@ table.t tfoot td{font-weight:800; border-bottom:0}
     <input id="date" type="date" aria-label="날짜">
   </div>
   <div class="row2" id="whoRow" hidden>
-    <select id="who" aria-label="낸 사람"></select>
+    <select id="who" aria-label="결제자"></select>
     <select id="split" aria-label="나눌 사람"><option value="all">모두 같이 나눔</option><option value="me">낸 사람 혼자</option></select>
   </div>
   <input class="memo" id="memo" maxlength="40" placeholder="메모 (예: 반미, 그랩 공항→호텔)" autocomplete="off">
@@ -194,9 +201,12 @@ function renderForm(){
     .map(([l,v])=>'<button data-q="'+v+'">'+l+'</button>').join('');
   $('pay').value=st.pay;
   if(!$('date').value) $('date').value=today();
-  const hasP=st.people.length>=2;
-  $('whoRow').hidden=!hasP;
-  if(hasP){ $('who').innerHTML=st.people.map((p,i)=>'<option value="'+i+'">'+esc(p)+' 냄</option>').join(''); $('who').value=Math.min(st.who,st.people.length-1); $('split').value=st.split; }
+  const nP=st.people.length;
+  $('whoRow').hidden=!nP; $('split').hidden=nP<2;
+  $('whoRow').style.gridTemplateColumns = nP<2 ? '1fr' : '';
+  if(nP){ $('who').innerHTML=st.people.map((p,i)=>'<option value="'+i+'">결제자: '+esc(p)+'</option>').join(''); $('who').value=Math.min(st.who,nP-1); $('split').value=st.split; }
+  $('people2').innerHTML = nP ? st.people.map((p,i)=>'<span>'+esc(p)+'<button data-rm="'+i+'" aria-label="'+esc(p)+' 빼기">✕</button></span>').join('')
+    : '<span class="small" style="border:0;background:none;padding:0">이름을 넣으면 지출마다 누가 냈는지 고르고, 2명 이상이면 N빵 정산도 돼요</span>';
   const vi=vndPerKrw(); $('rateInfo').textContent='1,000동 ≈ '+won(1000/vi.r)+(vi.src?' · '+vi.src:'');
   if(!editId && !$('rate').value){ $('rate').value=+vi.r.toFixed(3); $('rateSrc').textContent='('+vi.src+')'; }
   conv();
@@ -248,7 +258,7 @@ async function viewReceipt(id){ try{ const b=await rGet(id); if(b) openViewer(UR
 $('addBtn').onclick=async()=>{
   const a=num($('amt').value); if(!a){ $('amt').focus(); return; }
   const it={a, c:st.cur, r:curRate(), cat:st.cat, pay:st.pay, d:$('date').value||today(), m:$('memo').value.trim()};
-  if(st.people.length>=2){ it.who=+$('who').value; it.split=$('split').value; }
+  if(st.people.length>=1){ it.who=+$('who').value; it.split=st.people.length>=2?$('split').value:'all'; }
   let id=editId;
   if(editId){ const k=st.items.findIndex(x=>x.id===editId); if(k>=0) st.items[k]={...st.items[k], ...it}; }
   else{ id=it.id=Date.now(); st.items.push(it); }
@@ -296,18 +306,18 @@ function render(){
       const di=items.filter(x=>x.d===d).sort((a,b)=>b.id-a.id);
       return '<div class="day"><span>'+dayLabel(d)+'</span><span>'+won(di.reduce((s,x)=>s+toK(x),0))+'</span></div>'+
         di.map(x=>{ const c=CAT[x.cat]||CAT.etc;
-          const who = st.people.length>=2 && x.who!=null && st.people[x.who] ? ' · '+esc(st.people[x.who])+(x.split==='me'?' 혼자':'') : '';
+          const who = x.who!=null && st.people[x.who] ? ' · '+esc(st.people[x.who])+' 결제'+(st.people.length>=2&&x.split==='me'?'(혼자)':'') : '';
           return '<div class="it" data-id="'+x.id+'"><span class="ic">'+c[1]+'</span><span class="t"><b>'+(x.rc?'<button class="rc" data-rc="'+x.id+'" aria-label="영수증 보기">🧾</button>':'')+esc(x.m||c[2])+'</b><small>'+c[2]+' · '+(x.pay==='cash'?'현금':'카드')+who+'</small></span>'+
             '<span class="v"><b>'+won(toK(x))+'</b><small>'+(x.c==='VND'?dong(x.a):'원화 결제')+'</small></span></div>'; }).join('');
     }).join('');
   }
   // 표: 일자 · 항목 · 결제 · 환율 · 동 · 원
   const rows=[...items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
-  $('tbl').innerHTML = rows.length ? '<thead><tr><th>일자</th><th>항목</th><th>결제</th><th class="n">환율</th><th class="n">동</th><th class="n">원</th></tr></thead><tbody>'+
+  $('tbl').innerHTML = rows.length ? '<thead><tr><th>일자</th><th>항목</th><th>결제</th>'+(st.people.length?'<th>결제자</th>':'')+'<th class="n">환율</th><th class="n">동</th><th class="n">원</th></tr></thead><tbody>'+
     rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
-      return '<tr data-id="'+x.id+'"><td>'+x.d.slice(5).replace('-','/')+'</td><td>'+c[1]+' '+esc(x.m||c[2])+'</td><td>'+(x.pay==='cash'?'현금':'카드')+'</td>'+
+      return '<tr data-id="'+x.id+'"><td>'+x.d.slice(5).replace('-','/')+'</td><td>'+c[1]+' '+esc(x.m||c[2])+'</td><td>'+(x.pay==='cash'?'현금':'카드')+'</td>'+(st.people.length?'<td>'+esc(st.people[x.who]||'')+'</td>':'')+
         '<td class="n">'+(+rOf(x).toFixed(2))+'</td><td class="n">'+Math.round(toV(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(toK(x)).toLocaleString('ko-KR')+'</td></tr>'; }).join('')+
-    '</tbody><tfoot><tr><td colspan="4">합계</td><td class="n">'+Math.round(totV).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(totK).toLocaleString('ko-KR')+'</td></tr></tfoot>'
+    '</tbody><tfoot><tr><td colspan="'+(st.people.length?5:4)+'">합계</td><td class="n">'+Math.round(totV).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(totK).toLocaleString('ko-KR')+'</td></tr></tfoot>'
     : '<tbody><tr><td class="empty">아직 지출이 없어요</td></tr></tbody>';
   // 항목별
   const byCat=CATS.map(c=>[c, items.filter(x=>x.cat===c[0]).reduce((s,x)=>s+toK(x),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
@@ -340,15 +350,19 @@ function settleHTML(){
 $('tbl').onclick=e=>{ const r=e.target.closest('tr[data-id]'); if(r) startEdit(+r.dataset.id); };
 $('copyTbl').onclick=async()=>{
   const rows=[...st.items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
-  const tsv=['일자\t항목\t메모\t결제\t환율(1원=동)\t베트남 금액(동)\t한국 금액(원)'].concat(rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
-    return [x.d, c[2], x.m||'', x.pay==='cash'?'현금':'카드', +rOf(x).toFixed(3), Math.round(toV(x)), Math.round(toK(x))].join('\t'); })).join('\n');
+  const tsv=['일자\t항목\t메모\t결제\t결제자\t환율(1원=동)\t베트남 금액(동)\t한국 금액(원)'].concat(rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
+    return [x.d, c[2], x.m||'', x.pay==='cash'?'현금':'카드', st.people[x.who]||'', +rOf(x).toFixed(3), Math.round(toV(x)), Math.round(toK(x))].join('\t'); })).join('\n');
   try{ await navigator.clipboard.writeText(tsv); $('copyTbl').textContent='복사됨 ✓'; }catch(e){ $('copyTbl').textContent='복사 안 됨'; }
   setTimeout(()=>$('copyTbl').textContent='표 복사 (엑셀·메모에 붙여넣기)',1500);
 };
 $('vList').addEventListener('click',e=>{ const b=e.target.closest('[data-rc]'); if(b){ e.stopPropagation(); viewReceipt(+b.dataset.rc); } }, true);
 $('vList').onclick=e=>{ const r=e.target.closest('[data-id]'); if(r) startEdit(+r.dataset.id); };
 $('tabs').onclick=e=>{ const b=e.target.closest('[data-t]'); if(!b) return; st.tab=b.dataset.t; save(); render(); };
-$('addP').onclick=()=>{ const n=$('newP').value.trim(); if(!n) return; st.people.push(n); $('newP').value=''; save(); render(); };
+function addPerson(n){ n=(n||'').trim(); if(!n) return; st.people.push(n); if(st.people.length===1) st.items.forEach(x=>{ if(x.who==null) x.who=0; }); save(); render(); }
+$('addP2').onclick=()=>{ addPerson($('newP2').value); $('newP2').value=''; };
+$('newP2').addEventListener('keydown',e=>{ if(e.key==='Enter'){ addPerson($('newP2').value); $('newP2').value=''; } });
+$('people2').onclick=e=>$('people').onclick(e);
+$('addP').onclick=()=>{ addPerson($('newP').value); $('newP').value=''; };
 $('people').onclick=e=>{ const b=e.target.closest('[data-rm]'); if(!b) return; const i=+b.dataset.rm;
   st.people.splice(i,1); st.items.forEach(x=>{ if(x.who===i) x.who=0; else if(x.who>i) x.who--; }); save(); render(); };
 $('addCash').onclick=()=>{ const a=num($('cashIn').value); if(!a) return; st.cash.push({a, d:today()}); $('cashIn').value=''; save(); render(); };
