@@ -55,6 +55,12 @@ h1{font-size:21px; margin:0}
 .it .v{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
 .it .v b{display:block}
 .it .v small{color:var(--muted); font-size:12px}
+.it .inc{flex:none; width:22px; height:22px; margin:0; accent-color:var(--brand); cursor:pointer}
+.it.ex .t, .it.ex .v, .it.ex .ic, tr.ex{opacity:.45}
+.it.ex .v b{text-decoration:line-through}
+.exTag{font-size:11px; color:var(--red); font-weight:700}
+.incRow{display:flex; align-items:center; gap:8px; margin:8px 2px 0; font-size:14px; cursor:pointer}
+.incRow input{width:20px; height:20px; margin:0; accent-color:var(--brand)}
 .bar{display:flex; align-items:center; gap:8px; font-size:13.5px; margin:5px 0}
 .bar span:first-child{width:70px; flex:none}
 .bar .g{flex:1; height:10px; background:var(--bg); border-radius:6px; overflow:hidden}
@@ -138,6 +144,7 @@ table.t tfoot td{font-weight:800; border-bottom:0}
     <select id="who" aria-label="결제자"></select>
     <select id="split" aria-label="나눌 사람"><option value="all">모두 같이 나눔</option><option value="me">낸 사람 혼자</option></select>
   </div>
+  <label class="incRow"><input type="checkbox" id="inc" checked><b style="white-space:nowrap">총지출에 합산</b><span class="small">끄면 기록만 남고 합계·정산에서 빠져요</span></label>
   <input class="memo" id="memo" maxlength="40" placeholder="메모 (예: 반미, 그랩 공항→호텔)" autocomplete="off">
   <div class="rcpt">
     <label class="rbtn">📷 영수증<input type="file" id="rFile" accept="image/*" capture="environment" hidden></label>
@@ -266,9 +273,10 @@ async function viewReceipt(id){ try{ const b=await rGet(id); if(b) openViewer(UR
 $('addBtn').onclick=async()=>{
   const a=num($('amt').value); if(!a){ $('amt').focus(); return; }
   const it={a, c:st.cur, r:curRate(), cat:st.cat, pay:st.pay, d:$('date').value||today(), m:$('memo').value.trim()};
+  if(!$('inc').checked) it.ex=1;
   if(st.people.length>=1){ it.who=+$('who').value; it.split=st.people.length>=2?$('split').value:'all'; }
   let id=editId;
-  if(editId){ const k=st.items.findIndex(x=>x.id===editId); if(k>=0) st.items[k]={...st.items[k], ...it}; }
+  if(editId){ const k=st.items.findIndex(x=>x.id===editId); if(k>=0){ st.items[k]={...st.items[k], ...it}; if(!it.ex) delete st.items[k].ex; } }
   else{ id=it.id=Date.now(); st.items.push(it); }
   const tgt=st.items.find(x=>x.id===id);
   try{
@@ -281,13 +289,13 @@ function startEdit(id){
   const it=st.items.find(x=>x.id===id); if(!it) return;
   editId=id; st.cur=it.c; st.cat=it.cat; st.pay=it.pay; if(it.who!=null) st.who=it.who; if(it.split) st.split=it.split;
   renderForm();
-  $('amt').value=it.a.toLocaleString('ko-KR'); $('date').value=it.d; $('rate').value=+rOf(it).toFixed(3); $('rateSrc').textContent=''; $('memo').value=it.m||''; conv();
+  $('amt').value=it.a.toLocaleString('ko-KR'); $('date').value=it.d; $('rate').value=+rOf(it).toFixed(3); $('rateSrc').textContent=''; $('memo').value=it.m||''; $('inc').checked=!it.ex; conv();
   pendBlob=null; pendDel=false; showThumb(null);
   if(it.rc) rGet(id).then(b=>{ if(editId===id && b) showThumb(b); }).catch(()=>{});
   $('addBtn').textContent='수정 저장'; $('addBtn').classList.add('edit'); $('editBtns').hidden=false; $('formTitle').textContent='지출 고치기';
   window.scrollTo({top:$('amt').getBoundingClientRect().top+scrollY-120, behavior:'smooth'});
 }
-function endEdit(){ editId=null; $('rate').value=''; pendBlob=null; pendDel=false; showThumb(null); $('addBtn').textContent='추가'; $('addBtn').classList.remove('edit'); $('editBtns').hidden=true; $('formTitle').textContent='지출 적기'; $('amt').value=''; $('memo').value=''; conv(); }
+function endEdit(){ editId=null; $('rate').value=''; pendBlob=null; pendDel=false; showThumb(null); $('addBtn').textContent='추가'; $('addBtn').classList.remove('edit'); $('editBtns').hidden=true; $('formTitle').textContent='지출 적기'; $('amt').value=''; $('memo').value=''; $('inc').checked=true; conv(); }
 $('cancelEdit').onclick=()=>endEdit();
 $('delBtn').onclick=()=>{ if(!editId) return; if($('delBtn').dataset.a!=='1'){ $('delBtn').dataset.a='1'; $('delBtn').textContent='한 번 더 누르면 삭제'; setTimeout(()=>{ $('delBtn').dataset.a=''; $('delBtn').textContent='이 지출 삭제'; },2500); return; }
   rDelete(editId).catch(()=>{}); st.items=st.items.filter(x=>x.id!==editId); $('delBtn').dataset.a=''; $('delBtn').textContent='이 지출 삭제'; save(); endEdit(); render(); };
@@ -295,10 +303,10 @@ $('delBtn').onclick=()=>{ if(!editId) return; if($('delBtn').dataset.a!=='1'){ $
 /* ---------- 합계·목록 ---------- */
 function render(){
   renderForm();
-  const items=st.items;
+  const all=st.items, items=all.filter(x=>!x.ex), nEx=all.length-items.length;
   const totK=items.reduce((s,x)=>s+toK(x),0), totV=items.reduce((s,x)=>s+toV(x),0);
   $('totK').textContent=won(totK);
-  $('totV').textContent=items.length? dong(totV)+' · '+items.length+'건'+(st.people.length>=2?' · 1인당 '+won(totK/st.people.length):'') : '아직 적은 지출이 없어요';
+  $('totV').textContent=all.length? dong(totV)+' · '+items.length+'건'+(nEx?' (합산 제외 '+nEx+'건)':'')+(st.people.length>=2?' · 1인당 '+won(totK/st.people.length):'') : '아직 적은 지출이 없어요';
   const todK=items.filter(x=>x.d===today()).reduce((s,x)=>s+toK(x),0);
   $('todayK').textContent=won(todK);
   $('stTot').textContent='지금까지 '+won(totK);
@@ -310,31 +318,31 @@ function render(){
   } else $('perP').hidden=true;
   $('stSub').textContent=dong(totV)+' · 오늘 '+won(todK)+(st.people.length?' · 눌러서 각자 금액 보기':'');
   const cashIn=st.cash.reduce((s,x)=>s+x.a,0);
-  const cashOut=items.filter(x=>x.pay==='cash'&&x.c==='VND').reduce((s,x)=>s+x.a,0);
+  const cashOut=all.filter(x=>x.pay==='cash'&&x.c==='VND').reduce((s,x)=>s+x.a,0);
   $('cashLeft').textContent= cashIn ? dong(cashIn-cashOut) : '설정 안 함';
   $('cashLeft').style.color = cashIn && cashIn-cashOut<0 ? 'var(--red)' : '';
   [...$('tabs').children].forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===st.tab?'true':'false'));
   $('vList').hidden=st.tab!=='list'; $('vTbl').hidden=st.tab!=='tbl'; $('vCat').hidden=st.tab!=='cat'; $('vSplit').hidden=st.tab!=='split';
   // 내역 (날짜 최신순)
-  if(!items.length) $('vList').innerHTML='<div class="empty">위에서 금액을 넣고 "추가"를 누르세요</div>';
+  if(!all.length) $('vList').innerHTML='<div class="empty">위에서 금액을 넣고 "추가"를 누르세요</div>';
   else{
-    const days=[...new Set(items.map(x=>x.d))].sort().reverse();
+    const days=[...new Set(all.map(x=>x.d))].sort().reverse();
     $('vList').innerHTML=days.map(d=>{
-      const di=items.filter(x=>x.d===d).sort((a,b)=>b.id-a.id);
+      const di=all.filter(x=>x.d===d).sort((a,b)=>b.id-a.id);
       const cum=items.filter(x=>x.d<=d).reduce((s,x)=>s+toK(x),0);
-      return '<div class="day"><span>'+dayLabel(d)+' · '+won(di.reduce((s,x)=>s+toK(x),0))+'</span><span class="cum">누적 '+won(cum)+'</span></div>'+
+      return '<div class="day"><span>'+dayLabel(d)+' · '+won(di.filter(x=>!x.ex).reduce((s,x)=>s+toK(x),0))+'</span><span class="cum">누적 '+won(cum)+'</span></div>'+
         di.map(x=>{ const c=CAT[x.cat]||CAT.etc;
           const who = x.who!=null && st.people[x.who] ? ' · '+esc(st.people[x.who])+' 결제'+(st.people.length>=2&&x.split==='me'?'(혼자)':'') : '';
-          return '<div class="it" data-id="'+x.id+'"><span class="ic">'+c[1]+'</span><span class="t"><b>'+(x.rc?'<button class="rc" data-rc="'+x.id+'" aria-label="영수증 보기">🧾</button>':'')+esc(x.m||c[2])+'</b><small>'+c[2]+' · '+(x.pay==='cash'?'현금':'카드')+who+'</small></span>'+
+          return '<div class="it'+(x.ex?' ex':'')+'" data-id="'+x.id+'"><input type="checkbox" class="inc" data-inc="'+x.id+'"'+(x.ex?'':' checked')+' aria-label="총지출에 합산"><span class="ic">'+c[1]+'</span><span class="t"><b>'+(x.rc?'<button class="rc" data-rc="'+x.id+'" aria-label="영수증 보기">🧾</button>':'')+esc(x.m||c[2])+'</b><small>'+c[2]+' · '+(x.pay==='cash'?'현금':'카드')+who+(x.ex?' · <span class="exTag">합산 제외</span>':'')+'</small></span>'+
             '<span class="v"><b>'+won(toK(x))+'</b><small>'+(x.c==='VND'?dong(x.a):'원화 결제')+'</small></span></div>'; }).join('');
     }).join('');
   }
   // 표: 일자 · 항목 · 결제 · 환율 · 동 · 원
-  const rows=[...items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
+  const rows=[...all].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
   $('tbl').innerHTML = rows.length ? '<thead><tr><th>일자</th><th>항목</th><th>결제</th>'+(st.people.length?'<th>결제자</th>':'')+'<th class="n">환율</th><th class="n">동</th><th class="n">원</th><th class="n">누계</th></tr></thead><tbody>'+
-    (()=>{ let run=0; return rows.map(x=>{ const c=CAT[x.cat]||CAT.etc; run+=toK(x);
-      return '<tr data-id="'+x.id+'"><td>'+x.d.slice(5).replace('-','/')+'</td><td>'+c[1]+' '+esc(x.m||c[2])+'</td><td>'+(x.pay==='cash'?'현금':'카드')+'</td>'+(st.people.length?'<td>'+esc(st.people[x.who]||'')+'</td>':'')+
-        '<td class="n">'+(+rOf(x).toFixed(2))+'</td><td class="n">'+Math.round(toV(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(toK(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(run).toLocaleString('ko-KR')+'</td></tr>'; }).join(''); })()+
+    (()=>{ let run=0; return rows.map(x=>{ const c=CAT[x.cat]||CAT.etc; if(!x.ex) run+=toK(x);
+      return '<tr data-id="'+x.id+'"'+(x.ex?' class="ex"':'')+'><td>'+x.d.slice(5).replace('-','/')+'</td><td>'+c[1]+' '+esc(x.m||c[2])+'</td><td>'+(x.pay==='cash'?'현금':'카드')+'</td>'+(st.people.length?'<td>'+esc(st.people[x.who]||'')+'</td>':'')+
+        '<td class="n">'+(+rOf(x).toFixed(2))+'</td><td class="n">'+Math.round(toV(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(toK(x)).toLocaleString('ko-KR')+'</td><td class="n">'+(x.ex?'제외':Math.round(run).toLocaleString('ko-KR'))+'</td></tr>'; }).join(''); })()+
     '</tbody><tfoot><tr><td colspan="'+(st.people.length?5:4)+'">합계</td><td class="n">'+Math.round(totV).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(totK).toLocaleString('ko-KR')+'</td><td></td></tr></tfoot>'
     : '<tbody><tr><td class="empty">아직 지출이 없어요</td></tr></tbody>';
   // 항목별
@@ -353,7 +361,7 @@ function render(){
 /* 사람별 낸 돈(결제한 금액)·쓴 몫 */
 function perPerson(){
   const P=st.people, paid=P.map(()=>0), owe=P.map(()=>0);
-  st.items.forEach(x=>{ const k=toK(x), w=(x.who!=null&&x.who<P.length)?x.who:0; paid[w]+=k;
+  st.items.forEach(x=>{ if(x.ex) return; const k=toK(x), w=(x.who!=null&&x.who<P.length)?x.who:0; paid[w]+=k;
     if(x.split==='me'||P.length<2) owe[w]+=k; else P.forEach((_,i)=>owe[i]+=k/P.length); });
   return {paid, owe};
 }
@@ -373,13 +381,14 @@ function settleHTML(){
 $('tbl').onclick=e=>{ const r=e.target.closest('tr[data-id]'); if(r) startEdit(+r.dataset.id); };
 $('copyTbl').onclick=async()=>{
   const rows=[...st.items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
-  const tsv=['일자\t항목\t메모\t결제\t결제자\t환율(1원=동)\t베트남 금액(동)\t한국 금액(원)'].concat(rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
-    return [x.d, c[2], x.m||'', x.pay==='cash'?'현금':'카드', st.people[x.who]||'', +rOf(x).toFixed(3), Math.round(toV(x)), Math.round(toK(x))].join('\t'); })).join('\n');
+  const tsv=['일자\t항목\t메모\t결제\t결제자\t환율(1원=동)\t베트남 금액(동)\t한국 금액(원)\t비고'].concat(rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
+    return [x.d, c[2], x.m||'', x.pay==='cash'?'현금':'카드', st.people[x.who]||'', +rOf(x).toFixed(3), Math.round(toV(x)), Math.round(toK(x)), x.ex?'합산 제외':''].join('\t'); })).join('\n');
   try{ await navigator.clipboard.writeText(tsv); $('copyTbl').textContent='복사됨 ✓'; }catch(e){ $('copyTbl').textContent='복사 안 됨'; }
   setTimeout(()=>$('copyTbl').textContent='표 복사 (엑셀·메모에 붙여넣기)',1500);
 };
 $('sticky').onclick=()=>window.scrollTo({top:0, behavior:'smooth'});
-$('vList').addEventListener('click',e=>{ const b=e.target.closest('[data-rc]'); if(b){ e.stopPropagation(); viewReceipt(+b.dataset.rc); } }, true);
+$('vList').addEventListener('click',e=>{ const c=e.target.closest('[data-inc]'); if(c){ e.stopPropagation(); const it=st.items.find(x=>x.id===+c.dataset.inc); if(it){ if(c.checked) delete it.ex; else it.ex=1; if(editId===it.id) $('inc').checked=c.checked; save(); render(); } return; }
+  const b=e.target.closest('[data-rc]'); if(b){ e.stopPropagation(); viewReceipt(+b.dataset.rc); } }, true);
 $('vList').onclick=e=>{ const r=e.target.closest('[data-id]'); if(r) startEdit(+r.dataset.id); };
 $('tabs').onclick=e=>{ const b=e.target.closest('[data-t]'); if(!b) return; st.tab=b.dataset.t; save(); render(); };
 function addPerson(n){ n=(n||'').trim(); if(!n) return; st.people.push(n); if(st.people.length===1) st.items.forEach(x=>{ if(x.who==null) x.who=0; }); save(); render(); }
@@ -393,8 +402,8 @@ $('addCash').onclick=()=>{ const a=num($('cashIn').value); if(!a) return; st.cas
 $('cashIn').addEventListener('input',()=>{ const a=num($('cashIn').value); $('cashIn').value=a?a.toLocaleString('ko-KR'):''; });
 $('cashLog').onclick=e=>{ const b=e.target.closest('[data-cx]'); if(!b) return; st.cash.splice(+b.dataset.cx,1); save(); render(); };
 $('share').onclick=async()=>{
-  const totK=st.items.reduce((s,x)=>s+toK(x),0);
-  const txt=st.name+' 지출 '+won(totK)+'\n'+[...st.items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id).map(x=>x.d.slice(5)+' '+(CAT[x.cat]||CAT.etc)[2]+' '+(x.m||'')+' '+(x.c==='VND'?dong(x.a)+' ('+won(toK(x))+')':won(x.a))).join('\n')+
+  const totK=st.items.filter(x=>!x.ex).reduce((s,x)=>s+toK(x),0);
+  const txt=st.name+' 지출 '+won(totK)+'\n'+[...st.items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id).map(x=>x.d.slice(5)+' '+(CAT[x.cat]||CAT.etc)[2]+' '+(x.m||'')+' '+(x.c==='VND'?dong(x.a)+' ('+won(toK(x))+')':won(x.a))+(x.ex?' [합산 제외]':'')).join('\n')+
     (st.people.length>=2?'\n'+settleHTML().replace(/<[^>]+>/g,'\n').replace(/\n+/g,'\n').trim():'');
   try{ if(navigator.share) await navigator.share({text:txt}); else { await navigator.clipboard.writeText(txt); $('share').textContent='복사됨'; } }catch(e){}
   setTimeout(()=>$('share').textContent='내역 복사하기',1500);
