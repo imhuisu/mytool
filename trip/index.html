@@ -88,11 +88,18 @@ table.t tfoot td{font-weight:800; border-bottom:0}
 #viewer{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.92); display:flex; align-items:center; justify-content:center; padding:12px}
 #viewer img{max-width:100%; max-height:100%; object-fit:contain}
 #viewer span{position:absolute; top:calc(12px + env(safe-area-inset-top,0px)); right:16px; color:#fff; font-size:15px; font-weight:700}
+/* 항상 보이는 합계 줄 */
+.sticky{cursor:pointer; position:sticky; top:0; z-index:20; margin:0 -16px 10px; padding:calc(8px + env(safe-area-inset-top,0px)) 16px 8px;
+  background:var(--brand); color:#fff; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.sticky b{font-size:19px; font-variant-numeric:tabular-nums}
+.sticky span{font-size:12.5px; opacity:.9; font-variant-numeric:tabular-nums}
+.list .day .cum{font-weight:600; color:var(--muted)}
 .empty{text-align:center; color:var(--muted); padding:14px 0}
 </style>
 </head>
 <body>
 <div class="wrap">
+<div class="sticky" id="sticky"><b id="stTot">지금까지 0원</b><span id="stSub"></span></div>
 <header><h1>여행 비용</h1><input id="tripName" maxlength="20" aria-label="여행 이름"></header>
 
 <!-- 합계 -->
@@ -102,6 +109,7 @@ table.t tfoot td{font-weight:800; border-bottom:0}
     <div><small>오늘</small><b id="todayK">0원</b></div>
     <div id="cashBox"><small>남은 현금</small><b id="cashLeft">—</b></div>
   </div>
+  <table class="t" id="perP" style="margin-top:10px" hidden></table>
 </div>
 
 <!-- 여행 동반자 -->
@@ -291,7 +299,16 @@ function render(){
   const totK=items.reduce((s,x)=>s+toK(x),0), totV=items.reduce((s,x)=>s+toV(x),0);
   $('totK').textContent=won(totK);
   $('totV').textContent=items.length? dong(totV)+' · '+items.length+'건'+(st.people.length>=2?' · 1인당 '+won(totK/st.people.length):'') : '아직 적은 지출이 없어요';
-  $('todayK').textContent=won(items.filter(x=>x.d===today()).reduce((s,x)=>s+toK(x),0));
+  const todK=items.filter(x=>x.d===today()).reduce((s,x)=>s+toK(x),0);
+  $('todayK').textContent=won(todK);
+  $('stTot').textContent='지금까지 '+won(totK);
+  if(st.people.length){ const {paid,owe}=perPerson(), two=st.people.length>=2;
+    $('perP').innerHTML='<thead><tr><th>사람</th><th class="n">결제한 금액</th>'+(two?'<th class="n">쓴 몫</th><th class="n">차이</th>':'')+'</tr></thead><tbody>'+
+      st.people.map((p,i)=>{ const d=paid[i]-owe[i];
+        return '<tr><td>'+esc(p)+'</td><td class="n">'+won(paid[i])+'</td>'+(two?'<td class="n">'+won(owe[i])+'</td><td class="n" style="color:'+(d>=0?'var(--brand)':'var(--red)')+'">'+(d>=0?'+':'−')+won(Math.abs(d))+'</td>':'')+'</tr>'; }).join('')+'</tbody>';
+    $('perP').hidden=false;
+  } else $('perP').hidden=true;
+  $('stSub').textContent=dong(totV)+' · 오늘 '+won(todK)+(st.people.length?' · 눌러서 각자 금액 보기':'');
   const cashIn=st.cash.reduce((s,x)=>s+x.a,0);
   const cashOut=items.filter(x=>x.pay==='cash'&&x.c==='VND').reduce((s,x)=>s+x.a,0);
   $('cashLeft').textContent= cashIn ? dong(cashIn-cashOut) : '설정 안 함';
@@ -304,7 +321,8 @@ function render(){
     const days=[...new Set(items.map(x=>x.d))].sort().reverse();
     $('vList').innerHTML=days.map(d=>{
       const di=items.filter(x=>x.d===d).sort((a,b)=>b.id-a.id);
-      return '<div class="day"><span>'+dayLabel(d)+'</span><span>'+won(di.reduce((s,x)=>s+toK(x),0))+'</span></div>'+
+      const cum=items.filter(x=>x.d<=d).reduce((s,x)=>s+toK(x),0);
+      return '<div class="day"><span>'+dayLabel(d)+' · '+won(di.reduce((s,x)=>s+toK(x),0))+'</span><span class="cum">누적 '+won(cum)+'</span></div>'+
         di.map(x=>{ const c=CAT[x.cat]||CAT.etc;
           const who = x.who!=null && st.people[x.who] ? ' · '+esc(st.people[x.who])+' 결제'+(st.people.length>=2&&x.split==='me'?'(혼자)':'') : '';
           return '<div class="it" data-id="'+x.id+'"><span class="ic">'+c[1]+'</span><span class="t"><b>'+(x.rc?'<button class="rc" data-rc="'+x.id+'" aria-label="영수증 보기">🧾</button>':'')+esc(x.m||c[2])+'</b><small>'+c[2]+' · '+(x.pay==='cash'?'현금':'카드')+who+'</small></span>'+
@@ -313,11 +331,11 @@ function render(){
   }
   // 표: 일자 · 항목 · 결제 · 환율 · 동 · 원
   const rows=[...items].sort((a,b)=>a.d.localeCompare(b.d)||a.id-b.id);
-  $('tbl').innerHTML = rows.length ? '<thead><tr><th>일자</th><th>항목</th><th>결제</th>'+(st.people.length?'<th>결제자</th>':'')+'<th class="n">환율</th><th class="n">동</th><th class="n">원</th></tr></thead><tbody>'+
-    rows.map(x=>{ const c=CAT[x.cat]||CAT.etc;
+  $('tbl').innerHTML = rows.length ? '<thead><tr><th>일자</th><th>항목</th><th>결제</th>'+(st.people.length?'<th>결제자</th>':'')+'<th class="n">환율</th><th class="n">동</th><th class="n">원</th><th class="n">누계</th></tr></thead><tbody>'+
+    (()=>{ let run=0; return rows.map(x=>{ const c=CAT[x.cat]||CAT.etc; run+=toK(x);
       return '<tr data-id="'+x.id+'"><td>'+x.d.slice(5).replace('-','/')+'</td><td>'+c[1]+' '+esc(x.m||c[2])+'</td><td>'+(x.pay==='cash'?'현금':'카드')+'</td>'+(st.people.length?'<td>'+esc(st.people[x.who]||'')+'</td>':'')+
-        '<td class="n">'+(+rOf(x).toFixed(2))+'</td><td class="n">'+Math.round(toV(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(toK(x)).toLocaleString('ko-KR')+'</td></tr>'; }).join('')+
-    '</tbody><tfoot><tr><td colspan="'+(st.people.length?5:4)+'">합계</td><td class="n">'+Math.round(totV).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(totK).toLocaleString('ko-KR')+'</td></tr></tfoot>'
+        '<td class="n">'+(+rOf(x).toFixed(2))+'</td><td class="n">'+Math.round(toV(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(toK(x)).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(run).toLocaleString('ko-KR')+'</td></tr>'; }).join(''); })()+
+    '</tbody><tfoot><tr><td colspan="'+(st.people.length?5:4)+'">합계</td><td class="n">'+Math.round(totV).toLocaleString('ko-KR')+'</td><td class="n">'+Math.round(totK).toLocaleString('ko-KR')+'</td><td></td></tr></tfoot>'
     : '<tbody><tr><td class="empty">아직 지출이 없어요</td></tr></tbody>';
   // 항목별
   const byCat=CATS.map(c=>[c, items.filter(x=>x.cat===c[0]).reduce((s,x)=>s+toK(x),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
@@ -332,11 +350,16 @@ function render(){
     '<br>'+st.cash.map((x,i)=>x.d+' +'+dong(x.a)+' <button data-cx="'+i+'" style="border:0;background:none;color:var(--muted);cursor:pointer">✕</button>').join(' · ') : '현금을 넣어 두면 현금 지출을 빼서 남은 현금을 보여줘요';
   const vi=vndPerKrw(); $('rateLong').textContent='1원 = '+(+vi.r.toFixed(3))+'동 ('+vi.src+'). 바꾸려면 💱 환율 계산기에서 새로 받거나 직접 입력하세요. 원화 금액은 지금 환율로 다시 계산돼요.';
 }
+/* 사람별 낸 돈(결제한 금액)·쓴 몫 */
+function perPerson(){
+  const P=st.people, paid=P.map(()=>0), owe=P.map(()=>0);
+  st.items.forEach(x=>{ const k=toK(x), w=(x.who!=null&&x.who<P.length)?x.who:0; paid[w]+=k;
+    if(x.split==='me'||P.length<2) owe[w]+=k; else P.forEach((_,i)=>owe[i]+=k/P.length); });
+  return {paid, owe};
+}
 function settleHTML(){
   const P=st.people; if(P.length<2) return '';
-  const paid=P.map(()=>0), owe=P.map(()=>0);
-  st.items.forEach(x=>{ const k=toK(x), w=(x.who!=null&&x.who<P.length)?x.who:0; paid[w]+=k;
-    if(x.split==='me') owe[w]+=k; else P.forEach((_,i)=>owe[i]+=k/P.length); });
+  const {paid, owe}=perPerson();
   const bal=P.map((_,i)=>paid[i]-owe[i]);
   let lines=P.map((p,i)=>'<li>'+esc(p)+': 낸 돈 '+won(paid[i])+' · 쓴 몫 '+won(owe[i])+'</li>').join('');
   // 갚을 사람 → 받을 사람
@@ -355,6 +378,7 @@ $('copyTbl').onclick=async()=>{
   try{ await navigator.clipboard.writeText(tsv); $('copyTbl').textContent='복사됨 ✓'; }catch(e){ $('copyTbl').textContent='복사 안 됨'; }
   setTimeout(()=>$('copyTbl').textContent='표 복사 (엑셀·메모에 붙여넣기)',1500);
 };
+$('sticky').onclick=()=>window.scrollTo({top:0, behavior:'smooth'});
 $('vList').addEventListener('click',e=>{ const b=e.target.closest('[data-rc]'); if(b){ e.stopPropagation(); viewReceipt(+b.dataset.rc); } }, true);
 $('vList').onclick=e=>{ const r=e.target.closest('[data-id]'); if(r) startEdit(+r.dataset.id); };
 $('tabs').onclick=e=>{ const b=e.target.closest('[data-t]'); if(!b) return; st.tab=b.dataset.t; save(); render(); };
