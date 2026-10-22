@@ -114,7 +114,7 @@ table.t tfoot td{font-weight:800; border-bottom:0}
 <body>
 <div class="wrap">
 <div class="sticky" id="sticky"><b id="stTot">지금까지 0원</b><span id="stSub"></span></div>
-<header><h1>여행 비용 <span class="ver">v4</span></h1><input id="tripName" maxlength="20" aria-label="여행 이름"></header>
+<header><h1>여행 비용 <span class="ver">v5</span></h1><input id="tripName" maxlength="20" aria-label="여행 이름"></header>
 
 <!-- 합계 -->
 <div class="card">
@@ -127,7 +127,7 @@ table.t tfoot td{font-weight:800; border-bottom:0}
     <div class="lab" style="margin-top:12px"><span>💵 현금 (환전·인출한 동)</span></div>
     <div id="cashPeople" class="cashPeople"></div>
     <input id="cashIn" inputmode="numeric" placeholder="동 금액 (예: 5,000,000)" style="font-size:17px;font-weight:700" autocomplete="off">
-    <div class="row2" style="margin-top:6px"><button class="add" id="addCash" style="padding:9px;font-size:14px">＋ 환전 더하기</button><button class="add" id="fixCash" style="padding:9px;font-size:14px;background:var(--bg);color:var(--ink);border:1.5px solid var(--line)">지갑 돈으로 맞추기</button></div>
+    <div class="row2" style="margin-top:6px"><button class="add" id="addCash" style="padding:9px;font-size:14px">＋ 환전 더하기</button><button class="add" id="fixCash" style="padding:9px;font-size:14px;background:var(--bg);color:var(--ink);border:1.5px solid var(--line)">＝ 남은 돈으로 설정</button></div>
     <div class="small" id="cashLog" style="margin-top:6px"></div>
   </div>
   <table class="t" id="perP" style="margin-top:10px" hidden></table>
@@ -335,7 +335,8 @@ function render(){
   if(st.cashWho>=st.people.length) st.cashWho=0;
   $('cashPer').textContent= multi&&st.cash.length ? st.people.map((p,i)=>p+' '+man(cl[i])).join(' · ') : '';
   $('cashPeople').hidden=!multi;
-  $('cashPeople').innerHTML= multi ? st.people.map((p,i)=>'<button data-cw="'+i+'" aria-pressed="'+((st.cashWho||0)===i)+'"><small>'+esc(p)+' 지갑</small><b'+(cl[i]<0?' style="color:var(--red)"':'')+'>'+dong(cl[i])+'</b></button>').join('') : '';
+  $('cashIn').placeholder= multi ? (st.people[st.cashWho||0])+' 지갑 금액 (동)' : '동 금액 (예: 5,000,000)';
+  $('cashPeople').innerHTML= multi ? '<span class="small" style="flex-basis:100%">누구 지갑인지 고르고 금액을 넣으세요 · 내 지갑이 없으면 위 "여행 동반자"에 내 이름도 넣기</span>'+st.people.map((p,i)=>'<button data-cw="'+i+'" aria-pressed="'+((st.cashWho||0)===i)+'"><small>'+esc(p)+' 지갑</small><b'+(cl[i]<0?' style="color:var(--red)"':'')+'>'+dong(cl[i])+'</b></button>').join('') : '';
   $('cashLeft').textContent= st.cash.length ? dong(cashIn-cashOut) : '눌러서 설정';
   $('cashLeft').style.color = st.cash.length && cashIn-cashOut<0 ? 'var(--red)' : '';
   [...$('tabs').children].forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===st.tab?'true':'false'));
@@ -372,7 +373,7 @@ function render(){
   $('people').innerHTML = st.people.length ? st.people.map((p,i)=>'<span>'+esc(p)+'<button data-rm="'+i+'" aria-label="'+esc(p)+' 빼기">✕</button></span>').join('') : '<span class="small" style="border:0;background:none">혼자면 비워 두세요. 2명 이상이면 "누가 냈는지"를 적고 N빵 정산해 줘요</span>';
   $('settle').innerHTML=settleHTML();
   $('cashLog').innerHTML = st.cash.length ? '총 '+dong(cashIn)+' 중 현금으로 쓴 동 '+dong(cashOut)+' → 남은 '+dong(cashIn-cashOut)+
-    '<br>'+st.cash.map((x,i)=>x.d.slice(5).replace('-','/')+(multi?' '+esc(st.people[pIdx(x.w)]):'')+(x.adj?' 맞춤 '+(x.a>=0?'+':'−')+dong(Math.abs(x.a)):' +'+dong(x.a))+' <button data-cx="'+i+'" style="border:0;background:none;color:var(--muted);cursor:pointer">✕</button>').join(' · ') : '환전한 동을 더해 두면 💵 현금 지출을 빼서 남은 현금을 보여줘요. 지갑을 세어 보고 다르면 "맞추기"로 고치세요';
+    '<br>'+st.cash.map((x,i)=>x.d.slice(5).replace('-','/')+(multi?' '+esc(st.people[pIdx(x.w)]):'')+(x.adj?' 설정 '+(x.a>=0?'+':'−')+dong(Math.abs(x.a)):' +'+dong(x.a))+' <button data-cx="'+i+'" style="border:0;background:none;color:var(--muted);cursor:pointer">✕</button>').join(' · ') : '처음엔 지금 가진 동을 넣고 "남은 돈으로 설정"(또는 "환전 더하기"). 💵 현금 지출은 자동으로 빠지고, 지갑을 세어 보고 다르면 그 금액으로 다시 설정하세요';
   const vi=vndPerKrw(); $('rateLong').textContent='1원 = '+(+vi.r.toFixed(3))+'동 ('+vi.src+'). 바꾸려면 💱 환율 계산기에서 새로 받거나 직접 입력하세요. 원화 금액은 지금 환율로 다시 계산돼요.';
 }
 /* 사람별 낸 돈(결제한 금액)·쓴 몫 */
