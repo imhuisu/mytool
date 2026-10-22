@@ -96,6 +96,7 @@ android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, Andr
                       현재 v1.5 (versionCode 6, targetSdk 36). 패키지 com.imhuisu.mytool.sched, 폰에 보이는 앱 이름 "일정"
                       v1.5부터 앱 안에서 웹 일정을 엶 (WebActivity, WebView). 연결된 상태면 앱 아이콘 → 바로 일정 화면. 위젯 탭도 크롬 대신 이 화면
                       앱 안에서 다른 도구로: 일정 왼쪽 아래 도구함 버튼(hub.js in-app) → 첫 화면 도구 목록. 앱 아이콘을 도구함부터 열게 하려면 Sched.WEB 대신 BASE 로 열고 versionCode +1(희수 결정 전)
+                      v1.8(code 10): WebView 파일 선택(onShowFileChooser) — 웹 <input type=file capture> 면 카메라(MediaStore 에 저장 자리 만들어 EXTRA_OUTPUT, FileProvider 없이), 아니면 갤러리. 여행 비용 영수증 📷/🖼️ 용. 앱 안에서 사진 안 열리던 문제(2026-10-22)
                       앱의 비밀번호 키를 웹 localStorage(sched-dev-v1.sync, JWK)에 넣어 줘서 웹에서 비밀번호 재입력 없음. 웹은 동기화 후 MytoolApp.synced() 로 위젯 새로고침
                       웹 설정의 mytool://settings 링크 → 앱 연결·버전 화면(MainActivity, extra settings=true). 크롬으로 설치한 "일정" 웹앱 아이콘은 이제 필요 없음
                       플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드는 GitHub Actions 가 자동 (아래). v1.4(code 5)까지는 Play Console 에 손으로 올렸음

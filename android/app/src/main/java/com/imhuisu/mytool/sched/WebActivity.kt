@@ -2,10 +2,14 @@ package com.imhuisu.mytool.sched
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.webkit.JavascriptInterface
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -13,9 +17,13 @@ import android.webkit.WebViewClient
 /* 앱 안에서 웹 일정(sched/)을 여는 화면. 크롬으로 넘어가지 않음
  * - 앱에서 연결한 비밀번호의 키를 웹 저장소에 넣어 줘서 웹에서 비밀번호를 또 넣지 않게 함
  * - 웹이 동기화를 마치면 MytoolApp.synced() 를 불러 위젯을 새로고침
- * - 웹의 mytool://settings 링크 → 연결·버전 화면(MainActivity) */
+ * - 웹의 mytool://settings 링크 → 연결·버전 화면(MainActivity)
+ * - <input type=file> (여행 비용 영수증 등): capture 있으면 카메라, 없으면 갤러리. 카메라 사진은 갤러리(Pictures)에도 남음 */
 class WebActivity : Activity() {
     private lateinit var web: WebView
+    private var fileCb: ValueCallback<Array<Uri>>? = null
+    private var camUri: Uri? = null
+    private val REQ_FILE = 41
 
     companion object {
         const val EXTRA_URL = "url"
@@ -48,7 +56,48 @@ class WebActivity : Activity() {
             }
             override fun onPageFinished(v: WebView, url: String) { injectKey() }
         }
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(v: WebView, cb: ValueCallback<Array<Uri>>, p: WebChromeClient.FileChooserParams): Boolean {
+                fileCb?.onReceiveValue(null)
+                fileCb = cb; camUri = null
+                val gallery = Intent(Intent.ACTION_GET_CONTENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE)
+                val i: Intent = if (p.isCaptureEnabled) {
+                    // 카메라: 찍은 사진을 MediaStore 에 저장할 자리를 만들어 넘김 (FileProvider 없이)
+                    val uri = runCatching {
+                        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentValues().apply {
+                            put(MediaStore.Images.Media.DISPLAY_NAME, "receipt_" + System.currentTimeMillis() + ".jpg")
+                            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                        })
+                    }.getOrNull()
+                    camUri = uri
+                    if (uri != null) Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, uri)
+                        .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    else Intent.createChooser(gallery, "영수증 사진")
+                } else Intent.createChooser(gallery, "영수증 사진")
+                return try { startActivityForResult(i, REQ_FILE); true }
+                catch (e: Exception) { fileCb = null; cb.onReceiveValue(null); false }
+            }
+        }
         web.loadUrl(intent.getStringExtra(EXTRA_URL) ?: Sched.WEB)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(req: Int, res: Int, data: Intent?) {
+        super.onActivityResult(req, res, data)
+        if (req != REQ_FILE) return
+        val cb = fileCb ?: return
+        fileCb = null
+        val cam = camUri; camUri = null
+        if (res != RESULT_OK) {
+            cam?.let { runCatching { contentResolver.delete(it, null, null) } }   // 취소한 카메라 자리 지우기
+            cb.onReceiveValue(null); return
+        }
+        val picked = data?.data
+        cb.onReceiveValue(when {
+            picked != null -> arrayOf(picked)
+            cam != null -> arrayOf(cam)
+            else -> null
+        })
     }
 
     override fun onNewIntent(i: Intent) {
