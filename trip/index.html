@@ -80,6 +80,14 @@ table.t tr[data-id]{cursor:pointer}
 table.t tfoot td{font-weight:800; border-bottom:0}
 .rateIn{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); margin-bottom:8px}
 .rateIn input{width:90px; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:9px; padding:6px 8px; font:inherit; font-weight:700}
+.rcpt{display:flex; gap:8px; align-items:center; margin-bottom:8px}
+.rbtn{border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; padding:8px 12px; font-weight:700; font-size:13.5px; cursor:pointer}
+#rThumb{width:48px; height:48px; object-fit:cover; border-radius:8px; border:1px solid var(--line); cursor:pointer}
+#rDel{border:0; background:none; color:var(--red); font:inherit; font-weight:700; cursor:pointer}
+.rc{border:0; background:none; font-size:16px; padding:0 2px; cursor:pointer}
+#viewer{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.92); display:flex; align-items:center; justify-content:center; padding:12px}
+#viewer img{max-width:100%; max-height:100%; object-fit:contain}
+#viewer span{position:absolute; top:calc(12px + env(safe-area-inset-top,0px)); right:16px; color:#fff; font-size:15px; font-weight:700}
 .empty{text-align:center; color:var(--muted); padding:14px 0}
 </style>
 </head>
@@ -116,6 +124,11 @@ table.t tfoot td{font-weight:800; border-bottom:0}
     <select id="split" aria-label="나눌 사람"><option value="all">모두 같이 나눔</option><option value="me">낸 사람 혼자</option></select>
   </div>
   <input class="memo" id="memo" maxlength="40" placeholder="메모 (예: 반미, 그랩 공항→호텔)" autocomplete="off">
+  <div class="rcpt">
+    <label class="rbtn">📷 영수증<input type="file" id="rFile" accept="image/*" capture="environment" hidden></label>
+    <label class="rbtn">🖼️ 앨범<input type="file" id="rAlbum" accept="image/*" hidden></label>
+    <img id="rThumb" alt="영수증" hidden><button id="rDel" hidden>사진 빼기</button>
+  </div>
   <button class="add" id="addBtn">추가</button>
   <div class="btnline" id="editBtns" hidden><button id="cancelEdit">취소</button><button class="warn" id="delBtn">이 지출 삭제</button></div>
 </div>
@@ -140,6 +153,7 @@ table.t tfoot td{font-weight:800; border-bottom:0}
     <div class="btnline"><button id="share">내역 복사하기</button><button class="warn" id="resetBtn">새 여행 시작</button></div>
   </div>
 </div>
+<div id="viewer" hidden><img id="vImg" alt="영수증 크게 보기"><span>✕ 닫기</span></div>
 <div class="small" style="text-align:center">이 폰에만 저장돼요 · 인터넷 없이도 돼요 · 환율은 💱 환율 계산기에 저장된 값을 써요</div>
 </div>
 
@@ -205,30 +219,63 @@ $('who').onchange=()=>{ st.who=+$('who').value; save(); };
 $('split').onchange=()=>{ st.split=$('split').value; save(); };
 $('tripName').onchange=()=>{ st.name=$('tripName').value.trim()||'여행'; save(); };
 
-$('addBtn').onclick=()=>{
+/* ---------- 영수증 사진 (IndexedDB 'trip-receipts', 지출 id 로 저장) ---------- */
+let dbP=null;
+function db(){ if(!dbP) dbP=new Promise((ok,no)=>{ const r=indexedDB.open('trip-receipts',1);
+  r.onupgradeneeded=()=>r.result.createObjectStore('r'); r.onsuccess=()=>ok(r.result); r.onerror=()=>no(r.error); }); return dbP; }
+async function idb(mode,fn){ const d=await db(); return new Promise((ok,no)=>{ const t=d.transaction('r',mode); const q=fn(t.objectStore('r')); t.oncomplete=()=>ok(q&&q.result); t.onerror=()=>no(t.error); }); }
+const rPut=(id,b)=>idb('readwrite',s=>s.put(b,id)), rGet=id=>idb('readonly',s=>s.get(id)), rDelete=id=>idb('readwrite',s=>s.delete(id));
+let pendBlob=null, pendDel=false, thumbURL=null;
+async function shrink(file){   // 긴 변 1400px, JPEG 로 줄여 저장
+  try{ const bm=await createImageBitmap(file); const k=Math.min(1,1400/Math.max(bm.width,bm.height));
+    const c=document.createElement('canvas'); c.width=Math.round(bm.width*k); c.height=Math.round(bm.height*k);
+    c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
+    return await new Promise(ok=>c.toBlob(b=>ok(b||file),'image/jpeg',0.72)); }catch(e){ return file; }
+}
+function showThumb(blob){
+  if(thumbURL){ URL.revokeObjectURL(thumbURL); thumbURL=null; }
+  if(blob){ thumbURL=URL.createObjectURL(blob); $('rThumb').src=thumbURL; }
+  $('rThumb').hidden=!blob; $('rDel').hidden=!blob;
+}
+async function onPick(e){ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; pendBlob=await shrink(f); pendDel=false; showThumb(pendBlob); }
+$('rFile').onchange=onPick; $('rAlbum').onchange=onPick;
+$('rDel').onclick=()=>{ pendBlob=null; pendDel=true; showThumb(null); };
+$('rThumb').onclick=()=>{ if(thumbURL) openViewer(thumbURL); };
+function openViewer(url){ $('vImg').src=url; $('viewer').hidden=false; }
+$('viewer').onclick=()=>{ $('viewer').hidden=true; };
+async function viewReceipt(id){ try{ const b=await rGet(id); if(b) openViewer(URL.createObjectURL(b)); }catch(e){} }
+
+$('addBtn').onclick=async()=>{
   const a=num($('amt').value); if(!a){ $('amt').focus(); return; }
   const it={a, c:st.cur, r:curRate(), cat:st.cat, pay:st.pay, d:$('date').value||today(), m:$('memo').value.trim()};
   if(st.people.length>=2){ it.who=+$('who').value; it.split=$('split').value; }
+  let id=editId;
   if(editId){ const k=st.items.findIndex(x=>x.id===editId); if(k>=0) st.items[k]={...st.items[k], ...it}; }
-  else{ it.id=Date.now(); st.items.push(it); }
-  editId=null; $('amt').value=''; $('memo').value=''; save(); render();
+  else{ id=it.id=Date.now(); st.items.push(it); }
+  const tgt=st.items.find(x=>x.id===id);
+  try{
+    if(pendBlob){ await rPut(id,pendBlob); tgt.rc=1; }
+    else if(pendDel){ await rDelete(id); delete tgt.rc; }
+  }catch(e){ alert('사진 저장에 실패했어요 (저장 공간을 확인해 주세요)'); }
+  endEdit(); save(); render();
 };
 function startEdit(id){
   const it=st.items.find(x=>x.id===id); if(!it) return;
   editId=id; st.cur=it.c; st.cat=it.cat; st.pay=it.pay; if(it.who!=null) st.who=it.who; if(it.split) st.split=it.split;
   renderForm();
   $('amt').value=it.a.toLocaleString('ko-KR'); $('date').value=it.d; $('rate').value=+rOf(it).toFixed(3); $('rateSrc').textContent=''; $('memo').value=it.m||''; conv();
+  pendBlob=null; pendDel=false; showThumb(null);
+  if(it.rc) rGet(id).then(b=>{ if(editId===id && b) showThumb(b); }).catch(()=>{});
   $('addBtn').textContent='수정 저장'; $('addBtn').classList.add('edit'); $('editBtns').hidden=false; $('formTitle').textContent='지출 고치기';
   window.scrollTo({top:$('amt').getBoundingClientRect().top+scrollY-120, behavior:'smooth'});
 }
-function endEdit(){ editId=null; $('rate').value=''; $('addBtn').textContent='추가'; $('addBtn').classList.remove('edit'); $('editBtns').hidden=true; $('formTitle').textContent='지출 적기'; $('amt').value=''; $('memo').value=''; conv(); }
+function endEdit(){ editId=null; $('rate').value=''; pendBlob=null; pendDel=false; showThumb(null); $('addBtn').textContent='추가'; $('addBtn').classList.remove('edit'); $('editBtns').hidden=true; $('formTitle').textContent='지출 적기'; $('amt').value=''; $('memo').value=''; conv(); }
 $('cancelEdit').onclick=()=>endEdit();
 $('delBtn').onclick=()=>{ if(!editId) return; if($('delBtn').dataset.a!=='1'){ $('delBtn').dataset.a='1'; $('delBtn').textContent='한 번 더 누르면 삭제'; setTimeout(()=>{ $('delBtn').dataset.a=''; $('delBtn').textContent='이 지출 삭제'; },2500); return; }
-  st.items=st.items.filter(x=>x.id!==editId); $('delBtn').dataset.a=''; $('delBtn').textContent='이 지출 삭제'; save(); endEdit(); render(); };
+  rDelete(editId).catch(()=>{}); st.items=st.items.filter(x=>x.id!==editId); $('delBtn').dataset.a=''; $('delBtn').textContent='이 지출 삭제'; save(); endEdit(); render(); };
 
 /* ---------- 합계·목록 ---------- */
 function render(){
-  if(!editId) endEdit();
   renderForm();
   const items=st.items;
   const totK=items.reduce((s,x)=>s+toK(x),0), totV=items.reduce((s,x)=>s+toV(x),0);
@@ -250,7 +297,7 @@ function render(){
       return '<div class="day"><span>'+dayLabel(d)+'</span><span>'+won(di.reduce((s,x)=>s+toK(x),0))+'</span></div>'+
         di.map(x=>{ const c=CAT[x.cat]||CAT.etc;
           const who = st.people.length>=2 && x.who!=null && st.people[x.who] ? ' · '+esc(st.people[x.who])+(x.split==='me'?' 혼자':'') : '';
-          return '<div class="it" data-id="'+x.id+'"><span class="ic">'+c[1]+'</span><span class="t"><b>'+esc(x.m||c[2])+'</b><small>'+c[2]+' · '+(x.pay==='cash'?'현금':'카드')+who+'</small></span>'+
+          return '<div class="it" data-id="'+x.id+'"><span class="ic">'+c[1]+'</span><span class="t"><b>'+(x.rc?'<button class="rc" data-rc="'+x.id+'" aria-label="영수증 보기">🧾</button>':'')+esc(x.m||c[2])+'</b><small>'+c[2]+' · '+(x.pay==='cash'?'현금':'카드')+who+'</small></span>'+
             '<span class="v"><b>'+won(toK(x))+'</b><small>'+(x.c==='VND'?dong(x.a):'원화 결제')+'</small></span></div>'; }).join('');
     }).join('');
   }
@@ -298,6 +345,7 @@ $('copyTbl').onclick=async()=>{
   try{ await navigator.clipboard.writeText(tsv); $('copyTbl').textContent='복사됨 ✓'; }catch(e){ $('copyTbl').textContent='복사 안 됨'; }
   setTimeout(()=>$('copyTbl').textContent='표 복사 (엑셀·메모에 붙여넣기)',1500);
 };
+$('vList').addEventListener('click',e=>{ const b=e.target.closest('[data-rc]'); if(b){ e.stopPropagation(); viewReceipt(+b.dataset.rc); } }, true);
 $('vList').onclick=e=>{ const r=e.target.closest('[data-id]'); if(r) startEdit(+r.dataset.id); };
 $('tabs').onclick=e=>{ const b=e.target.closest('[data-t]'); if(!b) return; st.tab=b.dataset.t; save(); render(); };
 $('addP').onclick=()=>{ const n=$('newP').value.trim(); if(!n) return; st.people.push(n); $('newP').value=''; save(); render(); };
@@ -314,7 +362,7 @@ $('share').onclick=async()=>{
   setTimeout(()=>$('share').textContent='내역 복사하기',1500);
 };
 $('resetBtn').onclick=()=>{ const b=$('resetBtn'); if(b.dataset.a!=='1'){ b.dataset.a='1'; b.textContent='지금 내역이 지워져요. 한 번 더'; setTimeout(()=>{ b.dataset.a=''; b.textContent='새 여행 시작'; },3000); return; }
-  st.items=[]; st.cash=[]; st.name='새 여행'; b.dataset.a=''; b.textContent='새 여행 시작'; save(); render(); };
+  idb('readwrite',s=>s.clear()).catch(()=>{}); st.items=[]; st.cash=[]; st.name='새 여행'; b.dataset.a=''; b.textContent='새 여행 시작'; save(); render(); };
 
 render();
 </script>
