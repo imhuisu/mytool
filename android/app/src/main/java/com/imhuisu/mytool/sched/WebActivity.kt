@@ -4,15 +4,21 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 
 /* 앱 안에서 웹 일정(sched/)을 여는 화면. 크롬으로 넘어가지 않음
  * - 앱에서 연결한 비밀번호의 키를 웹 저장소에 넣어 줘서 웹에서 비밀번호를 또 넣지 않게 함
@@ -39,8 +45,25 @@ class WebActivity : Activity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         web = WebView(this)
-        web.fitsSystemWindows = true
-        setContentView(web)
+        // API 35+ 는 전체 화면(edge-to-edge)이 강제라 WebView 가 상태바·내비게이션 바 밑까지 그려짐.
+        // WebView 는 padding 을 무시하므로 바깥 FrameLayout 에 시스템 바(+키보드) 만큼 여백을 줌
+        val root = FrameLayout(this)
+        val night = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        root.setBackgroundColor(if (night) Color.parseColor("#121417") else Color.parseColor("#F3F6F8"))
+        root.addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        if (Build.VERSION.SDK_INT >= 30) {
+            root.setOnApplyWindowInsetsListener { v, ins ->
+                val b = ins.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+                val ime = ins.getInsets(WindowInsets.Type.ime())
+                v.setPadding(b.left, b.top, b.right, maxOf(b.bottom, ime.bottom))
+                WindowInsets.CONSUMED
+            }
+            // 밝은 화면에선 상태바 글자·아이콘을 어둡게 (안 하면 흰 글자라 안 보임)
+            val light = if (night) 0 else (WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+            window.insetsController?.setSystemBarsAppearance(light,
+                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS)
+        } else root.fitsSystemWindows = true
+        setContentView(root)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         // 웹이 앱 버전을 표시할 수 있게 UA 에 버전을 붙임 (예: MytoolApp/1.6)
