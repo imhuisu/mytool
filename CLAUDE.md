@@ -20,7 +20,7 @@
    - Cloudflare: D1 데이터베이스 `mytool` (id d365edaf-4e8c-4433-956c-598e58bd8fd9, APAC), Pages 프로젝트 mytool에 production·preview 모두 `GOLF_DB`로 바인딩. 계정 id 7329d7fb645b557134a323309af8d05b
    - PC에는 `npx wrangler login` 되어 있음 → 배포 상태는 `npx wrangler pages deployment list --project-name mytool` 또는 Cloudflare API로 확인 가능
    - 참고 (2026-10-01 오해): 그때 "functions 넣고 배포 실패"라고 판단해 서버 코드를 뺐었는데, 실제로는 실패가 아니라 push를 몰아서 해 **빌드 대기 줄이 밀린 것**이었음 (모든 배포 success). push는 한 번에 모아서 하기
-   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v15)
+   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v16)
    - 서버: `functions/api/golf.js` (Cloudflare Pages Functions + **D1**). KV는 쓰기 반영이 느릴 수 있어 D1로 바꿨음. 테이블은 첫 요청 때 자동 생성. 카드는 방 seed+홀 번호로 결정적 셔플
    - 서버 응답이 없으면 "서버가 아직 연결되지 않았어요" 메시지만 뜨고 폰 하나 모드는 그대로 동작
    - 로컬 테스트: Node 22 `node:sqlite`로 D1 흉내 내는 서버를 만들어 4개 브라우저로 확인함 (저장소에는 안 넣음)
@@ -57,7 +57,7 @@
 ## 구조
 
 ```
-index.html            첫 화면. TOOLS 배열이 도구 목록. 제목 옆 "vN" = 도구함 버전: 어떤 도구든 고쳐서 push할 때마다 N 올리기 (현재 v4). trip 제목 옆도 vN (현재 v5, trip 고칠 때마다 올리기)
+index.html            첫 화면. TOOLS 배열이 도구 목록. 제목 옆 "vN" = 도구함 버전: 어떤 도구든 고쳐서 push할 때마다 N 올리기 (현재 v5). trip 제목 옆도 vN (현재 v5, trip 고칠 때마다 올리기)
 hub.js                모든 페이지 공통: 서비스 워커 등록 + 설치 앱일 때 홈 버튼(마이툴 안드로이드 앱 안에서도 — UA 'MytoolApp/' 이면 html.in-app, 2026-10-20 희수 "앱에서 일정밖에 안 보인다"). 앱 안이면 모든 페이지 오른쪽 아래에 "⬆ 앱 업데이트" (app/version.json versionName > UA 버전일 때, 일정은 자기 #updBtn 사용)
 sw.js                 오프라인 캐시. HTML은 네트워크 우선, 나머지는 저장본 우선
 manifest.webmanifest  앱 이름·아이콘·색
@@ -72,7 +72,7 @@ golf/                 골프 뽑기 (4인 팀 뽑기·배판·정산)
                       진행 방식 `drawMode`: app(앱 뽑기) / rec(결과만 기록) / score(스코어만: 개인 기록용, 1~4명, 빈 이름 칸은 '' 로 두고 화면·스코어카드에서 뺌, 홀은 result 'N'). 저장 기록엔 mode 필드
                       멀리건: 스코어 입력 줄의 "멀리건" 버튼(0→1→2개), history[].mull=[4] (있을 때만). 스코어카드 칸에 M 표시, 합계 아래 사람별 멀리건 개수
                       몸풀기 홀: result 'N' = 내기 없이 스코어만 (이월 계산에서 건너뜀). 함께하기는 op 'skip'
-                      조커는 팀 계산에서 실제 타수와 상관없이 무조건 +1 (JOKER_VAL, 서버도 동일). 스코어카드엔 실제 ±
+                      조커는 팀 계산에서 실제 타수와 상관없이 무조건 +1 (JOKER_VAL, 서버도 동일). 스코어카드엔 실제 ±. 조커 뽑으면 jokerBuzz(): navigator.vibrate + 화면 테두리 빨갛게 번쩍 (폰 하나 모드 pick, 함께하기는 renderRoom 에서 내 색이 J 면 홀마다 한 번)
                       동점 홀 금액은 다음 홀로 이월(합산): ×2, ×3… (배로 늘지 않음, multAtH)
                       지난 홀 줄을 누르면 수정. 스코어카드 패널은 ± 기록이 생기면 항상 표시, 머리의 "스코어" 버튼으로 이동
 zephyr/               서풍의 광시곡 아이템 지도
@@ -98,6 +98,7 @@ android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, Andr
                       앱 안에서 다른 도구로: 일정 왼쪽 아래 도구함 버튼(hub.js in-app) → 첫 화면 도구 목록. 앱 아이콘을 도구함부터 열게 하려면 Sched.WEB 대신 BASE 로 열고 versionCode +1(희수 결정 전)
                       v1.8(code 10): WebView 파일 선택(onShowFileChooser) — 웹 <input type=file capture> 면 카메라(MediaStore 에 저장 자리 만들어 EXTRA_OUTPUT, FileProvider 없이), 아니면 갤러리. 여행 비용 영수증 📷/🖼️ 용. 앱 안에서 사진 안 열리던 문제(2026-10-22)
                       v1.9(code 11): WebView 를 FrameLayout 으로 감싸 시스템 바·키보드 inset 만큼 padding (API 35+ edge-to-edge 강제로 웹이 상태바·내비 바 밑에 깔리고 상태바 아이콘이 흰색이라 안 보이던 문제, 2026-10-24). 밝은 모드면 APPEARANCE_LIGHT_STATUS/NAVIGATION_BARS
+                      v1.10(code 12): VIBRATE 권한 (WebView 에서 navigator.vibrate 쓰려면 필요 — 골프 조커 진동)
                       앱의 비밀번호 키를 웹 localStorage(sched-dev-v1.sync, JWK)에 넣어 줘서 웹에서 비밀번호 재입력 없음. 웹은 동기화 후 MytoolApp.synced() 로 위젯 새로고침
                       웹 설정의 mytool://settings 링크 → 앱 연결·버전 화면(MainActivity, extra settings=true). 크롬으로 설치한 "일정" 웹앱 아이콘은 이제 필요 없음
                       플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드는 GitHub Actions 가 자동 (아래). v1.4(code 5)까지는 Play Console 에 손으로 올렸음
