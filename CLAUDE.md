@@ -2,6 +2,18 @@
 
 희수의 자잘한 개인 도구를 모아둔 설치형 웹앱. 빌드 과정 없는 정적 사이트이고, GitHub에 push하면 Cloudflare Pages가 자동 배포한다. 폰에서는 홈 화면에 설치해서 앱처럼 쓴다.
 
+## 지금 상태 요약 (2026-10-30, PC 세션 정리 — 며칠간 웹/폰 세션만 사용 예정)
+
+- **마이툴 안드로이드 앱 v1.8** (플레이스토어 내부 테스트, 패키지 com.imhuisu.mytool.sched): 앱 아이콘 → 도구함 첫 화면, 위젯 3종(일정 달력·일정 목록·할 일 목록) → 일정. 앱 안에서 모든 도구 사용, 왼쪽 아래 도구함 버튼
+- 앱 수정 배포: `android/` 고치고 `android/app/build.gradle.kts` 의 versionCode +1·versionName 올려 push → GitHub Actions 가 빌드·플레이 업로드까지 자동 (Secrets 3개 설정 완료). **웹/폰 세션에서도 그대로 가능**
+- 일정 동기화·골프 함께하기 서버: Cloudflare Pages Functions + D1 (`functions/api/`), push 하면 자동 배포
+- PC 바탕화면 위젯(`desktop/`)은 이 PC에 설치·실행 중 (Windows 시작 시 자동 실행)
+
+### 웹(클라우드) 세션에서 안 되는 것 → PC 필요
+- `desktop/` PC 위젯 빌드·설치 (.NET 도구가 PC에만 있음)
+- Cloudflare 계정 작업 (D1 만들기·바인딩·배포 로그 확인: PC에 `wrangler login` 되어 있음). 클라우드 세션에서는 실제 사이트(pages.dev) 접속도 막혀 있었음 → 배포 확인은 희수가 폰으로 (각 도구 버전 표시 참고: 골프 vN, 도구상자 build N, 일정 앱 설정의 앱 버전)
+- 로컬 테스트 서버(node:sqlite 로 D1 흉내)는 저장소에 없음 → 필요하면 새로 만들 것
+
 ## 할 일 (위에서부터)
 
 1. **배포** — 완료 (2026-10-01). GitHub `imhuisu/mytool` → Cloudflare Pages https://mytool-3up.pages.dev . 남은 것: 폰 크롬에서 앱 설치
