@@ -79,6 +79,7 @@ h1 small{display:block;font-size:12.5px;letter-spacing:0;color:var(--dim);margin
 .btn.reg{background:#e0eefb;border-color:var(--cool);color:#0f4468;font-weight:bold}
 input{font-size:19px;color:var(--ink);font-weight:bold}
 input:focus{border-color:var(--head);background:#f7fcff;box-shadow:0 0 0 2px #bcdcf5}
+#rtList input[type=checkbox]{-webkit-appearance:checkbox;appearance:auto;width:22px;height:22px;min-height:0;padding:0;margin:1px 0 0;flex:none;accent-color:var(--head)}
 .fld{display:block}
 
 /* --- 오프라인 수입 --- */
@@ -478,7 +479,7 @@ tr.grp .mn{font-size:14.5px}
 <div id="errBox" style="display:none"></div>
 
 <h1>IDLE SLAYER 도구상자
-  <small>병기고 · 몬스터 · 오프라인 · 기록 <span style="color:var(--cool)">· build 95</span></small>
+  <small>병기고 · 몬스터 · 오프라인 · 기록 <span style="color:var(--cool)">· build 96</span></small>
 </h1>
 
 <div class="grid4 tabbar">
@@ -844,6 +845,12 @@ tr.grp .mn{font-size:14.5px}
 </div>
 
 <div id="tab-log" style="display:none">
+
+  <div class="panel">
+    <div class="ttl">정글 루틴 <small style="font-weight:400;color:var(--dim)">(2026-10-30 희수 설명 기준)</small></div>
+    <div id="rtList"></div>
+    <button type="button" class="chip" id="rtReset" style="margin-top:8px">체크 모두 지우기</button>
+  </div>
 
   <div class="panel">
     <div class="ttl">측정 입력</div>
@@ -2151,6 +2158,26 @@ document.querySelectorAll('.chip.tb').forEach(b=>{
     window.scrollTo({top:0});
   };
 });
+/* 정글 루틴 체크리스트: ST.rt = [체크한 단계 번호] */
+const ROUTINE = [
+  ['포털에서 정글로', '포털 화면이 중간부터 보이면 위로 올려서 찾기'],
+  ['암흑 신성 → 은색 상자 켜기', '사람 아이콘 → 맨 아래 4번째 "신성" → 암흑 신성 → 맨 위 은색 상자 활성화 = 은색 상자가 안 나옴. 정글은 은색 상자 효율이 낮고 은색 상자는 수량 제한이 있어서 아껴 두기'],
+  ['아이템 가방 → 반지 바꾸기', ''],
+  ['아이템 사용', '희수 메모 "숫됼" — 정확한 이름 확인 필요'],
+  ['반지 원래대로 되돌리기', '']
+];
+function renderRoutine(){
+  const done = new Set(ST.rt||[]);
+  $('rtList').innerHTML = ROUTINE.map(([t,d],i)=>
+    `<label style="display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line,rgba(127,127,127,.2));cursor:pointer">`+
+    `<input type="checkbox" data-rt="${i}" ${done.has(i)?'checked':''}>`+
+    `<span style="${done.has(i)?'opacity:.5;text-decoration:line-through':''}"><b>${i+1}. ${t}</b>${d?`<br><small style="color:var(--dim)">${d}</small>`:''}</span></label>`).join('');
+}
+function saveRoutine(){ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){} }
+$('rtList').onchange = e=>{ const c=e.target.closest('[data-rt]'); if(!c) return; const i=+c.dataset.rt;
+  const set=new Set(ST.rt||[]); c.checked?set.add(i):set.delete(i); ST.rt=[...set]; saveRoutine(); renderRoutine(); };
+$('rtReset').onclick = ()=>{ ST.rt=[]; saveRoutine(); renderRoutine(); };
+renderRoutine();
 renderDimPick();
 renderMon();
 renderElem();
