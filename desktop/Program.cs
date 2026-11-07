@@ -77,6 +77,7 @@ namespace SchedDesk
     {
         const string Url = "https://mytool-3up.pages.dev/sched/?mini=1&desk=1";
         const string FullUrl = "https://mytool-3up.pages.dev/sched/?mini=0";
+        const string SchedPrefix = "https://mytool-3up.pages.dev/sched/";
         const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
         const string RunName = "mytool-sched-desk";
 
@@ -107,9 +108,14 @@ namespace SchedDesk
             TopMost = st.Top;
             try { Icon = new Icon(typeof(DeskForm).Assembly.GetManifestResourceStream("SchedDesk.app.ico")); } catch { }
 
-            // 위쪽 손잡이: 끌어서 이동 (위치 잠금이면 숨김)
-            grip.Dock = DockStyle.Top; grip.Height = 10; grip.Cursor = Cursors.SizeAll;
+            // 위쪽 손잡이: 끌어서 이동 (위치 잠금이면 숨김). 오른쪽에 ⌂ 일정으로 / ✕ 끝내기
+            grip.Dock = DockStyle.Top; grip.Height = 24; grip.Cursor = Cursors.SizeAll;
             grip.BackColor = Color.FromArgb(220, 226, 235);
+            // Dock=Right 는 나중에 넣은 게 바깥(오른쪽 끝)으로 감 → ✕ 를 맨 오른쪽에
+            grip.Controls.Add(GripButton("⌂", "일정 화면으로", () => web.CoreWebView2?.Navigate(Url)));
+            grip.Controls.Add(GripButton("✕", "끝내기 (다시 켜려면 시작 메뉴 → 일정 위젯)", () => { tray.Visible = false; Application.Exit(); }));
+            grip.Controls.Add(new Label { Text = "일정", Dock = DockStyle.Left, AutoSize = false, Width = 60, TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(8, 0, 0, 0), ForeColor = Color.FromArgb(90, 100, 115), Font = new Font("Malgun Gothic", 9f, FontStyle.Bold), Enabled = false });
             grip.MouseDown += (s, e) => { if (e.Button == MouseButtons.Left) { ReleaseCapture(); SendMessage(Handle, 0xA1, (IntPtr)2, IntPtr.Zero); } };
             grip.MouseUp += (s, e) => { if (e.Button == MouseButtons.Right) tray.ContextMenuStrip.Show(Cursor.Position); };
 
@@ -130,6 +136,11 @@ namespace SchedDesk
                     web.CoreWebView2.Settings.IsZoomControlEnabled = true;
                     // 새 창으로 열리는 링크는 기본 브라우저로
                     web.CoreWebView2.NewWindowRequested += (o, a) => { a.Handled = true; OpenBrowser(a.Uri); };
+                    // 일정(sched/) 밖으로 가는 링크도 기본 브라우저로. 위젯은 항상 일정 화면에 머묾
+                    web.CoreWebView2.NavigationStarting += (o, a) =>
+                    {
+                        if (!a.Uri.StartsWith(SchedPrefix, StringComparison.OrdinalIgnoreCase)) { a.Cancel = true; OpenBrowser(a.Uri); }
+                    };
                     web.CoreWebView2.Navigate(Url);
                 }
                 catch (Exception ex)
@@ -141,6 +152,17 @@ namespace SchedDesk
             ResizeEnd += (s, e) => Remember();
             Shown += (s, e) => { if (!TopMost) SendToBottom(); };
             Activated += (s, e) => { if (!TopMost) SendToBottom(); };
+        }
+
+        Label GripButton(string text, string tip, Action click)
+        {
+            var b = new Label { Text = text, Dock = DockStyle.Right, Width = 28, TextAlign = ContentAlignment.MiddleCenter, Cursor = Cursors.Hand,
+                ForeColor = Color.FromArgb(70, 80, 95), Font = new Font("Segoe UI Symbol", 10f, FontStyle.Bold) };
+            new ToolTip().SetToolTip(b, tip);
+            b.MouseEnter += (s, e) => b.BackColor = Color.FromArgb(200, 208, 220);
+            b.MouseLeave += (s, e) => b.BackColor = Color.Transparent;
+            b.Click += (s, e) => click();
+            return b;
         }
 
         static bool IsOnScreen(int x, int y)
@@ -205,6 +227,7 @@ namespace SchedDesk
         void BuildTray()
         {
             var menu = new ContextMenuStrip();
+            menu.Items.Add("일정 화면으로", null, (s, e) => web.CoreWebView2?.Navigate(Url));
             menu.Items.Add("큰 화면으로 열기", null, (s, e) => OpenBrowser(FullUrl));
             menu.Items.Add("새로고침", null, (s, e) => web.CoreWebView2?.Reload());
             menu.Items.Add(new ToolStripSeparator());
