@@ -473,7 +473,7 @@ function openSettings(){
       const b=$('syncOff');
       if(b.dataset.arm!=='1'){ b.dataset.arm='1'; b.textContent='한 번 더 누르면 꺼져요';
         setTimeout(()=>{ b.dataset.arm=''; b.textContent='이 기기에서 끄기'; },3000); return; }
-      dev.sync=null; saveDev(); closeSheet(); render();
+      dev.sync=null; cryptoKey=null; saveDev(); closeSheet(); render();
     };
   }else{
     $('syncOn').onclick=async()=>{
@@ -481,7 +481,8 @@ function openSettings(){
       if(!p){ $('pwmsg').textContent='비밀번호를 넣어 주세요'; return; }   // 길이 제한 없음 — 폰 앱(옛 버전)에서 짧게 정한 비밀번호로도 연결되게(2026-11-10). 새로 정할 땐 8자 이상 권장
       if(p!==$('pw2').value){ $('pwmsg').textContent='두 비밀번호가 달라요'; return; }
       $('pwmsg').textContent='설정 중…';
-      try{ dev.sync=await makeSyncKey(p); saveDev(); closeSheet(); await syncNow(); }
+      try{ dev.sync=await makeSyncKey(p); cryptoKey=null; saveDev();   // 키 캐시 비움 — 안 비우면 껐다 다른 비밀번호로 켤 때 옛 키로 잠가 올려 다른 기기가 못 엶(2026-11-10)
+        closeSheet(); await syncNow(); }
       catch(e){ $('pwmsg').textContent='실패했어요: '+e.message; }
     };
   }
@@ -564,11 +565,13 @@ async function syncNow(){
       const r=await fetch(API+'?id='+dev.sync.id,{cache:'no-store'});
       if(!r.ok) throw new Error('서버 '+r.status);
       const remote=await r.json();
-      const rdoc=remote.data?await open_(remote.data):{ev:{},tk:{}};
+      // 못 열면(위 키 캐시 버그 때 옛 키로 잠겨 올라간 내용) 이 기기 내용으로 다시 올린다 — 같은 비밀번호면 키도 같아서 맞는 기기는 열 수 있어야 함
+      let rdoc={ev:{},tk:{}}, bad=false;
+      if(remote.data){ try{ rdoc=await open_(remote.data); }catch(e){ bad=true; console.warn('서버 내용을 못 엶 → 이 기기 내용으로 다시 올림', e); } }
       const m=merge(doc,rdoc);
       const changed=JSON.stringify(m)!==JSON.stringify(merge(rdoc,{ev:{},tk:{}}));
       let ver=remote.ver;
-      if(changed||!remote.data){
+      if(changed||!remote.data||bad){
         const p=await fetch(API,{method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({id:dev.sync.id, base:remote.ver, data:await seal(m)})});
         if(p.status===409) continue;           // 다른 기기가 먼저 올림 → 다시 받아서 합치기
         if(!p.ok) throw new Error('서버 '+p.status);
