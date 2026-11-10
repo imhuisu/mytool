@@ -326,10 +326,10 @@ function renderTodo(){
 $('tabs').onclick=e=>{ const b=e.target.closest('[data-v]'); if(!b) return; dev.view=b.dataset.v; dev.kind=dev.view==='cal'?'ev':dev.view==='todo'?'tk':dev.kind; saveDev(); render(); scrollTo(0,0); };
 $('qkind').onclick=e=>{ const b=e.target.closest('[data-k]'); if(!b) return; dev.kind=b.dataset.k; saveDev(); render(); $('qin').focus(); };
 $('miniBtn').onclick=()=>{ dev.mini=true; saveDev(); render(); };
-/* desk=1: PC 바탕화면 위젯 프로그램(desktop/) 안. 크게 보기는 브라우저 새 창으로 */
+/* desk=1: PC 바탕화면 위젯 프로그램(desktop/) 안 */
 const DESK=new URLSearchParams(location.search).get('desk')==='1';
 if(DESK) document.documentElement.classList.add('desk');
-$('bigBtn').onclick=()=>{ if(DESK){ window.open('./?mini=0','_blank'); return; } dev.mini=false; saveDev(); render(); };
+$('bigBtn').onclick=()=>{ dev.mini=false; saveDev(); render(); };   // 바탕화면 위젯도 창 안에서 큰 화면(달력)으로 — 브라우저는 저장소가 따로라 동기화가 안 돼 빈 화면(2026-11-10). [위젯] 으로 되돌아감
 /* 달력 좌우로 밀어서 달 넘기기 (손가락·마우스 모두) */
 function moveMonth(d){ const [y,m]=calMonth.split('-').map(Number); calMonth=ymd(new Date(y,m-1+d,1)).slice(0,7); render(); }
 let sw=null, swiped=false;
