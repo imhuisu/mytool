@@ -125,10 +125,14 @@ body.mini .full{display:none !important}
 body.mini .hub-home{display:none !important}
 html.desk .hub-home{display:none !important}
 html.desk body.mini{padding-top:8px}
-/* 바탕화면 위젯: 창을 키우면 화면·달력도 같이 커지게(폭 720 제한 없앰, 달력 칸 높이 = 창 높이에 맞춤) 2026-11-10 */
+/* 바탕화면 위젯·PC 브라우저: 창을 키우면 화면·달력도 같이 커지게(폭 720 제한 없앰, 달력 칸 높이 = 창 높이에 맞춤) 2026-11-10 */
 html.desk .wrap, html.desk .quick .in{max-width:none}
 html.desk .day{min-height:max(62px, calc((100vh - 250px) / 6))}
 html.desk .dn{font-size:clamp(12.5px, 1.6vw, 16px)} html.desk .ev{font-size:clamp(10.5px, 1.3vw, 13px)}
+/* PC 브라우저(넓은 화면)도 같이 — 폰은 그대로 */
+@media (min-width:800px){ .wrap, .quick .in{max-width:none}
+  .day{min-height:max(62px, calc((100vh - 250px) / 6))}
+  .dn{font-size:clamp(12.5px, 1.2vw, 16px)} .ev{font-size:clamp(10.5px, 1vw, 13px)} }
 .minihead{display:none}
 body.mini .minihead{display:flex; align-items:baseline; gap:8px; margin-bottom:6px}
 .minihead .clock{font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.5px}
