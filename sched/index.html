@@ -552,7 +552,8 @@ function renderSync(){
   const c='sync'+(!dev.sync?'':syncState==='busy'?' busy':syncState==='err'?' err':' ok');
   ['syncBtn','syncMini'].forEach(id=>{ $(id).textContent=t; $(id).className=c; });
 }
-$('syncBtn').onclick=$('syncMini').onclick=()=>{ if(dev.sync) syncNow(); else openSettings(); };
+$('syncBtn').onclick=()=>{ if(dev.sync) syncNow(); else openSettings(); };
+$('syncMini').onclick=()=>openSettings();   // 위젯 모드엔 ⚙ 가 없어서 ☁ 로 동기화 설정(지금 동기화·끄기)을 연다(2026-11-10)
 function scheduleSync(){ if(!dev.sync) return; clearTimeout(syncT); syncT=setTimeout(syncNow,1200); }
 async function syncNow(){
   if(!dev.sync) return;
