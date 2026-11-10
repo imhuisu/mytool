@@ -478,7 +478,7 @@ function openSettings(){
   }else{
     $('syncOn').onclick=async()=>{
       const p=$('pw').value;
-      if(p.length<8){ $('pwmsg').textContent='8자 이상으로 정해 주세요'; return; }
+      if(!p){ $('pwmsg').textContent='비밀번호를 넣어 주세요'; return; }   // 길이 제한 없음 — 폰 앱(옛 버전)에서 짧게 정한 비밀번호로도 연결되게(2026-11-10). 새로 정할 땐 8자 이상 권장
       if(p!==$('pw2').value){ $('pwmsg').textContent='두 비밀번호가 달라요'; return; }
       $('pwmsg').textContent='설정 중…';
       try{ dev.sync=await makeSyncKey(p); saveDev(); closeSheet(); await syncNow(); }
