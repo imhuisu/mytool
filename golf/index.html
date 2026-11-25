@@ -161,6 +161,22 @@ body.jkflash{animation:jkflash .5s ease 3}
 .satedit{margin-top:5px; padding:5px} .satedit .hmnav{margin-top:0; gap:5px} .satedit .btn{flex:1; font-size:12.5px; padding:7px 2px; white-space:nowrap; border-radius:8px}
 .hmbox.satmode .satinfo{margin-top:5px; font-size:12.5px; min-height:0; line-height:1.35}
 .hmbox.satmode .satinfo b{font-size:17px}
+/* 홀 지도 탭도 화면 꽉: 코스 그림이 남는 공간 다, 그린 경사는 아래 작게 */
+.hmbox.satmode #hmMapPane{flex:1; display:flex; flex-direction:column; min-height:0; gap:6px}
+.hmbox.satmode #hmMapPane[hidden]{display:none}
+.hmmain{position:relative; flex:1; min-height:0; display:flex}
+.hmbox.satmode .hmimg{flex:1; min-height:0; display:flex; align-items:center; justify-content:center; border-radius:8px}
+.hmbox.satmode .hmimg img{width:100%; height:100%; max-width:none; max-height:none; object-fit:contain; margin:0}   /* 작은 원본도 칸 가득 키움 */
+.hmbox.satmode .hmgreen{margin:0; height:17vh; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:8px}
+.hmbox.satmode .hmgreen img{max-height:calc(17vh - 18px); max-width:100%}
+.hmfoot{display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted); margin-top:4px}
+.hmfoot a{color:var(--muted)}
+@media (min-width:640px){
+  .hmbox.satmode #hmMapPane{flex-direction:row}
+  .hmside{width:260px; display:flex; flex-direction:column; justify-content:flex-end}
+  .hmbox.satmode .hmgreen{height:auto; flex:1; max-height:55%}
+  .hmbox.satmode .hmgreen img{max-height:calc(100% - 18px)}
+}
 /* 넓은 화면(폴드 펼침·PC): 버튼은 오른쪽 세로 줄, 지도는 위아래 끝까지 */
 @media (min-width:640px){
   .hmbox.satmode #hmSatPane{display:grid; grid-template-columns:1fr 112px; grid-template-rows:1fr auto; column-gap:8px}
@@ -324,7 +340,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v40</span>
+  <h1>골프 뽑기</h1><span class="ver">v41</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -511,10 +527,12 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
     <div class="hmhead"><b id="hmTitle"></b><button class="hmx" id="hmClose" aria-label="닫기">✕</button></div>
     <div class="hmtabs" id="hmTabs"><button id="hmTabMap" class="on">홀 지도</button><button id="hmTabSat">위성 · 거리</button></div>
     <div id="hmMapPane">
-      <div class="hmimg zoomable" id="hmImgBox"><img id="hmImg" alt="홀 지도" draggable="false"></div>
-      <small class="hmtip">두 번 톡 = 확대 / 원래대로 · 두 손가락으로도 확대 · 확대 안 했을 땐 위아래로 넘기기</small>
-      <div class="hmgreen zoomable" id="hmGreenBox"><small>그린 경사 (왼쪽 / 오른쪽 그린)</small><img id="hmGreen" alt="그린 경사" draggable="false"></div>
-      <div class="hmnav"><button class="btn ghost" id="hmPrev">‹ 이전 홀</button><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a><button class="btn ghost" id="hmNext">다음 홀 ›</button></div>
+      <div class="hmmain"><div class="hmimg zoomable" id="hmImgBox"><img id="hmImg" alt="홀 지도" draggable="false"></div>
+        <button class="satarrow l" id="hmPrev" aria-label="이전 홀">‹</button><button class="satarrow r" id="hmNext" aria-label="다음 홀">›</button></div>
+      <div class="hmside">
+        <div class="hmgreen zoomable" id="hmGreenBox"><small>그린 경사 (왼쪽 / 오른쪽)</small><img id="hmGreen" alt="그린 경사" draggable="false"></div>
+        <div class="hmfoot"><small>두 번 톡 = 확대 · 두 손가락 확대</small><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a></div>
+      </div>
     </div>
     <div id="hmSatPane" hidden>
       <div class="sat" id="sat"><div id="satTiles"></div><svg id="satSvg"></svg><button class="satbig" id="satBig" aria-label="지도 크게">⤢</button>
@@ -602,7 +620,7 @@ function hmTab(t){
   hmTabCur=t; const wasHidden=$('hmSatPane').hidden || $('holeMap').hidden;
   $('hmTabMap').classList.toggle('on',t==='map'); $('hmTabSat').classList.toggle('on',t==='sat');
   $('hmMapPane').hidden=t!=='map'; $('hmSatPane').hidden=t!=='sat';
-  document.querySelector('.hmbox').classList.toggle('satmode',t==='sat'); $('holeMap').classList.toggle('satfull',t==='sat');
+  document.querySelector('.hmbox').classList.add('satmode'); $('holeMap').classList.add('satfull');   // 홀 지도·위성 둘 다 화면 꽉
   if(t==='sat') requestAnimationFrame(()=>{ if(sat.geo && !sat.all) satFrame(); satDraw(); });   // 크기 바뀐 뒤 다시 맞춤
   if(t==='sat') satOpen(wasHidden); else satStop();
 }
