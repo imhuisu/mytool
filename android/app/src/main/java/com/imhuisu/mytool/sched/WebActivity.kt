@@ -12,6 +12,9 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.Manifest
+import android.content.pm.PackageManager
+import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -30,6 +33,9 @@ class WebActivity : Activity() {
     private var fileCb: ValueCallback<Array<Uri>>? = null
     private var camUri: Uri? = null
     private val REQ_FILE = 41
+    private val REQ_GEO = 42
+    private var geoCb: GeolocationPermissions.Callback? = null
+    private var geoOrigin: String? = null
 
     companion object {
         const val EXTRA_URL = "url"
@@ -79,7 +85,18 @@ class WebActivity : Activity() {
             }
             override fun onPageFinished(v: WebView, url: String) { injectKey() }
         }
+        web.settings.setGeolocationEnabled(true)
         web.webChromeClient = object : WebChromeClient() {
+            // 웹이 위치를 물으면(골프 위성 지도): 이미 허용이면 바로, 아니면 안드로이드 권한 창
+            override fun onGeolocationPermissionsShowPrompt(origin: String, cb: GeolocationPermissions.Callback) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                    checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    cb.invoke(origin, true, false); return
+                }
+                geoCb?.invoke(geoOrigin, false, false)
+                geoCb = cb; geoOrigin = origin
+                requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), REQ_GEO)
+            }
             override fun onShowFileChooser(v: WebView, cb: ValueCallback<Array<Uri>>, p: WebChromeClient.FileChooserParams): Boolean {
                 fileCb?.onReceiveValue(null)
                 fileCb = cb; camUri = null
@@ -121,6 +138,14 @@ class WebActivity : Activity() {
             cam != null -> arrayOf(cam)
             else -> null
         })
+    }
+
+    override fun onRequestPermissionsResult(req: Int, perms: Array<out String>, res: IntArray) {
+        super.onRequestPermissionsResult(req, perms, res)
+        if (req != REQ_GEO) return
+        val ok = res.any { it == PackageManager.PERMISSION_GRANTED }
+        geoCb?.invoke(geoOrigin, ok, false)
+        geoCb = null; geoOrigin = null
     }
 
     override fun onNewIntent(i: Intent) {

@@ -138,6 +138,18 @@ body.jkflash{animation:jkflash .5s ease 3}
 .hmnav .btn{padding:8px 10px; margin:0}
 .hmnav .btn[disabled]{opacity:.4}
 .hmnav a{font-size:12px; color:var(--muted)}
+.hmtabs{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px}
+.hmtabs[hidden]{display:none}
+.hmtabs button{font-family:"Jua",sans-serif; font-size:15px; padding:7px; border-radius:9px; border:1.5px solid var(--line); background:var(--surface); color:var(--muted); cursor:pointer}
+.hmtabs button.on{border-color:var(--green); color:var(--green-deep); background:var(--flag-soft, var(--surface))}
+.zoomable{overflow:hidden; touch-action:none; position:relative}
+.zoomable img{transform-origin:0 0; user-select:none; -webkit-user-select:none}
+.hmtip{display:block; text-align:center; color:var(--muted); font-size:11px; margin-top:4px}
+.sat{position:relative; height:62vh; min-height:300px; border-radius:10px; overflow:hidden; background:#2b3a2b; touch-action:none; user-select:none; -webkit-user-select:none}
+#satTiles img{position:absolute; max-width:none; user-select:none; pointer-events:none}
+#satSvg{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.satinfo{margin-top:8px; font-size:15px; text-align:center; min-height:22px}
+.satinfo b{font-family:"Jua",sans-serif; font-weight:400; font-size:22px; color:var(--green-deep)}
 .card.big{touch-action:pan-y; user-select:none; -webkit-user-select:none}
 .card.drag .inner{transition:none}
 @keyframes cardnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
@@ -265,7 +277,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v21</span>
+  <h1>골프 뽑기</h1><span class="ver">v22</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -450,9 +462,19 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 <div class="hmap" id="holeMap" hidden>
   <div class="hmbox">
     <div class="hmhead"><b id="hmTitle"></b><button class="hmx" id="hmClose" aria-label="닫기">✕</button></div>
-    <div class="hmimg"><img id="hmImg" alt="홀 지도"></div>
-    <div class="hmgreen"><small>그린 경사 (왼쪽 / 오른쪽 그린)</small><img id="hmGreen" alt="그린 경사"></div>
-    <div class="hmnav"><button class="btn ghost" id="hmPrev">‹ 이전 홀</button><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a><button class="btn ghost" id="hmNext">다음 홀 ›</button></div>
+    <div class="hmtabs" id="hmTabs"><button id="hmTabMap" class="on">홀 지도</button><button id="hmTabSat">위성 · 거리</button></div>
+    <div id="hmMapPane">
+      <div class="hmimg zoomable" id="hmImgBox"><img id="hmImg" alt="홀 지도" draggable="false"></div>
+      <small class="hmtip">두 손가락으로 확대 · 두 번 톡 치면 원래대로</small>
+      <div class="hmgreen zoomable" id="hmGreenBox"><small>그린 경사 (왼쪽 / 오른쪽 그린)</small><img id="hmGreen" alt="그린 경사" draggable="false"></div>
+      <div class="hmnav"><button class="btn ghost" id="hmPrev">‹ 이전 홀</button><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a><button class="btn ghost" id="hmNext">다음 홀 ›</button></div>
+    </div>
+    <div id="hmSatPane" hidden>
+      <div class="sat" id="sat"><div id="satTiles"></div><svg id="satSvg"></svg></div>
+      <div class="satinfo" id="satInfo"></div>
+      <div class="hmnav"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satClr">점 지우기</button></div>
+      <small class="hmtip">위성 사진에서 그린 등을 누르면 내 위치부터 거리 · 한 번 더 누르면 두 점 사이 거리<br>위성 사진 © Esri, Maxar, Earthstar Geographics</small>
+    </div>
   </div>
 </div>
 
@@ -497,23 +519,150 @@ function holeMapOf(cn,f,b,hole){
   return { hole, sub, h, img:L.base+'images/course/tgv/'+s[0]+h+'.jpg', green:L.base+'images/course/tgv/'+s[0]+h+'_1.jpg',
     page:L.base+'course/tgv'+(s[1]+h-1)+'.asp' };
 }
-let holeMapCtx=null;   // {cn,f,b,hole}
-function setHoleLink(ctx){ holeMapCtx=ctx&&holeMapOf(ctx.cn,ctx.f,ctx.b,ctx.hole)?ctx:null; $('holeLink').hidden=!holeMapCtx; }
+/* 골프장 위치 (위성 지도 처음 화면). 떼제베: OpenStreetMap 골프장 테두리 가운데 */
+const COURSE_GEO={ '떼제베':{lat:36.6660, lon:127.3216, z:16} };
+let holeMapCtx=null;   // {cn,f,b,hole} — 라운드 중이면 항상 (홀 지도 없는 골프장은 위성만)
+function setHoleLink(ctx){ holeMapCtx=ctx||null; $('holeLink').hidden=!holeMapCtx; }
 function showHoleMap(hole){
   const c=holeMapCtx; if(!c) return;
-  const m=holeMapOf(c.cn,c.f,c.b,hole); if(!m) return;
+  const m=holeMapOf(c.cn,c.f,c.b,hole);
   const ps=parsOf(c.cn,c.f,c.b), par=ps?ps[hole-1]:null;
-  $('hmTitle').textContent=hole+'번 홀 · '+m.sub+' '+m.h+'번'+(par?' · 파'+par:'');
-  $('hmImg').src=m.img; $('hmGreen').src=m.green; $('hmPage').href=m.page;
+  $('hmTitle').textContent=hole+'번 홀'+(m?' · '+m.sub+' '+m.h+'번':'')+(par?' · 파'+par:'');
+  $('hmTabs').hidden=!m;
+  if(m){
+    $('hmImg').src=m.img; $('hmGreen').src=m.green; $('hmPage').href=m.page;
+    zoomReset($('hmImgBox')); zoomReset($('hmGreenBox'));
+  }
   $('hmPrev').disabled=hole<=1; $('hmNext').disabled=hole>=18;
   $('hmPrev').dataset.h=hole-1; $('hmNext').dataset.h=hole+1;
   $('holeMap').hidden=false;
+  hmTab(m && hmTabCur!=='sat' ? 'map' : 'sat');
 }
+let hmTabCur='map';
+function hmTab(t){
+  hmTabCur=t;
+  $('hmTabMap').classList.toggle('on',t==='map'); $('hmTabSat').classList.toggle('on',t==='sat');
+  $('hmMapPane').hidden=t!=='map'; $('hmSatPane').hidden=t!=='sat';
+  if(t==='sat') satOpen(); else satStop();
+}
+function hmClose(){ $('holeMap').hidden=true; satStop(); }
 $('holeLink').onclick=()=>{ if(holeMapCtx) showHoleMap(holeMapCtx.hole); };
-$('hmClose').onclick=()=>{ $('holeMap').hidden=true; };
-$('holeMap').addEventListener('click',e=>{ if(e.target.id==='holeMap') $('holeMap').hidden=true; });
+$('hmClose').onclick=hmClose;
+$('holeMap').addEventListener('click',e=>{ if(e.target.id==='holeMap') hmClose(); });
 $('hmPrev').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
 $('hmNext').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
+$('hmTabMap').onclick=()=>hmTab('map');
+$('hmTabSat').onclick=()=>hmTab('sat');
+
+/* 그림 확대·이동: 두 손가락 벌리기 / PC 휠, 한 손가락 끌기, 두 번 톡 → 원래대로 */
+function zoomReset(box){ const z=box._z; if(z){ z.s=1; z.x=0; z.y=0; z.apply(); } }
+function makeZoomable(box){
+  const img=box.querySelector('img'), pts=new Map();
+  const z=box._z={s:1,x:0,y:0, apply(){ img.style.transform='translate('+z.x+'px,'+z.y+'px) scale('+z.s+')'; }};
+  let last=null, lastTap=0;
+  // 확대한 그림이 원래 자리를 늘 덮도록 이동 범위 제한
+  const clamp=()=>{ z.s=Math.max(1,Math.min(6,z.s)); const w=img.offsetWidth, h=img.offsetHeight;
+    z.x=Math.min(0,Math.max(w-w*z.s,z.x)); z.y=Math.min(0,Math.max(h-h*z.s,z.y)); };
+  const zoomAt=(cx,cy,f)=>{ const r=box.getBoundingClientRect(), px=cx-r.left-img.offsetLeft, py=cy-r.top-img.offsetTop, s0=z.s;
+    z.s=Math.max(1,Math.min(6,z.s*f)); const k=z.s/s0; z.x=px-(px-z.x)*k; z.y=py-(py-z.y)*k; clamp(); z.apply(); };
+  box.addEventListener('pointerdown',e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ box.setPointerCapture(e.pointerId); }catch(_){}
+    last=null;
+    if(pts.size===1){ const now=Date.now(); if(now-lastTap<300){ z.s=1; z.x=0; z.y=0; z.apply(); lastTap=0; } else lastTap=now; } });
+  box.addEventListener('pointermove',e=>{ if(!pts.has(e.pointerId)) return; const p0=pts.get(e.pointerId); const p={x:e.clientX,y:e.clientY};
+    if(pts.size===1){ if(z.s>1){ z.x+=p.x-p0.x; z.y+=p.y-p0.y; clamp(); z.apply(); } }
+    else { const [a,b]=[...pts.values()]; const d0=Math.hypot(a.x-b.x,a.y-b.y);
+      pts.set(e.pointerId,p); const [a2,b2]=[...pts.values()]; const d1=Math.hypot(a2.x-b2.x,a2.y-b2.y);
+      if(d0>0) zoomAt((a2.x+b2.x)/2,(a2.y+b2.y)/2,d1/d0); return; }
+    pts.set(e.pointerId,p); });
+  const up=e=>{ pts.delete(e.pointerId); };
+  box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
+  box.addEventListener('wheel',e=>{ e.preventDefault(); zoomAt(e.clientX,e.clientY,e.deltaY<0?1.25:0.8); },{passive:false});
+}
+makeZoomable($('hmImgBox')); makeZoomable($('hmGreenBox'));
+
+/* ---------- 위성 지도 + GPS 거리 (Esri World Imagery 타일, 라이브러리 없이) ---------- */
+const SAT_TILE=(z,x,y)=>'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/'+z+'/'+y+'/'+x;
+const sat={cx:0, cy:0, z:16, me:null, acc:0, pts:[], watch:null, centered:false, ready:false, tiles:new Map()};
+function ll2w(lat,lon){ const r=lat*Math.PI/180; return [(lon+180)/360*256, (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256]; }   // 0단계 세계 좌표
+function w2ll(x,y){ const m=Math.PI-2*Math.PI*y/256; return [180/Math.PI*Math.atan(Math.sinh(m)), x/256*360-180]; }
+function distM(a,b){ const R=6371008.8, t=Math.PI/180, dla=(b[0]-a[0])*t, dlo=(b[1]-a[1])*t;
+  const h=Math.sin(dla/2)**2+Math.cos(a[0]*t)*Math.cos(b[0]*t)*Math.sin(dlo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function satCenter(lat,lon,z){ [sat.cx,sat.cy]=ll2w(lat,lon); if(z) sat.z=z; }
+function satOpen(){
+  if(!sat.ready){
+    sat.ready=true;
+    const g=COURSE_GEO[courseKey(holeMapCtx&&holeMapCtx.cn)];
+    if(g) satCenter(g.lat,g.lon,g.z); else satCenter(36.5,127.8,7);   // 모르는 골프장: 위치 받으면 그쪽으로
+  }
+  if(sat.watch==null && navigator.geolocation){
+    sat.watch=navigator.geolocation.watchPosition(p=>{
+      sat.me=[p.coords.latitude,p.coords.longitude]; sat.acc=p.coords.accuracy||0;
+      if(!sat.centered){ sat.centered=true;
+        const g=COURSE_GEO[courseKey(holeMapCtx&&holeMapCtx.cn)];
+        if(!g || distM(sat.me,[g.lat,g.lon])<5000) satCenter(sat.me[0],sat.me[1],17.5); }   // 골프장 안(근처)이면 내 위치로
+      satDraw();
+    }, err=>{ sat.err=err.code===1?'위치 권한이 꺼져 있어요 (브라우저·앱 설정에서 허용)':'위치를 못 받았어요'; satDraw(); },
+    {enableHighAccuracy:true, maximumAge:3000, timeout:20000});
+  }
+  requestAnimationFrame(satDraw);
+}
+function satStop(){ if(sat.watch!=null && navigator.geolocation){ navigator.geolocation.clearWatch(sat.watch); } sat.watch=null; sat.centered=false; }
+function satDraw(){
+  const box=$('sat'), W=box.clientWidth, H=box.clientHeight; if(!W) return;
+  const tz=Math.max(1,Math.min(19,Math.round(sat.z))), sc=Math.pow(2,sat.z-tz), n=1<<tz;
+  const cxp=sat.cx*n, cyp=sat.cy*n;   // tz 단계 픽셀
+  const x0=Math.floor((cxp-W/2/sc)/256), x1=Math.floor((cxp+W/2/sc)/256), y0=Math.floor((cyp-H/2/sc)/256), y1=Math.floor((cyp+H/2/sc)/256);
+  const used=new Set(), holder=$('satTiles'), ts=256*sc;
+  for(let ty=y0; ty<=y1; ty++) for(let tx=x0; tx<=x1; tx++){
+    if(ty<0||ty>=n) continue; const wx=((tx%n)+n)%n, key=tz+'/'+wx+'/'+ty; used.add(key);
+    let im=sat.tiles.get(key); if(!im){ im=new Image(); im.alt=''; im.src=SAT_TILE(tz,wx,ty); holder.appendChild(im); sat.tiles.set(key,im); }
+    im.style.left=((tx*256-cxp)*sc+W/2)+'px'; im.style.top=((ty*256-cyp)*sc+H/2)+'px'; im.style.width=im.style.height=(ts+0.5)+'px';
+  }
+  for(const [k,im] of sat.tiles) if(!used.has(k)){ im.remove(); sat.tiles.delete(k); }
+  // 표시: 내 위치, 찍은 점, 선
+  const toS=ll=>{ const [x,y]=ll2w(ll[0],ll[1]); const k=n*sc; return [(x-sat.cx)*k+W/2, (y-sat.cy)*k+H/2]; };
+  const mpp=156543.03*Math.cos((sat.me?sat.me[0]:w2ll(sat.cx,sat.cy)[0])*Math.PI/180)/Math.pow(2,sat.z);   // 1px 당 m
+  let s='', info='';
+  const lbl=(a,b,t)=>{ const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+    return '<text x="'+mx+'" y="'+(my-6)+'" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">'+t+'</text>'; };
+  const P=sat.pts.map(toS), M=sat.me?toS(sat.me):null;
+  if(M && P[0]) s+='<line x1="'+M[0]+'" y1="'+M[1]+'" x2="'+P[0][0]+'" y2="'+P[0][1]+'" stroke="#fff" stroke-width="2.5" stroke-dasharray="7 5"/>'+lbl(M,P[0],Math.round(distM(sat.me,sat.pts[0]))+'m');
+  if(P[1]) s+='<line x1="'+P[0][0]+'" y1="'+P[0][1]+'" x2="'+P[1][0]+'" y2="'+P[1][1]+'" stroke="#ffd34d" stroke-width="2.5"/>'+lbl(P[0],P[1],Math.round(distM(sat.pts[0],sat.pts[1]))+'m');
+  if(M){ const ar=Math.min(200,sat.acc/mpp);
+    s+='<circle cx="'+M[0]+'" cy="'+M[1]+'" r="'+ar+'" fill="rgba(66,133,244,.18)" stroke="rgba(66,133,244,.5)"/>'+
+       '<circle cx="'+M[0]+'" cy="'+M[1]+'" r="7" fill="#4285f4" stroke="#fff" stroke-width="2.5"/>'; }
+  P.forEach((p,i)=>{ s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="9" fill="'+(i?'#ffd34d':'#d1493a')+'" stroke="#fff" stroke-width="2"/>'+
+    '<text x="'+p[0]+'" y="'+(p[1]+4.5)+'" text-anchor="middle" font-size="12" font-weight="700" fill="'+(i?'#000':'#fff')+'">'+(i+1)+'</text>'; });
+  $('satSvg').innerHTML=s;
+  if(sat.pts[0] && sat.me) info='나 → ① <b>'+Math.round(distM(sat.me,sat.pts[0]))+'m</b>';
+  if(sat.pts[1]) info+=(info?' &nbsp; ':'')+'① → ② <b>'+Math.round(distM(sat.pts[0],sat.pts[1]))+'m</b>';
+  if(!info) info = sat.me ? '그린 등 가고 싶은 곳을 누르세요 (내 위치 오차 약 '+Math.round(sat.acc)+'m)'
+    : sat.pts[0] ? '내 위치를 아직 못 받았어요 — 한 번 더 누르면 두 점 사이 거리' : (sat.err||'내 위치 찾는 중…');
+  else if(sat.me && sat.acc>20) info+='<br><small>위치 오차 약 '+Math.round(sat.acc)+'m</small>';
+  $('satInfo').innerHTML=info;
+}
+(function(){
+  const box=$('sat'), pts=new Map(); let moved=0, t0=0, pinch=null;
+  const scr2w=(cx,cy)=>{ const r=box.getBoundingClientRect(), k=Math.pow(2,sat.z); return [sat.cx+(cx-r.left-box.clientWidth/2)/k, sat.cy+(cy-r.top-box.clientHeight/2)/k]; };
+  const zoomAt=(cx,cy,nz)=>{ nz=Math.max(3,Math.min(20,nz)); const w=scr2w(cx,cy); sat.z=nz;
+    const r=box.getBoundingClientRect(), k=Math.pow(2,nz); sat.cx=w[0]-(cx-r.left-box.clientWidth/2)/k; sat.cy=w[1]-(cy-r.top-box.clientHeight/2)/k; satDraw(); };
+  box.addEventListener('pointerdown',e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ box.setPointerCapture(e.pointerId); }catch(_){}
+    if(pts.size===1){ moved=0; t0=Date.now(); } else moved=99;
+    if(pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), z:sat.z}; } });
+  box.addEventListener('pointermove',e=>{ const p0=pts.get(e.pointerId); if(!p0) return; const p={x:e.clientX,y:e.clientY}; pts.set(e.pointerId,p);
+    if(pts.size===1){ const dx=p.x-p0.x, dy=p.y-p0.y; moved+=Math.abs(dx)+Math.abs(dy); const k=Math.pow(2,sat.z); sat.cx-=dx/k; sat.cy-=dy/k; satDraw(); }
+    else if(pinch && pts.size===2){ const [a,b]=[...pts.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch.d>0) zoomAt((a.x+b.x)/2,(a.y+b.y)/2,pinch.z+Math.log2(d/pinch.d)); } });
+  const up=e=>{ const had=pts.has(e.pointerId); pts.delete(e.pointerId); if(pts.size<2) pinch=null;
+    if(had && e.type==='pointerup' && pts.size===0 && moved<10 && Date.now()-t0<600){
+      const w=scr2w(e.clientX,e.clientY), ll=w2ll(w[0],w[1]);
+      if(sat.pts.length>=2) sat.pts=[];   // ① → ② → 다시 ①
+      sat.pts.push(ll); satDraw(); } };
+  box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
+  box.addEventListener('wheel',e=>{ e.preventDefault(); zoomAt(e.clientX,e.clientY,sat.z+(e.deltaY<0?0.5:-0.5)); },{passive:false});
+  addEventListener('resize',()=>{ if(!$('hmSatPane').hidden) satDraw(); });
+})();
+$('satMe').onclick=()=>{ if(sat.me){ satCenter(sat.me[0],sat.me[1],Math.max(sat.z,17.5)); satDraw(); } else { $('satInfo').textContent=sat.err||'내 위치 찾는 중…'; } };
+$('satClr').onclick=()=>{ sat.pts=[]; satDraw(); };
 function parAt(hole){ const ps=parsOf(course,front,back); return ps ? ps[hole-1] : null; }
 let rounds=[];             // 저장된 라운드: {id, date, course, names, fee, history, savedAt}
 
