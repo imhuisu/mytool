@@ -145,8 +145,33 @@ body.jkflash{animation:jkflash .5s ease 3}
 .setip{font-size:13px; text-align:center; margin-bottom:2px}
 #setTee,#setGreen,#setReset,#setDone{flex:1; white-space:nowrap}
 #satAll,#satEdit{flex:1; font-size:13.5px; padding:8px 4px}
+/* 위성 탭: 창이 화면에 딱 맞고 지도가 남는 공간을 채움 (스크롤 없음) */
+.hmbox.satmode{height:100%; display:flex; flex-direction:column; overflow:hidden; max-width:none; border-radius:0; padding:8px 8px 6px}
+.hmap.satfull{padding:0}
+.hmbox.satmode .hmhead{margin-bottom:4px} .hmbox.satmode .hmhead b{font-size:16px} .hmbox.satmode .hmx{font-size:20px; padding:0 6px}
+.hmbox.satmode .hmtabs{margin-bottom:6px} .hmbox.satmode .hmtabs button{font-size:13.5px; padding:5px}
+.hmbox.satmode .sat{border-radius:8px} .hmbox.satmode #satBig{display:none}
+.hmbox.satmode #hmSatPane{flex:1; display:flex; flex-direction:column; min-height:0}
+.hmbox.satmode .sat{flex:1; height:auto; min-height:220px}
+.satarrow{position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:36px; height:58px; border:0; border-radius:10px;
+  background:rgba(0,0,0,.42); color:#fff; font-size:30px; line-height:1; cursor:pointer; padding:0}
+.satarrow.l{left:6px} .satarrow.r{right:6px} .satarrow[disabled]{opacity:.2}
+.satcred{position:absolute; left:6px; bottom:3px; z-index:3; font-size:9px; color:rgba(255,255,255,.7); pointer-events:none}
+.sattools{margin-top:5px; gap:5px} .sattools .btn{flex:1; font-size:12.5px; padding:7px 2px; white-space:nowrap; border-radius:8px}
+.satedit{margin-top:5px; padding:5px} .satedit .hmnav{margin-top:0; gap:5px} .satedit .btn{flex:1; font-size:12.5px; padding:7px 2px; white-space:nowrap; border-radius:8px}
+.hmbox.satmode .satinfo{margin-top:5px; font-size:12.5px; min-height:0; line-height:1.35}
+.hmbox.satmode .satinfo b{font-size:17px}
+/* 넓은 화면(폴드 펼침·PC): 버튼은 오른쪽 세로 줄, 지도는 위아래 끝까지 */
+@media (min-width:640px){
+  .hmbox.satmode #hmSatPane{display:grid; grid-template-columns:1fr 112px; grid-template-rows:1fr auto; column-gap:8px}
+  .hmbox.satmode .sat{grid-column:1; grid-row:1}
+  .hmbox.satmode .satinfo{grid-column:1; grid-row:2}
+  .hmbox.satmode .satside{grid-column:2; grid-row:1 / 3; display:flex; flex-direction:column; gap:6px; justify-content:flex-end}
+  .hmbox.satmode .satside .hmnav{flex-direction:column; align-items:stretch; margin:0; gap:6px}
+  .hmbox.satmode .satside .btn{flex:none; padding:12px 4px; font-size:13px}
+  .hmbox.satmode .satedit{margin:0}
+}
 #satAll.on{border-color:var(--flag); color:var(--flag)}
-#satPrev,#satNext{flex:1; font-family:"Jua",sans-serif; font-size:16px}
 .hmnav a{font-size:12px; color:var(--muted)}
 .hmtabs{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px}
 .hmtabs[hidden]{display:none}
@@ -299,7 +324,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v36</span>
+  <h1>골프 뽑기</h1><span class="ver">v37</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -492,16 +517,16 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
       <div class="hmnav"><button class="btn ghost" id="hmPrev">‹ 이전 홀</button><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a><button class="btn ghost" id="hmNext">다음 홀 ›</button></div>
     </div>
     <div id="hmSatPane" hidden>
-      <div class="sat" id="sat"><div id="satTiles"></div><svg id="satSvg"></svg><button class="satbig" id="satBig" aria-label="지도 크게">⤢</button></div>
-      <div class="satedit" id="satEditBar" hidden>
-        <div class="setip">버튼을 누른 다음 지도에서 진짜 자리를 <b>톡</b> 누르세요</div>
-        <div class="hmnav"><button class="btn ghost" id="setTee">⛳ 티 위치 지정</button><button class="btn ghost" id="setGreen">🚩 핀 위치 지정</button></div>
-        <div class="hmnav"><button class="btn ghost" id="setReset">이 홀 원래대로</button><button class="btn main" id="setDone">완료</button></div>
-      </div>
+      <div class="sat" id="sat"><div id="satTiles"></div><svg id="satSvg"></svg><button class="satbig" id="satBig" aria-label="지도 크게">⤢</button>
+        <button class="satarrow l" id="satPrev" aria-label="이전 홀">‹</button><button class="satarrow r" id="satNext" aria-label="다음 홀">›</button>
+        <span class="satcred">© Esri, Maxar</span></div>
       <div class="satinfo" id="satInfo"></div>
-      <div class="hmnav"><button class="btn ghost" id="satPrev">‹ 이전 홀</button><button class="btn ghost" id="satNext">다음 홀 ›</button></div>
-      <div class="hmnav"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satClr">점 지우기</button></div>
-      <div class="hmnav"><button class="btn ghost" id="satAll">🗺 이 코스 9홀 전체 보기</button><button class="btn ghost" id="satEdit">✎ 티·그린 고치기</button></div>      <small class="hmtip">위성 사진에서 그린 등을 누르면 내 위치부터 거리 · 한 번 더 누르면 두 점 사이 거리<br>위성 사진 © Esri, Maxar, Earthstar Geographics</small>
+      <div class="satside">
+      <div class="satedit" id="satEditBar" hidden>
+        <div class="hmnav"><button class="btn ghost" id="setTee">⛳ 티 지정</button><button class="btn ghost" id="setGreen">🚩 핀 지정</button><button class="btn ghost" id="setReset">원래대로</button><button class="btn main" id="setDone">완료</button></div>
+      </div>
+      <div class="hmnav sattools"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satAll">🗺 9홀</button><button class="btn ghost" id="satEdit">✎ 고치기</button><button id="satClr" hidden></button></div>
+      </div>
     </div>
   </div>
 </div>
@@ -577,6 +602,8 @@ function hmTab(t){
   hmTabCur=t; const wasHidden=$('hmSatPane').hidden || $('holeMap').hidden;
   $('hmTabMap').classList.toggle('on',t==='map'); $('hmTabSat').classList.toggle('on',t==='sat');
   $('hmMapPane').hidden=t!=='map'; $('hmSatPane').hidden=t!=='sat';
+  document.querySelector('.hmbox').classList.toggle('satmode',t==='sat'); $('holeMap').classList.toggle('satfull',t==='sat');
+  if(t==='sat') requestAnimationFrame(()=>{ if(sat.geo && !sat.all) satFrame(); satDraw(); });   // 크기 바뀐 뒤 다시 맞춤
   if(t==='sat') satOpen(wasHidden); else satStop();
 }
 function hmClose(){ $('holeMap').hidden=true; satStop(); satEditMode(false); }
@@ -804,7 +831,7 @@ function satDraw(){
   if(nearHole) info='그린(추정)까지 <b>'+Math.round(distM(sat.me,g.green))+'m</b>';
   if(sat.pts[0] && sat.me) info+=(info?' &nbsp; ':'')+'나 → ① <b>'+Math.round(distM(sat.me,sat.pts[0]))+'m</b>';
   if(sat.pts[1]) info+=(info?' &nbsp; ':'')+'① → ② <b>'+Math.round(distM(sat.pts[0],sat.pts[1]))+'m</b>';
-  if(!info && g) info='티 → 그린(추정) <b>'+Math.round(distM(g.tee,g.green))+'m</b> · 점선 = 그린까지 50m 간격';
+  if(!info && g) info='티 → 그린(추정) <b>'+Math.round(distM(g.tee,g.green))+'m</b>';
   if(!info) info = sat.me ? '그린 등 가고 싶은 곳을 누르세요'
     : sat.pts[0] ? '내 위치를 아직 못 받았어요 — 한 번 더 누르면 두 점 사이 거리' : (sat.err||'내 위치 찾는 중…');
   if(sat.me && sat.acc>20) info+='<br><small>위치 오차 약 '+Math.round(sat.acc)+'m</small>';
@@ -859,8 +886,9 @@ function satDraw(){
 $('satMe').onclick=()=>{ if(sat.me){ const w=ll2w(sat.me[0],sat.me[1]); satAnim({cx:w[0],cy:w[1],z:Math.max(sat.z,17.5)}); } else { $('satInfo').textContent=sat.err||'내 위치 찾는 중…'; } };
 $('satHole').onclick=()=>{ satFrame(true); };
 /* ⤢ 지도 크게 (창 가득) */
-$('satBig').addEventListener('pointerdown',e=>e.stopPropagation());
-$('satBig').addEventListener('pointerup',e=>e.stopPropagation());
+for(const id of ['satBig','satPrev','satNext']){   // 지도 위 버튼은 지도 톡으로 안 셈
+  $(id).addEventListener('pointerdown',e=>e.stopPropagation());
+  $(id).addEventListener('pointerup',e=>e.stopPropagation()); }
 $('satBig').onclick=e=>{ e.stopPropagation(); const b=document.querySelector('.hmbox'), on=b.classList.toggle('big');
   $('satBig').textContent=on?'⤡':'⤢'; requestAnimationFrame(()=>{ if(sat.geo) satFrame(); satDraw(); }); };
 $('satClr').onclick=()=>{ sat.pts=[]; satDraw(); };
