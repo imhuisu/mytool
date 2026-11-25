@@ -290,7 +290,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v27</span>
+  <h1>골프 뽑기</h1><span class="ver">v28</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -720,11 +720,21 @@ function satDraw(){
     return '<text x="'+mx+'" y="'+(my-6)+'" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">'+t+'</text>'; };
   const P=sat.pts.map(toS), M=sat.me?toS(sat.me):null, g=sat.geo;
   const GR=g?toS(g.green):null, TE=g?toS(g.tee):null;
+  if(GR){ // 코스 사진처럼 그린에서 50m 간격 거리 호 (티 쪽으로 ±40°)
+    const L=distM(g.tee,g.green), base=Math.atan2(TE[1]-GR[1], TE[0]-GR[0]), sp=40*Math.PI/180;
+    for(let m=50; m<L-25; m+=(m<200?50:100)){   // 200m 까진 50m, 그 뒤론 100m 간격
+      const r=m/mpp, a0=base-sp, a1=base+sp, p0=[GR[0]+r*Math.cos(a0),GR[1]+r*Math.sin(a0)], p1=[GR[0]+r*Math.cos(a1),GR[1]+r*Math.sin(a1)];
+      const major=m%100===0;
+      s+='<path d="M'+p0[0]+' '+p0[1]+' A'+r+' '+r+' 0 0 1 '+p1[0]+' '+p1[1]+'" fill="none" stroke="rgba(255,255,255,'+(major?.75:.45)+')" stroke-width="'+(major?1.6:1.1)+'" stroke-dasharray="'+(major?'6 4':'3 5')+'"/>';
+      const la=base+sp*0.55, lx=GR[0]+r*Math.cos(la), ly=GR[1]+r*Math.sin(la);   // 글자는 호 안쪽(화면 안에 남게)
+      s+='<text x="'+lx+'" y="'+(ly+4)+'" text-anchor="middle" font-size="'+(major?12:10.5)+'" font-weight="700" fill="'+(major?'#ffe08a':'#fff')+'" stroke="#000" stroke-width="2.6" paint-order="stroke">'+m+'</text>';
+    }
+  }
   if(GR){ // 그린(추정) 깃발, 티 표시
     s+='<circle cx="'+TE[0]+'" cy="'+TE[1]+'" r="6" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="'+TE[0]+'" y="'+(TE[1]+20)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">티</text>';
     s+='<line x1="'+GR[0]+'" y1="'+GR[1]+'" x2="'+GR[0]+'" y2="'+(GR[1]-22)+'" stroke="#fff" stroke-width="2"/><path d="M'+GR[0]+' '+(GR[1]-22)+' l12 4 l-12 4 z" fill="#d1493a"/>'+
        '<circle cx="'+GR[0]+'" cy="'+GR[1]+'" r="3" fill="#fff"/>';
-    if(M && !P[0]) s+='<line x1="'+M[0]+'" y1="'+M[1]+'" x2="'+GR[0]+'" y2="'+GR[1]+'" stroke="#fff" stroke-width="2" stroke-dasharray="4 6" opacity=".8"/>';
+    if(M && !P[0] && distM(sat.me,g.green) < distM(g.tee,g.green)+60) s+='<line x1="'+M[0]+'" y1="'+M[1]+'" x2="'+GR[0]+'" y2="'+GR[1]+'" stroke="#fff" stroke-width="2" stroke-dasharray="4 6" opacity=".8"/>';
   }
   if(M && P[0]) s+='<line x1="'+M[0]+'" y1="'+M[1]+'" x2="'+P[0][0]+'" y2="'+P[0][1]+'" stroke="#fff" stroke-width="2.5" stroke-dasharray="7 5"/>'+lbl(M,P[0],Math.round(distM(sat.me,sat.pts[0]))+'m');
   if(P[1]) s+='<line x1="'+P[0][0]+'" y1="'+P[0][1]+'" x2="'+P[1][0]+'" y2="'+P[1][1]+'" stroke="#ffd34d" stroke-width="2.5"/>'+lbl(P[0],P[1],Math.round(distM(sat.pts[0],sat.pts[1]))+'m');
@@ -738,7 +748,8 @@ function satDraw(){
   if(nearHole) info='그린(추정)까지 <b>'+Math.round(distM(sat.me,g.green))+'m</b>';
   if(sat.pts[0] && sat.me) info+=(info?' &nbsp; ':'')+'나 → ① <b>'+Math.round(distM(sat.me,sat.pts[0]))+'m</b>';
   if(sat.pts[1]) info+=(info?' &nbsp; ':'')+'① → ② <b>'+Math.round(distM(sat.pts[0],sat.pts[1]))+'m</b>';
-  if(!info) info = sat.me ? (g?'깃발 = 그린 추정 위치 · ':'')+'그린 등 가고 싶은 곳을 누르세요'
+  if(!info && g) info='티 → 그린(추정) <b>'+Math.round(distM(g.tee,g.green))+'m</b> · 점선 = 그린까지 50m 간격';
+  if(!info) info = sat.me ? '그린 등 가고 싶은 곳을 누르세요'
     : sat.pts[0] ? '내 위치를 아직 못 받았어요 — 한 번 더 누르면 두 점 사이 거리' : (sat.err||'내 위치 찾는 중…');
   if(sat.me && sat.acc>20) info+='<br><small>위치 오차 약 '+Math.round(sat.acc)+'m</small>';
   $('satInfo').innerHTML=info;
