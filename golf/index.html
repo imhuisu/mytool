@@ -142,7 +142,7 @@ body.jkflash{animation:jkflash .5s ease 3}
 .hmtabs[hidden]{display:none}
 .hmtabs button{font-family:"Jua",sans-serif; font-size:15px; padding:7px; border-radius:9px; border:1.5px solid var(--line); background:var(--surface); color:var(--muted); cursor:pointer}
 .hmtabs button.on{border-color:var(--green); color:var(--green-deep); background:var(--flag-soft, var(--surface))}
-.zoomable{overflow:hidden; touch-action:none; position:relative}
+.zoomable{overflow:hidden; touch-action:pan-y; position:relative}   /* 확대 전엔 위아래 스크롤 허용, 확대하면 none (apply) */
 .zoomable img{transform-origin:0 0; user-select:none; -webkit-user-select:none}
 .hmtip{display:block; text-align:center; color:var(--muted); font-size:11px; margin-top:4px}
 .sat{position:relative; height:62vh; min-height:300px; border-radius:10px; overflow:hidden; background:#2b3a2b; touch-action:none; user-select:none; -webkit-user-select:none}
@@ -286,7 +286,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v24</span>
+  <h1>골프 뽑기</h1><span class="ver">v25</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -474,7 +474,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
     <div class="hmtabs" id="hmTabs"><button id="hmTabMap" class="on">홀 지도</button><button id="hmTabSat">위성 · 거리</button></div>
     <div id="hmMapPane">
       <div class="hmimg zoomable" id="hmImgBox"><img id="hmImg" alt="홀 지도" draggable="false"></div>
-      <small class="hmtip">두 손가락으로 확대 · 두 번 톡 치면 원래대로</small>
+      <small class="hmtip">두 번 톡 = 확대 / 원래대로 · 두 손가락으로도 확대 · 확대 안 했을 땐 위아래로 넘기기</small>
       <div class="hmgreen zoomable" id="hmGreenBox"><small>그린 경사 (왼쪽 / 오른쪽 그린)</small><img id="hmGreen" alt="그린 경사" draggable="false"></div>
       <div class="hmnav"><button class="btn ghost" id="hmPrev">‹ 이전 홀</button><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a><button class="btn ghost" id="hmNext">다음 홀 ›</button></div>
     </div>
@@ -569,7 +569,8 @@ $('hmTabSat').onclick=()=>hmTab('sat');
 function zoomReset(box){ const z=box._z; if(z){ z.s=1; z.x=0; z.y=0; z.apply(); } }
 function makeZoomable(box){
   const img=box.querySelector('img'), pts=new Map();
-  const z=box._z={s:1,x:0,y:0, apply(){ img.style.transform='translate('+z.x+'px,'+z.y+'px) scale('+z.s+')'; }};
+  const z=box._z={s:1,x:0,y:0, apply(){ img.style.transform='translate('+z.x+'px,'+z.y+'px) scale('+z.s+')';
+    box.style.touchAction = z.s>1 ? 'none' : 'pan-y'; }};   // 확대 안 했으면 한 손가락은 창 스크롤
   let last=null, lastTap=0;
   // 확대한 그림이 원래 자리를 늘 덮도록 이동 범위 제한
   const clamp=()=>{ z.s=Math.max(1,Math.min(6,z.s)); const w=img.offsetWidth, h=img.offsetHeight;
@@ -578,7 +579,9 @@ function makeZoomable(box){
     z.s=Math.max(1,Math.min(6,z.s*f)); const k=z.s/s0; z.x=px-(px-z.x)*k; z.y=py-(py-z.y)*k; clamp(); z.apply(); };
   box.addEventListener('pointerdown',e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ box.setPointerCapture(e.pointerId); }catch(_){}
     last=null;
-    if(pts.size===1){ const now=Date.now(); if(now-lastTap<300){ z.s=1; z.x=0; z.y=0; z.apply(); lastTap=0; } else lastTap=now; } });
+    // 두 번 톡: 확대 안 했으면 그 자리를 2.5배, 확대했으면 원래대로
+    if(pts.size===1){ const now=Date.now();
+      if(now-lastTap<300){ if(z.s>1){ z.s=1; z.x=0; z.y=0; z.apply(); } else zoomAt(e.clientX,e.clientY,2.5); lastTap=0; } else lastTap=now; } });
   box.addEventListener('pointermove',e=>{ if(!pts.has(e.pointerId)) return; const p0=pts.get(e.pointerId); const p={x:e.clientX,y:e.clientY};
     if(pts.size===1){ if(z.s>1){ z.x+=p.x-p0.x; z.y+=p.y-p0.y; clamp(); z.apply(); } }
     else { const [a,b]=[...pts.values()]; const d0=Math.hypot(a.x-b.x,a.y-b.y);
