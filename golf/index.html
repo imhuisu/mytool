@@ -324,7 +324,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v37</span>
+  <h1>골프 뽑기</h1><span class="ver">v38</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -652,20 +652,19 @@ const SAT_TILE=(z,x,y)=>'https://server.arcgisonline.com/ArcGIS/rest/services/Wo
    떼제베 북·동: 공식 배치도(onetheclub course_map.png)와 위성 사진을 맞춰 2026-11-25 에 찍은 추정값 (수십 m 틀릴 수 있음). 남·서는 아직 없음 */
 const HOLE_GEO={
   '떼제베':{
-    // 북2·3·5 고침(2026-11-25, 희수 지적): 5번은 서→동, 벙커 무리(티 200~223m) 너머 동쪽 그린. 서쪽 그린은 2번(파3) 그린
-    '북(마루)':[[36.6688,127.3182,36.6706,127.3204],[36.67045,127.32075,36.67106,127.32186],[36.67158,127.32155,36.6721,127.3251],
-               [36.6716,127.3252,36.6712,127.3226],[36.67059,127.32208,36.67102,127.32514],[36.6704,127.3249,36.6702,127.3236],
-               [36.66838,127.32266,36.6672,127.3198],[36.6672,127.31922,36.6689,127.3224],
-               [36.6694,127.32185,36.6676,127.3185]],   // 7·8·9 티 고침(희수 지적): 7 = 6번 그린 아래 티박스, 8 = 7번 그린 옆 티박스, 9 = 8번 그린 위 카트 길 옆 티박스 줄
-    // 동1 티 고침(주차장 안에 찍혀 있었음 → 주차장 동쪽 페어웨이 시작)
-    '동(한울)':[[36.66607,127.32054,36.6668,127.3237],[36.6671,127.3241,36.6708,127.3268],[36.6710,127.3273,36.6677,127.3256],
-               [36.6673,127.3250,36.6661,127.3240],[36.6660,127.3229,36.6631,127.3232],[36.6625,127.3230,36.6624,127.3283],
-               [36.6618,127.3288,36.6615,127.3274],[36.6612,127.3273,36.6614,127.3232],[36.6619,127.3220,36.6651,127.3216]],
+    // 티: 희수가 앱 '고치기'로 직접 맞춘 값(서버 golf_geo, 2026-11-25) — 북 1·2·3·5·6·9, 동 1·2·3·6·7·8·9. 그린: 배치도+위성 추정(북2·5 는 희수 지적으로 고침)
+    '북(마루)':[[36.668828,127.318095,36.6706,127.3204],[36.670248,127.320987,36.67106,127.32186],[36.671602,127.321918,36.6721,127.3251],
+               [36.6716,127.3252,36.6712,127.3226],[36.670538,127.322099,36.67102,127.32514],[36.670445,127.324845,36.6702,127.3236],
+               [36.66838,127.32266,36.6672,127.3198],[36.6672,127.31922,36.6689,127.3224],[36.669351,127.322007,36.6676,127.3185]],
+    '동(한울)':[[36.665511,127.320632,36.6668,127.3237],[36.66711,127.324541,36.6708,127.3268],[36.670533,127.32761,36.6677,127.3256],
+               [36.6673,127.3250,36.6661,127.3240],[36.6660,127.3229,36.6631,127.3232],[36.662351,127.323485,36.6624,127.3283],
+               [36.661665,127.328819,36.6615,127.3274],[36.66095,127.326947,36.6614,127.3232],[36.661907,127.322595,36.6651,127.3216]],
   },
 };
 /* 직접 고친 티·그린 위치 (이 기기에만, localStorage gd2-holegeo = {골프장:{코스:{0~8:[티위도,티경도,그린위도,그린경도]}}}) */
 let holeGeoFix={};
 try{ holeGeoFix=JSON.parse(localStorage.getItem('gd2-holegeo')||'{}')||{}; }catch(e){}
+function sameGeo(a,b){ return !!(a&&b) && a.length===4 && a.every((v,j)=>Math.abs(v-b[j])<2e-6); }
 function saveHoleGeoFix(){ try{ localStorage.setItem('gd2-holegeo', JSON.stringify(holeGeoFix)); }catch(e){} }
 /* 서버(D1 golf_geo)와 같이 씀: 열 때 받아오고, 고치면 바로 올림. 서버에 없는 이 폰의 고친 것은 올려 줌 */
 function geoPost(course,sub,i,v){ return fetch('../api/golf',{method:'POST', headers:{'content-type':'application/json'},
@@ -676,6 +675,11 @@ async function geoSync(){
   try{
     const r=await fetch('../api/golf?geo=1',{cache:'no-store'}); if(!r.ok) return;
     const srv=await r.json();
+    // 기본값(HOLE_GEO)에 이미 들어간 고침은 서버·이 폰에서 지움
+    for(const k in srv) for(const s in srv[k]) for(const i in srv[k][s])
+      if(sameGeo(srv[k][s][i], ((HOLE_GEO[k]||{})[s]||[])[i])){ await geoPost(k,s,+i,null); delete srv[k][s][i]; }
+    for(const k in holeGeoFix) for(const s in holeGeoFix[k]) for(const i in holeGeoFix[k][s])
+      if(sameGeo(holeGeoFix[k][s][i], ((HOLE_GEO[k]||{})[s]||[])[i])) delete holeGeoFix[k][s][i];
     for(const k in holeGeoFix) for(const s in holeGeoFix[k]) for(const i in holeGeoFix[k][s])
       if(!(srv[k]&&srv[k][s]&&srv[k][s][i])) await geoPost(k,s,+i,holeGeoFix[k][s][i]);   // 서버에 없는 건 올리기
     for(const k in srv) for(const s in srv[k]) for(const i in srv[k][s])
@@ -689,8 +693,10 @@ setTimeout(geoSync, 0);
 function holeGeoOf(cn,f,b,hole){
   const key=courseKey(cn); if(!key||!hole) return null;
   const sub=hole<=9?f:b, i=(hole-1)%9;
-  const fx=holeGeoFix[key]&&holeGeoFix[key][sub]&&holeGeoFix[key][sub][i];
-  const a=fx || ((HOLE_GEO[key]||{})[sub]||[])[i];
+  const base=((HOLE_GEO[key]||{})[sub]||[])[i];
+  let fx=holeGeoFix[key]&&holeGeoFix[key][sub]&&holeGeoFix[key][sub][i];
+  if(fx && sameGeo(fx,base)) fx=null;   // 기본값에 이미 반영된 고침은 고친 것으로 안 셈
+  const a=fx || base;
   return a ? {tee:[a[0],a[1]], green:[a[2],a[3]], key, sub, i, fixed:!!fx} : null;
 }
 const sat={cx:0, cy:0, z:16, rot:0, me:null, acc:0, pts:[], watch:null, centered:false, ready:false, tiles:new Map(), geo:null};
