@@ -299,7 +299,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v34</span>
+  <h1>골프 뽑기</h1><span class="ver">v35</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -642,6 +642,25 @@ const HOLE_GEO={
 let holeGeoFix={};
 try{ holeGeoFix=JSON.parse(localStorage.getItem('gd2-holegeo')||'{}')||{}; }catch(e){}
 function saveHoleGeoFix(){ try{ localStorage.setItem('gd2-holegeo', JSON.stringify(holeGeoFix)); }catch(e){} if(typeof syncCopyFix==='function') syncCopyFix(); }
+/* 서버(D1 golf_geo)와 같이 씀: 열 때 받아오고, 고치면 바로 올림. 서버에 없는 이 폰의 고친 것은 올려 줌 */
+function geoPost(course,sub,i,v){ return fetch('../api/golf',{method:'POST', headers:{'content-type':'application/json'},
+  body:JSON.stringify({op:'geofix', course, sub, i, v})}).then(r=>r.ok).catch(()=>false); }
+let geoSyncing=false;
+async function geoSync(){
+  if(geoSyncing) return; geoSyncing=true;
+  try{
+    const r=await fetch('../api/golf?geo=1',{cache:'no-store'}); if(!r.ok) return;
+    const srv=await r.json();
+    for(const k in holeGeoFix) for(const s in holeGeoFix[k]) for(const i in holeGeoFix[k][s])
+      if(!(srv[k]&&srv[k][s]&&srv[k][s][i])) await geoPost(k,s,+i,holeGeoFix[k][s][i]);   // 서버에 없는 건 올리기
+    for(const k in srv) for(const s in srv[k]) for(const i in srv[k][s])
+      ((holeGeoFix[k]=holeGeoFix[k]||{})[s]=holeGeoFix[k][s]||{})[i]=srv[k][s][i];       // 서버 것 받기
+    saveHoleGeoFix();
+    if(typeof holeMapCtx!=='undefined' && holeMapCtx && hmHole && !$('holeMap').hidden){
+      const c=holeMapCtx; sat.geo=holeGeoOf(c.cn,c.f,c.b,hmHole); satDraw(); }
+  }catch(e){} finally{ geoSyncing=false; }
+}
+setTimeout(geoSync, 0);
 function holeGeoOf(cn,f,b,hole){
   const key=courseKey(cn); if(!key||!hole) return null;
   const sub=hole<=9?f:b, i=(hole-1)%9;
@@ -696,7 +715,7 @@ function satOpen(fresh){
     const g=COURSE_GEO[courseKey(holeMapCtx&&holeMapCtx.cn)];
     if(g) satCenter(g.lat,g.lon,g.z); else satCenter(36.5,127.8,7);   // 모르는 골프장: 위치 받으면 그쪽으로
   }
-  if(fresh) satFrame();   // 탭을 새로 열 때만 바로 맞춤 (홀 넘길 땐 showHoleMap 이 부드럽게)
+  if(fresh){ satFrame(); geoSync(); }   // 탭을 새로 열 때만 바로 맞춤 (홀 넘길 땐 showHoleMap 이 부드럽게) + 고친 위치 받아오기
   if(sat.watch==null && navigator.geolocation){
     sat.watch=navigator.geolocation.watchPosition(p=>{
       sat.me=[p.coords.latitude,p.coords.longitude]; sat.acc=p.coords.accuracy||0;
@@ -856,9 +875,9 @@ function setHolePoint(which){
   const cur=sat.geo ? [...sat.geo.tee, ...sat.geo.green] : [...here, ...here];
   if(which==='tee'){ cur[0]=here[0]; cur[1]=here[1]; } else { cur[2]=here[0]; cur[3]=here[1]; }
   ((holeGeoFix[key]=holeGeoFix[key]||{})[sub]=holeGeoFix[key][sub]||{})[i]=cur;
-  saveHoleGeoFix();
+  saveHoleGeoFix(); geoPost(key,sub,i,cur);
   sat.geo=holeGeoOf(c.cn,c.f,c.b,hmHole); $('satHole').hidden=!sat.geo; satDraw();
-  sat.msg=(which==='tee'?'티':'그린')+' 위치를 고쳤어요 (이 폰에 저장). 다른 것도 고치려면 🗺 전체 보기, 다 고치면 <b>복사</b> → 보내 주세요';
+  sat.msg=(which==='tee'?'티':'그린')+' 위치를 고쳤어요. <b>서버에 바로 저장</b>돼서 다른 폰에도 보이고 Claude 도 볼 수 있어요. 다른 것도 고치려면 🗺 전체 보기';
   satDraw();
 }
 $('satEdit').onclick=()=>{ satAllOff(); satEditMode(true); };
@@ -898,11 +917,11 @@ $('setDone').onclick=()=>{ satEditMode(false); sat.msg=''; $('setTee').classList
 $('setTee').onclick=()=>setHolePoint('tee');
 $('setGreen').onclick=()=>setHolePoint('green');
 $('setReset').onclick=()=>{ const g=sat.geo; if(!g||!g.fixed) return;
-  delete holeGeoFix[g.key][g.sub][g.i]; saveHoleGeoFix();
+  delete holeGeoFix[g.key][g.sub][g.i]; saveHoleGeoFix(); geoPost(g.key,g.sub,g.i,null);
   const c=holeMapCtx; sat.geo=holeGeoOf(c.cn,c.f,c.b,hmHole); $('satHole').hidden=!sat.geo; satDraw(); };
 /* 고친 개수 (홀 하나에 티·그린 같이 고쳐도 1) → 바깥 복사 버튼 */
 function fixCount(){ let n=0; for(const k in holeGeoFix) for(const s in holeGeoFix[k]) n+=Object.keys(holeGeoFix[k][s]).length; return n; }
-function syncCopyFix(){ const n=fixCount(), b=$('satCopyFix'); b.hidden=!n; b.textContent='📋 고친 위치 '+n+'홀 복사 (보내기용)'; }
+function syncCopyFix(){ const n=fixCount(), b=$('satCopyFix'); b.hidden=!n; b.textContent='📋 고친 위치 '+n+'홀 (서버에 저장됨 · 눌러서 복사)'; }
 $('satCopyFix').onclick=()=>$('setCopy').onclick();
 $('setCopy').onclick=async()=>{
   const txt='골프 위치 고침 '+JSON.stringify(holeGeoFix);

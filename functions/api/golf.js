@@ -13,6 +13,10 @@
  * POST {op:'undo',  code, hole}            마지막으로 끝난 홀 되돌리기
  *
  * 카드: 홀마다 방 seed + 홀 번호로 섞은 5장 중 p번째가 p번 사람 카드 (누가 요청해도 같은 결과)
+ *
+ * 위성 지도 티·그린 고친 위치 (모두 같이 씀):
+ * GET  ?geo=1                                  {골프장:{코스:{0~8:[티위도,티경도,그린위도,그린경도]}}}
+ * POST {op:'geofix', course, sub, i, v}        v = 4개 숫자 (null 이면 그 홀 고친 것 지우기)
  */
 const json = (o, status = 200) => new Response(JSON.stringify(o), {
   status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
@@ -23,6 +27,8 @@ const SCHEMA = [
      data TEXT NOT NULL, created INTEGER NOT NULL, updated INTEGER NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS golf_plays (code TEXT NOT NULL, hole INTEGER NOT NULL, p INTEGER NOT NULL,
      drawn INTEGER NOT NULL DEFAULT 0, score INTEGER, done INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (code, hole, p))`,
+  `CREATE TABLE IF NOT EXISTS golf_geo (course TEXT NOT NULL, sub TEXT NOT NULL, i INTEGER NOT NULL,
+     v TEXT NOT NULL, updated INTEGER NOT NULL, PRIMARY KEY (course, sub, i))`,
 ];
 let schemaReady = false;
 async function ensureSchema(db) {
@@ -95,6 +101,12 @@ export async function onRequest({ request, env }) {
   await ensureSchema(db);
   const url = new URL(request.url);
 
+  if (request.method === 'GET' && url.searchParams.has('geo')) {
+    const { results } = await db.prepare('SELECT course, sub, i, v FROM golf_geo').all();
+    const out = {};
+    for (const r of results || []) { try { ((out[r.course] ||= {})[r.sub] ||= {})[r.i] = JSON.parse(r.v); } catch { } }
+    return json(out);
+  }
   if (request.method === 'GET') {
     const code = clampStr(url.searchParams.get('code'), 8);
     if (!/^\d{4}$/.test(code)) return json({ error: 'bad_code' }, 400);
@@ -105,6 +117,23 @@ export async function onRequest({ request, env }) {
   let b;
   try { b = await request.json(); } catch { return json({ error: 'bad_json' }, 400); }
   const now = Date.now();
+
+  if (b.op === 'geofix') {
+    const course = clampStr(b.course, 20), sub = clampStr(b.sub, 20);
+    if (!course || !sub || !intIn(b.i, 0, 8)) return json({ error: 'bad_geo' }, 400);
+    if (b.v == null) {
+      await db.prepare('DELETE FROM golf_geo WHERE course=? AND sub=? AND i=?').bind(course, sub, b.i).run();
+    } else {
+      // 한국 안 좌표 4개만 받음 (위도 33~39, 경도 124~132)
+      const v = Array.isArray(b.v) ? b.v.slice(0, 4).map(Number) : [];
+      const ok = v.length === 4 && v.every(Number.isFinite) && v[0] > 33 && v[0] < 39 && v[2] > 33 && v[2] < 39 && v[1] > 124 && v[1] < 132 && v[3] > 124 && v[3] < 132;
+      if (!ok) return json({ error: 'bad_geo' }, 400);
+      await db.prepare(`INSERT INTO golf_geo (course, sub, i, v, updated) VALUES (?,?,?,?,?)
+        ON CONFLICT(course, sub, i) DO UPDATE SET v=excluded.v, updated=excluded.updated`)
+        .bind(course, sub, b.i, JSON.stringify(v.map(x => Math.round(x * 1e6) / 1e6)), now).run();
+    }
+    return json({ ok: true });
+  }
 
   if (b.op === 'create') {
     const names = Array.isArray(b.names) ? b.names.slice(0, 4).map((n, i) => clampStr(n, 8) || 'P' + (i + 1)) : [];
