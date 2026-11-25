@@ -171,7 +171,7 @@ body.jkflash{animation:jkflash .5s ease 3}
   .hmbox.satmode .satside .btn{flex:none; padding:12px 4px; font-size:13px}
   .hmbox.satmode .satedit{margin:0}
 }
-#satAll.on{border-color:var(--flag); color:var(--flag)}
+#satAll.on,#satMe.on,#satClr.on{border-color:var(--flag); color:var(--flag); background:var(--flag-soft, var(--surface))}
 .hmnav a{font-size:12px; color:var(--muted)}
 .hmtabs{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px}
 .hmtabs[hidden]{display:none}
@@ -324,7 +324,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v39</span>
+  <h1>골프 뽑기</h1><span class="ver">v40</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -525,7 +525,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
       <div class="satedit" id="satEditBar" hidden>
         <div class="hmnav"><button class="btn ghost" id="setTee">⛳ 티 지정</button><button class="btn ghost" id="setGreen">🚩 핀 지정</button><button class="btn ghost" id="setReset">원래대로</button><button class="btn main" id="setDone">완료</button></div>
       </div>
-      <div class="hmnav sattools"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satAll">🗺 9홀</button><button class="btn ghost" id="satEdit">✎ 고치기</button><button class="btn ghost" id="satClr" hidden>✕ 점</button></div>
+      <div class="hmnav sattools"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satAll">🗺 9홀</button><button class="btn ghost" id="satEdit">✎ 고치기</button><button class="btn ghost" id="satClr">📍 점</button></div>
       </div>
     </div>
   </div>
@@ -699,7 +699,8 @@ function holeGeoOf(cn,f,b,hole){
   const a=fx || base;
   return a ? {tee:[a[0],a[1]], green:[a[2],a[3]], key, sub, i, fixed:!!fx} : null;
 }
-const sat={cx:0, cy:0, z:16, rot:0, me:null, acc:0, pts:[], watch:null, centered:false, ready:false, tiles:new Map(), geo:null};
+const sat={cx:0, cy:0, z:16, rot:0, me:null, acc:0, pts:[], watch:null, centered:false, ready:false, tiles:new Map(), geo:null,
+  meOn:true, ptOn:false};   // ◎ 내 위치(GPS) 켜짐, 📍 점 찍기 꺼짐으로 시작
 function ll2w(lat,lon){ const r=lat*Math.PI/180; return [(lon+180)/360*256, (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256]; }   // 0단계 세계 좌표
 function w2ll(x,y){ const m=Math.PI-2*Math.PI*y/256; return [180/Math.PI*Math.atan(Math.sinh(m)), x/256*360-180]; }
 function distM(a,b){ const R=6371008.8, t=Math.PI/180, dla=(b[0]-a[0])*t, dlo=(b[1]-a[1])*t;
@@ -747,9 +748,17 @@ function satOpen(fresh){
     if(g) satCenter(g.lat,g.lon,g.z); else satCenter(36.5,127.8,7);   // 모르는 골프장: 위치 받으면 그쪽으로
   }
   if(fresh){ satFrame(); geoSync(); }   // 탭을 새로 열 때만 바로 맞춤 (홀 넘길 땐 showHoleMap 이 부드럽게) + 고친 위치 받아오기
-  if(sat.watch==null && navigator.geolocation){
+  satWatch();
+  satBtns();
+  requestAnimationFrame(satDraw);
+}
+/* GPS: ◎ 내 위치가 켜져 있을 때만 */
+function satWatch(){
+  if(sat.meOn && sat.watch==null && navigator.geolocation){
     sat.watch=navigator.geolocation.watchPosition(p=>{
+      if(!sat.meOn) return;
       sat.me=[p.coords.latitude,p.coords.longitude]; sat.acc=p.coords.accuracy||0;
+      if(sat.goMe){ sat.goMe=false; const w=ll2w(sat.me[0],sat.me[1]); satAnim({cx:w[0],cy:w[1],z:Math.max(sat.z,17.5)}); }
       if(!sat.centered){ sat.centered=true;
         const g=COURSE_GEO[courseKey(holeMapCtx&&holeMapCtx.cn)];
         if(!g || distM(sat.me,[g.lat,g.lon])<5000){ sat.rot=0; satCenter(sat.me[0],sat.me[1],17.5); } }   // 홀 정보 없고 골프장 근처면 내 위치로
@@ -757,8 +766,8 @@ function satOpen(fresh){
     }, err=>{ sat.err=err.code===1?'위치 권한이 꺼져 있어요 (브라우저·앱 설정에서 허용)':'위치를 못 받았어요'; satDraw(); },
     {enableHighAccuracy:true, maximumAge:3000, timeout:20000});
   }
-  requestAnimationFrame(satDraw);
 }
+function satBtns(){ $('satMe').classList.toggle('on',!!sat.meOn); $('satClr').classList.toggle('on',!!sat.ptOn); }
 function satStop(){ if(sat.watch!=null && navigator.geolocation){ navigator.geolocation.clearWatch(sat.watch); } sat.watch=null; sat.centered=false; }
 /* 화면 ↔ 세계 좌표 (회전 포함) */
 function satToS(wx,wy,W,H){ const k=Math.pow(2,sat.z), dx=(wx-sat.cx)*k, dy=(wy-sat.cy)*k, c=Math.cos(sat.rot), s=Math.sin(sat.rot);
@@ -804,7 +813,6 @@ function satDraw(){
         tag(T,'T'+(k+1)+(h.fixed?'*':''),'#fff','#fff')+tag(G,'G'+(k+1),'#d1493a','#ffe08a'); });
     if(sat.me){ const M=toS(sat.me); s+='<circle cx="'+M[0]+'" cy="'+M[1]+'" r="6" fill="#4285f4" stroke="#fff" stroke-width="2"/>'; }
     $('satSvg').innerHTML=s;
-    $('satClr').hidden=true;
     $('satInfo').innerHTML='T = 티, G = 그린 (번호 = 이 코스 몇 번 홀, * = 고친 것)<br><small>위치가 이상한 <b>번호를 누르면</b> 그 자리로 가서 바로 고칠 수 있어요</small>';
     return;
   }
@@ -839,11 +847,11 @@ function satDraw(){
   if(sat.pts[0] && sat.me) info+=(info?' &nbsp; ':'')+'나 → ① <b>'+Math.round(distM(sat.me,sat.pts[0]))+'m</b>';
   if(sat.pts[1]) info+=(info?' &nbsp; ':'')+'① → ② <b>'+Math.round(distM(sat.pts[0],sat.pts[1]))+'m</b>';
   if(!info && g) info='티 → 그린(추정) <b>'+Math.round(distM(g.tee,g.green))+'m</b>';
+  if(!info && !sat.ptOn) info = '📍 점을 켜고 지도를 누르면 그곳까지 거리';
   if(!info) info = sat.me ? '그린 등 가고 싶은 곳을 누르세요'
     : sat.pts[0] ? '내 위치를 아직 못 받았어요 — 한 번 더 누르면 두 점 사이 거리' : (sat.err||'내 위치 찾는 중…');
   if(sat.me && sat.acc>20) info+='<br><small>위치 오차 약 '+Math.round(sat.acc)+'m</small>';
   $('satInfo').innerHTML=sat.msg||info;   // 고치기 안내가 있으면 그걸 계속 보여 줌
-  $('satClr').hidden=!sat.pts.length;     // 찍은 점이 있을 때만 '✕ 점'
 }
 (function(){
   const box=$('sat'), pts=new Map(); let moved=0, t0=0, pinch=null;
@@ -876,8 +884,9 @@ function satDraw(){
       if(sat.all){ const hit=satAllHit(e.clientX,e.clientY); if(hit) satAllPick(hit); return; }   // 전체 보기: 번호 누르면 그 홀 고치기
       if(sat.pick){ const w=scr2w(e.clientX,e.clientY), which=sat.pick; satArm(null); setHolePoint(which, w2ll(w[0],w[1])); return; }   // 티/핀 지정 중이면 누른 곳으로
       const now=Date.now();
-      if(now-lastTap<300 && sat.pts.length){ sat.pts.pop(); satDraw(); lastTap=0; smoothZoomAt(e.clientX,e.clientY,sat.z+1); return; }   // 두 번 톡 = 확대
+      if(now-lastTap<300){ if(sat.ptOn && sat.pts.length){ sat.pts.pop(); satDraw(); } lastTap=0; smoothZoomAt(e.clientX,e.clientY,sat.z+1); return; }   // 두 번 톡 = 확대
       lastTap=now;
+      if(!sat.ptOn) return;   // 📍 점 꺼져 있으면 톡은 아무것도 안 함
       const w=scr2w(e.clientX,e.clientY), ll=w2ll(w[0],w[1]);
       if(sat.pts.length>=2) sat.pts=[];   // ① → ② → 다시 ①
       sat.pts.push(ll); satDraw(); return; }
@@ -891,7 +900,15 @@ function satDraw(){
   box.addEventListener('wheel',e=>{ e.preventDefault(); smoothZoomAt(e.clientX,e.clientY,(zoomGoal??sat.z)+(e.deltaY<0?0.5:-0.5)); },{passive:false});
   addEventListener('resize',()=>{ if(!$('hmSatPane').hidden) satDraw(); });
 })();
-$('satMe').onclick=()=>{ if(sat.me){ const w=ll2w(sat.me[0],sat.me[1]); satAnim({cx:w[0],cy:w[1],z:Math.max(sat.z,17.5)}); } else { $('satInfo').textContent=sat.err||'내 위치 찾는 중…'; } };
+/* ◎ 내 위치: 켜면 GPS + 그 자리로, 끄면 파란 점·거리 숨기고 GPS 끔 */
+$('satMe').onclick=()=>{
+  sat.meOn=!sat.meOn;
+  if(sat.meOn){
+    if(sat.me){ const w=ll2w(sat.me[0],sat.me[1]); satAnim({cx:w[0],cy:w[1],z:Math.max(sat.z,17.5)}); } else sat.goMe=true;
+    satWatch();
+  } else { satStop(); sat.me=null; sat.goMe=false; }
+  satBtns(); satDraw();
+};
 $('satHole').onclick=()=>{ satFrame(true); };
 /* ⤢ 지도 크게 (창 가득) */
 for(const id of ['satBig','satPrev','satNext']){   // 지도 위 버튼은 지도 톡으로 안 셈
@@ -899,7 +916,8 @@ for(const id of ['satBig','satPrev','satNext']){   // 지도 위 버튼은 지�
   $(id).addEventListener('pointerup',e=>e.stopPropagation()); }
 $('satBig').onclick=e=>{ e.stopPropagation(); const b=document.querySelector('.hmbox'), on=b.classList.toggle('big');
   $('satBig').textContent=on?'⤡':'⤢'; requestAnimationFrame(()=>{ if(sat.geo) satFrame(); satDraw(); }); };
-$('satClr').onclick=()=>{ sat.pts=[]; satDraw(); };
+/* 📍 점: 켜면 지도 톡 = 점(①→②), 끄면 점 지우고 깨끗한 지도 */
+$('satClr').onclick=()=>{ sat.ptOn=!sat.ptOn; if(!sat.ptOn) sat.pts=[]; satBtns(); satDraw(); };
 /* ✎ 티·그린 위치 고치기: 지도 가운데 ＋ 를 맞추고 버튼 */
 let hmHole=0;
 function satEditMode(on){ $('satEditBar').hidden=!on; $('satEdit').hidden=on; if(!on) satArm(null); }
