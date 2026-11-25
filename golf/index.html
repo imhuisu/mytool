@@ -147,9 +147,12 @@ body.jkflash{animation:jkflash .5s ease 3}
 .zoomable img{transform-origin:0 0; user-select:none; -webkit-user-select:none}
 .hmtip{display:block; text-align:center; color:var(--muted); font-size:11px; margin-top:4px}
 .sat{position:relative; height:62vh; min-height:300px; border-radius:10px; overflow:hidden; background:#2b3a2b; touch-action:none; user-select:none; -webkit-user-select:none}
-#satTiles{position:absolute; inset:0; transform-origin:50% 50%; pointer-events:none; filter:saturate(1.3) contrast(1.08) brightness(1.04)}
-#satTiles img{opacity:0; transition:opacity .25s}
+#satTiles{position:absolute; inset:0; transform-origin:50% 50%; pointer-events:none; filter:saturate(1.18) contrast(1.04) brightness(1.03);
+  will-change:transform; backface-visibility:hidden}   /* 한 장으로 그려서 타일 이음새가 안 보이게 */
+#satTiles img{opacity:0; image-rendering:auto}
 #satTiles img.ok{opacity:1}
+.sat::after{content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  box-shadow:inset 0 0 28px 6px rgba(0,0,0,.28)}   /* 가장자리를 살짝 어둡게 — 잘린 느낌 줄이기 */
 #satTiles img.old{z-index:0} #satTiles img.cur{z-index:1}
 .hmbox.big{max-width:none; height:100%; display:flex; flex-direction:column}
 .hmbox.big #hmSatPane{flex:1; display:flex; flex-direction:column}
@@ -287,7 +290,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v26</span>
+  <h1>골프 뽑기</h1><span class="ver">v27</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -551,14 +554,14 @@ function showHoleMap(hole){
   $('holeMap').hidden=false;
   sat.geo=holeGeoOf(c.cn,c.f,c.b,hole); sat.pts=[]; $('satHole').hidden=!sat.geo;
   hmTab(m && hmTabCur!=='sat' ? 'map' : 'sat');
-  if(hmTabCur==='sat'){ if(!satFrame()) sat.rot=0; satDraw(); }
+  if(hmTabCur==='sat'){ if(!satFrame(true)){ sat.rot=0; satDraw(); } }
 }
 let hmTabCur='map';
 function hmTab(t){
-  hmTabCur=t;
+  hmTabCur=t; const wasHidden=$('hmSatPane').hidden || $('holeMap').hidden;
   $('hmTabMap').classList.toggle('on',t==='map'); $('hmTabSat').classList.toggle('on',t==='sat');
   $('hmMapPane').hidden=t!=='map'; $('hmSatPane').hidden=t!=='sat';
-  if(t==='sat') satOpen(); else satStop();
+  if(t==='sat') satOpen(wasHidden); else satStop();
 }
 function hmClose(){ $('holeMap').hidden=true; satStop(); }
 $('holeLink').onclick=()=>{ if(holeMapCtx) showHoleMap(holeMapCtx.hole); };
@@ -625,25 +628,47 @@ function distM(a,b){ const R=6371008.8, t=Math.PI/180, dla=(b[0]-a[0])*t, dlo=(b
   const h=Math.sin(dla/2)**2+Math.cos(a[0]*t)*Math.cos(b[0]*t)*Math.sin(dlo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
 function satCenter(lat,lon,z){ [sat.cx,sat.cy]=ll2w(lat,lon); if(z) sat.z=z; }
 /* 이 홀 화면: 티~그린이 화면에 들어오게, 그린이 위로 */
-function satFrame(){
+function satFrame(anim){
   const g=sat.geo; if(!g) return false;
   const box=$('sat'), H=box.clientHeight||400, W=box.clientWidth||360;
   const t=ll2w(g.tee[0],g.tee[1]), gr=ll2w(g.green[0],g.green[1]);
-  sat.cx=(t[0]+gr[0])/2; sat.cy=(t[1]+gr[1])/2;
-  sat.rot=-Math.PI/2-Math.atan2(gr[1]-t[1], gr[0]-t[0]);
   const d=Math.max(120, distM(g.tee,g.green)), lat=(g.tee[0]+g.green[0])/2;
   const mpp=Math.max(d*1.35/H, d*0.6/W);
-  sat.z=Math.max(15,Math.min(19.5, Math.log2(156543.03*Math.cos(lat*Math.PI/180)/mpp)));
-  sat.centered=true; return true;
+  const to={cx:(t[0]+gr[0])/2, cy:(t[1]+gr[1])/2, rot:-Math.PI/2-Math.atan2(gr[1]-t[1], gr[0]-t[0]),
+    z:Math.max(15,Math.min(19.5, Math.log2(156543.03*Math.cos(lat*Math.PI/180)/mpp)))};
+  sat.centered=true;
+  if(anim) satAnim(to); else { satStopAnim(); Object.assign(sat,to); }
+  return true;
+}
+/* 부드럽게 이동·회전·확대 (가운데가 멀면 살짝 줌아웃했다가 들어감) */
+let satAnimId=0;
+function satStopAnim(){ satAnimId++; }
+function satAnim(to,ms){
+  const id=++satAnimId, from={cx:sat.cx, cy:sat.cy, z:sat.z, rot:sat.rot};
+  let dr=(to.rot==null?from.rot:to.rot)-from.rot; dr=Math.atan2(Math.sin(dr),Math.cos(dr));   // 짧은 쪽으로 회전
+  const toZ=to.z==null?from.z:to.z, toX=to.cx==null?from.cx:to.cx, toY=to.cy==null?from.cy:to.cy;
+  const far=Math.hypot(toX-from.cx,toY-from.cy)*Math.pow(2,Math.min(from.z,toZ))/ ( $('sat').clientWidth||360 );   // 화면 몇 개만큼 떨어졌나
+  const dip=far>0.6?Math.min(1.5,Math.log2(far+1)):0;
+  ms=ms||(dip?850:600);
+  const t0=performance.now(), ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  (function step(now){
+    if(id!==satAnimId) return;
+    const p=Math.min(1,(now-t0)/ms), e=ease(p);
+    sat.cx=from.cx+(toX-from.cx)*e; sat.cy=from.cy+(toY-from.cy)*e;
+    sat.z=from.z+(toZ-from.z)*e - dip*Math.sin(Math.PI*p);
+    sat.rot=from.rot+dr*e;
+    satDraw();
+    if(p<1) requestAnimationFrame(step);
+  })(t0);
 }
 function satSetHole(geo){ sat.geo=geo; sat.pts=[]; if(!$('hmSatPane').hidden){ if(!satFrame()) sat.rot=0; satDraw(); } }
-function satOpen(){
+function satOpen(fresh){
   if(!sat.ready){
     sat.ready=true;
     const g=COURSE_GEO[courseKey(holeMapCtx&&holeMapCtx.cn)];
     if(g) satCenter(g.lat,g.lon,g.z); else satCenter(36.5,127.8,7);   // 모르는 골프장: 위치 받으면 그쪽으로
   }
-  satFrame();
+  if(fresh) satFrame();   // 탭을 새로 열 때만 바로 맞춤 (홀 넘길 땐 showHoleMap 이 부드럽게)
   if(sat.watch==null && navigator.geolocation){
     sat.watch=navigator.geolocation.watchPosition(p=>{
       sat.me=[p.coords.latitude,p.coords.longitude]; sat.acc=p.coords.accuracy||0;
@@ -669,7 +694,7 @@ function satDraw(){
   const tz=Math.max(1,Math.min(19,Math.round(sat.z+Math.log2(dpr)))), n=1<<tz;
   const R=Math.hypot(W,H)/2;   // 돌려도 빈 곳 없게 대각선 반지름만큼
   const place=(im,z,tx,ty)=>{ const s=Math.pow(2,sat.z-z), m=1<<z;
-    im.style.left=((tx*256-sat.cx*m)*s+W/2)+'px'; im.style.top=((ty*256-sat.cy*m)*s+H/2)+'px'; im.style.width=im.style.height=(256*s+0.6)+'px'; };
+    im.style.left=((tx*256-sat.cx*m)*s+W/2)+'px'; im.style.top=((ty*256-sat.cy*m)*s+H/2)+'px'; im.style.width=im.style.height=(256*s+1.2)+'px'; };   // 1px 남짓 겹쳐 돌렸을 때 실금 안 생기게
   const sc=Math.pow(2,sat.z-tz), cxp=sat.cx*n, cyp=sat.cy*n;
   const x0=Math.floor((cxp-R/sc)/256), x1=Math.floor((cxp+R/sc)/256), y0=Math.floor((cyp-R/sc)/256), y1=Math.floor((cyp+R/sc)/256);
   const used=new Set(), holder=$('satTiles'); let pending=0;
@@ -725,25 +750,45 @@ function satDraw(){
   const zoomAt=(cx,cy,nz)=>{ nz=Math.max(3,Math.min(20,nz)); const w=scr2w(cx,cy); sat.z=nz;
     const p=rel(cx,cy), W=box.clientWidth, H=box.clientHeight, k=Math.pow(2,nz), ux=p[0]-W/2, uy=p[1]-H/2, c=Math.cos(sat.rot), s=Math.sin(sat.rot);
     sat.cx=w[0]-(ux*c+uy*s)/k; sat.cy=w[1]-(-ux*s+uy*c)/k; satDraw(); };
-  box.addEventListener('pointerdown',e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ box.setPointerCapture(e.pointerId); }catch(_){}
-    if(pts.size===1){ moved=0; t0=Date.now(); } else moved=99;
+  const panBy=(dx,dy)=>{ const k=Math.pow(2,sat.z), c=Math.cos(sat.rot), s=Math.sin(sat.rot);
+    sat.cx-=(dx*c+dy*s)/k; sat.cy-=(-dx*s+dy*c)/k; };
+  // 부드러운 확대: 누른 자리를 붙잡은 채 z 를 천천히
+  let zoomGoal=null;
+  const smoothZoomAt=(cx,cy,nz)=>{ satStopAnim(); const id=satAnimId; zoomGoal=Math.max(3,Math.min(20,nz));
+    (function step(){ if(id!==satAnimId||zoomGoal==null) return; const dz=zoomGoal-sat.z;
+      if(Math.abs(dz)<0.01){ zoomAt(cx,cy,zoomGoal); zoomGoal=null; return; }
+      zoomAt(cx,cy,sat.z+dz*0.25); requestAnimationFrame(step); })(); };
+  let vel=[0,0], lastMv=0, lastTap=0;
+  box.addEventListener('pointerdown',e=>{ satStopAnim(); zoomGoal=null; pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{ box.setPointerCapture(e.pointerId); }catch(_){}
+    if(pts.size===1){ moved=0; t0=Date.now(); vel=[0,0]; } else moved=99;
     if(pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), z:sat.z}; } });
   box.addEventListener('pointermove',e=>{ const p0=pts.get(e.pointerId); if(!p0) return; const p={x:e.clientX,y:e.clientY}; pts.set(e.pointerId,p);
     if(pts.size===1){ const dx=p.x-p0.x, dy=p.y-p0.y; moved+=Math.abs(dx)+Math.abs(dy);
-      const k=Math.pow(2,sat.z), c=Math.cos(sat.rot), s=Math.sin(sat.rot);
-      sat.cx-=(dx*c+dy*s)/k; sat.cy-=(-dx*s+dy*c)/k; satDraw(); }
+      const now=performance.now(), dt=Math.max(8,now-lastMv); lastMv=now;
+      vel=[vel[0]*0.5+dx/dt*16*0.5, vel[1]*0.5+dy/dt*16*0.5];   // 한 프레임(16ms)당 px
+      panBy(dx,dy); satDraw(); }
     else if(pinch && pts.size===2){ const [a,b]=[...pts.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch.d>0) zoomAt((a.x+b.x)/2,(a.y+b.y)/2,pinch.z+Math.log2(d/pinch.d)); } });
   const up=e=>{ const had=pts.has(e.pointerId); pts.delete(e.pointerId); if(pts.size<2) pinch=null;
-    if(had && e.type==='pointerup' && pts.size===0 && moved<10 && Date.now()-t0<600){
+    if(!had || e.type!=='pointerup' || pts.size) return;
+    if(moved<10 && Date.now()-t0<600){
+      const now=Date.now();
+      if(now-lastTap<300 && sat.pts.length){ sat.pts.pop(); satDraw(); lastTap=0; smoothZoomAt(e.clientX,e.clientY,sat.z+1); return; }   // 두 번 톡 = 확대
+      lastTap=now;
       const w=scr2w(e.clientX,e.clientY), ll=w2ll(w[0],w[1]);
       if(sat.pts.length>=2) sat.pts=[];   // ① → ② → 다시 ①
-      sat.pts.push(ll); satDraw(); } };
+      sat.pts.push(ll); satDraw(); return; }
+    // 밀다 떼면 미끄러지듯 멈춤
+    if(performance.now()-lastMv<80 && Math.hypot(vel[0],vel[1])>1){
+      satStopAnim(); const id=satAnimId;
+      (function glide(){ if(id!==satAnimId) return; vel=[vel[0]*0.92, vel[1]*0.92];
+        if(Math.hypot(vel[0],vel[1])<0.3) return; panBy(vel[0],vel[1]); satDraw(); requestAnimationFrame(glide); })();
+    } };
   box.addEventListener('pointerup',up); box.addEventListener('pointercancel',up);
-  box.addEventListener('wheel',e=>{ e.preventDefault(); zoomAt(e.clientX,e.clientY,sat.z+(e.deltaY<0?0.5:-0.5)); },{passive:false});
+  box.addEventListener('wheel',e=>{ e.preventDefault(); smoothZoomAt(e.clientX,e.clientY,(zoomGoal??sat.z)+(e.deltaY<0?0.5:-0.5)); },{passive:false});
   addEventListener('resize',()=>{ if(!$('hmSatPane').hidden) satDraw(); });
 })();
-$('satMe').onclick=()=>{ if(sat.me){ satCenter(sat.me[0],sat.me[1],Math.max(sat.z,17.5)); satDraw(); } else { $('satInfo').textContent=sat.err||'내 위치 찾는 중…'; } };
-$('satHole').onclick=()=>{ if(satFrame()) satDraw(); };
+$('satMe').onclick=()=>{ if(sat.me){ const w=ll2w(sat.me[0],sat.me[1]); satAnim({cx:w[0],cy:w[1],z:Math.max(sat.z,17.5)}); } else { $('satInfo').textContent=sat.err||'내 위치 찾는 중…'; } };
+$('satHole').onclick=()=>{ satFrame(true); };
 /* ⤢ 지도 크게 (창 가득) */
 $('satBig').addEventListener('pointerdown',e=>e.stopPropagation());
 $('satBig').addEventListener('pointerup',e=>e.stopPropagation());
