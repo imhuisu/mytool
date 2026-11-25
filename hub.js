@@ -61,9 +61,9 @@
   const rcss = document.createElement('style');
   rcss.textContent = `.hub-reload{display:none}
     @media (display-mode: standalone){.hub-reload{display:flex}} html.in-app .hub-reload{display:flex}
-    .hub-reload{position:fixed;z-index:2147483000;left:12px;bottom:calc(62px + env(safe-area-inset-bottom,0px));width:34px;height:34px;
-      border-radius:50%;border:0;align-items:center;justify-content:center;background:rgba(31,59,51,.62);color:#fff;font:700 17px/1 system-ui,sans-serif;
-      box-shadow:0 2px 8px rgba(0,0,0,.2);-webkit-tap-highlight-color:transparent}
+    .hub-reload{position:fixed;z-index:2147483000;left:72px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:42px;height:42px;
+      border-radius:50%;align-items:center;justify-content:center;background:rgba(255,255,255,.92);color:#1f3b33;font:700 21px/1 system-ui,sans-serif;
+      border:2px solid rgba(31,59,51,.82);box-shadow:0 2px 10px rgba(0,0,0,.2);-webkit-tap-highlight-color:transparent;padding:0}
     .hub-reload:active{transform:scale(.92)}`;
   document.head.appendChild(rcss);
   const rb = document.createElement('button');
@@ -75,7 +75,7 @@
   /* 첫 화면이 아닌 도구 페이지에서만 홈 버튼 */
   const here = location.href.split(/[?#]/)[0];
   const isHub = here === ROOT || here === ROOT + 'index.html';
-  if (isHub) { rb.style.bottom = 'calc(12px + env(safe-area-inset-bottom,0px))'; return; }   // 첫 화면엔 홈 버튼이 없으니 ⟳ 를 아래로
+  if (isHub) { rb.style.left = '12px'; return; }   // 첫 화면엔 홈 버튼이 없으니 ⟳ 를 맨 왼쪽으로
   const on = p => `
       ${p}.hub-home{display:flex;position:fixed;z-index:2147483000;left:12px;
         bottom:calc(12px + env(safe-area-inset-bottom,0px));width:42px;height:42px;border-radius:50%;

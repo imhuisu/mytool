@@ -73,8 +73,8 @@
 ## 구조
 
 ```
-index.html            첫 화면. TOOLS 배열이 도구 목록. 제목 옆 "vN" = 도구함 버전: 어떤 도구든 고쳐서 push할 때마다 N 올리기 (현재 v35). trip 제목 옆도 vN (현재 v5, trip 고칠 때마다 올리기)
-hub.js                모든 페이지 공통: 서비스 워커 등록 + 설치 앱일 때 홈 버튼 + ⟳ 새로고침 버튼(.hub-reload, 앱·설치 PWA만) + 새 버전 감지(화면 복귀·2분마다 지금 페이지를 Accept:text/html 로 받아 처음 내용과 다르면 위에 '⟳ 새 버전' 띠, 2026-11-25)(마이툴 안드로이드 앱 안에서도 — UA 'MytoolApp/' 이면 html.in-app, 2026-10-20 희수 "앱에서 일정밖에 안 보인다"). 앱 안이면 모든 페이지 오른쪽 아래에 "⬆ 앱 업데이트" (app/version.json versionName > UA 버전일 때, 일정은 자기 #updBtn 사용)
+index.html            첫 화면. TOOLS 배열이 도구 목록. 제목 옆 "vN" = 도구함 버전: 어떤 도구든 고쳐서 push할 때마다 N 올리기 (현재 v36). trip 제목 옆도 vN (현재 v5, trip 고칠 때마다 올리기)
+hub.js                모든 페이지 공통: 서비스 워커 등록 + 설치 앱일 때 홈 버튼 + ⟳ 새로고침 버튼(.hub-reload, 앱·설치 PWA만, 도구함 버튼 오른쪽 옆 같은 42px·흰 바탕 테두리) + 새 버전 감지(화면 복귀·2분마다 지금 페이지를 Accept:text/html 로 받아 처음 내용과 다르면 위에 '⟳ 새 버전' 띠, 2026-11-25)(마이툴 안드로이드 앱 안에서도 — UA 'MytoolApp/' 이면 html.in-app, 2026-10-20 희수 "앱에서 일정밖에 안 보인다"). 앱 안이면 모든 페이지 오른쪽 아래에 "⬆ 앱 업데이트" (app/version.json versionName > UA 버전일 때, 일정은 자기 #updBtn 사용)
 sw.js                 오프라인 캐시. HTML은 네트워크 우선, 나머지는 저장본 우선
 manifest.webmanifest  앱 이름·아이콘·색
 icons/                앱 아이콘
