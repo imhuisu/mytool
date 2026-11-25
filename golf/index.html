@@ -250,7 +250,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v17</span>
+  <h1>골프 뽑기</h1><span class="ver">v18</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
@@ -353,6 +353,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div class="turnline"><b id="turnName"></b><small id="turnHint">카드를 좌우로 밀어 뒤집으세요</small></div>
   <div class="bigwrap" id="bigwrap"></div>
   <div class="drawnrow" id="drawnRow"></div>
+  <button class="btn ghost wide" id="allBtn" style="margin-top:12px">남은 사람 한꺼번에 뽑기</button>
   <button class="btn ghost wide" id="toFreeBtn" style="margin-top:12px">이 홀은 내기 없이 스코어만</button>
   </div>
  </div>
@@ -445,6 +446,9 @@ const COURSES={
   '힐데스하임':{ '레이크':[4,3,5,4,3,5,4,4,4], '힐':[4,3,4,5,4,4,5,3,4], '밸리':[4,4,3,4,4,5,4,3,5] },
   /* 포웰CC 프린세스 (공주, 옛 프린세스CC). 옛 이름 파인=이스트, 밸리=웨스트. 출처: 희수가 보낸 표(옛 파인·밸리 자료 기준), 2026-10 */
   '프린세스':{ '이스트':[4,4,4,3,5,4,5,3,4], '웨스트':[5,3,4,3,5,4,3,4,5] },
+  /* 떼제베CC (청주 옥산, 올데이 청주떼제베). 새 이름 한울=동, 가람=서, 누리=남, 마루=북 (블로그 기준 대응).
+     파: onetheclub.com/tgv/course + adtgv.co.kr 홀별 페이지 (2026-11-25). 누리는 9번 파5 라 37 */
+  '떼제베':{ '한울':[4,5,4,3,4,5,3,4,4], '가람':[4,3,4,4,5,3,4,4,5], '누리':[4,4,3,4,5,4,3,5,5], '마루':[4,3,4,4,4,3,4,5,5] },
 };
 /* 직접 입력한 골프장 파 (스코어카드 보고 입력) — 기본 COURSES 위에 덧붙임 */
 let myCourses={};
@@ -681,6 +685,8 @@ function renderDraw(){
   $('freeBtn').textContent = drawMode==='score' ? '이 홀 기록' : '내기 없이 스코어만 기록 (몸풀기 홀)';
   $('freeBtn').className = drawMode==='score' ? 'btn main resbtn' : 'btn ghost wide';
   $('toFreeBtn').hidden=draw.taken>0;
+  $('allBtn').hidden=draw.taken>=4;
+  $('allBtn').textContent=draw.taken?'남은 '+(4-draw.taken)+'명 한꺼번에 뽑기':'4명 한꺼번에 뽑기';
   if(pre){ renderPre(); return; }
   renderBigCard();
   renderDrawnRow();
@@ -776,6 +782,16 @@ function pick(btn){
     else renderDraw();
   }, 1100);
 }
+/* 한꺼번에 뽑기: 남은 사람 카드를 한 번에 공개 */
+$('allBtn').onclick=()=>{
+  if(!draw || draw.busy || draw.taken>=4) return;
+  let jk=false;
+  while(draw.taken<4){ const p=drawOrder(draw.taken), c=draw.pool[draw.taken]; draw.colors[p]=c; draw.taken++; if(c==='J') jk=true; }
+  try{ navigator.vibrate && navigator.vibrate(25); }catch(e){}
+  $('bigwrap').innerHTML=''; $('allBtn').hidden=true; $('toFreeBtn').hidden=true;
+  renderDrawnRow(); updateTurnLine(); showTeams();
+  if(jk) setTimeout(jokerBuzz, 300);
+};
 function showTeams(){
   const h={colors:draw.colors};
   const W=teamOf(h,'W').map(p=>memHTML(p,h)), G=teamOf(h,'G').map(p=>memHTML(p,h));
@@ -1200,6 +1216,8 @@ function renderRoom(){
       '<button class="btn main resbtn" id="scoreBtn">'+label+'</button></div>';
     const myCard=()=>'<div class="turnline"><b>'+esc(nm[me])+' 차례</b><small>내 카드를 좌우로 밀어 뒤집으세요</small></div>'+
       '<div class="bigwrap"><button class="card big" id="myCard" aria-label="내 카드 뽑기"><span class="inner"><span class="face back"></span></span></button></div>';
+    const left=P.filter(x=>!x.drawn).length;
+    const allBtn=()=>'<button class="btn ghost wide" id="drawAllBtn">'+(left===4?'4명':'남은 '+left+'명')+' 한꺼번에 뽑기</button>';
     const teamsHTML=()=>{ const colors=P.map(x=>x.color), h={colors};
       const mem=c=>teamOf(h,c).map(p=>esc(nm[p])+(colors[p]==='J'?'<span class="jk">JOKER</span>':'')).join('<br>');
       return '<div class="teams"><div class="team W"><h3>흰팀</h3><div class="mem">'+mem('W')+'</div></div>'+
@@ -1209,11 +1227,11 @@ function renderRoom(){
       if(!mine.done) html+=myInput('내 스코어 확정');
       else if(!allDone) html+='<div class="mybox"><div class="waitline" style="margin:0 0 8px">내 ± <b>'+sgn(v)+'</b> 확정 · 다른 사람 입력 기다리는 중 ('+P.filter(x=>x.done).length+'/4)</div>'+
         '<button class="btn ghost wide" id="unscoreBtn" style="margin-top:0">고치기</button></div>';
-      else if(!mine.drawn) html+=myCard()+(P.some(x=>x.drawn)?'':'<button class="btn ghost wide" id="skipBtn">이 홀은 내기 없이 넘기기 (몸풀기)</button>');
-      else html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>';
+      else if(!mine.drawn) html+=myCard()+allBtn()+(P.some(x=>x.drawn)?'':'<button class="btn ghost wide" id="skipBtn">이 홀은 내기 없이 넘기기 (몸풀기)</button>');
+      else html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>'+allBtn();
     }else{
-      if(!mine.drawn) html+=myCard();
-      else if(!allDrawn) html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>';
+      if(!mine.drawn) html+=myCard()+allBtn();
+      else if(!allDrawn) html+='<div class="waitline">다른 사람이 뽑기를 기다리는 중… ('+P.filter(x=>x.drawn).length+'/4)</div>'+allBtn();
       else{
         html+=teamsHTML();
         if(mine.done) html+='<div class="mybox"><div class="waitline" style="margin:0 0 8px">내 ± <b>'+sgn(mine.score)+'</b> 확정 · 다른 사람 기다리는 중 ('+P.filter(x=>x.done).length+'/4)</div>'+
@@ -1245,6 +1263,7 @@ $('roomBody').addEventListener('click',e=>{
   if(b.id==='scoreBtn'){ roomPost({op:'score', p:room.me, score:myScore.v}); return; }
   if(b.id==='unscoreBtn'){ roomPost({op:'unscore', p:room.me}); return; }
   if(b.id==='skipBtn'){ roomPost({op:'skip'}); return; }
+  if(b.id==='drawAllBtn'){ roomPost({op:'drawAll'}); return; }
 });
 
 /* ---------- 화면 전환 ---------- */

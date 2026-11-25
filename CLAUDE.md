@@ -32,7 +32,7 @@
    - Cloudflare: D1 데이터베이스 `mytool` (id d365edaf-4e8c-4433-956c-598e58bd8fd9, APAC), Pages 프로젝트 mytool에 production·preview 모두 `GOLF_DB`로 바인딩. 계정 id 7329d7fb645b557134a323309af8d05b
    - PC에는 `npx wrangler login` 되어 있음 → 배포 상태는 `npx wrangler pages deployment list --project-name mytool` 또는 Cloudflare API로 확인 가능
    - 참고 (2026-10-01 오해): 그때 "functions 넣고 배포 실패"라고 판단해 서버 코드를 뺐었는데, 실제로는 실패가 아니라 push를 몰아서 해 **빌드 대기 줄이 밀린 것**이었음 (모든 배포 success). push는 한 번에 모아서 하기
-   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v17)
+   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v18)
    - 서버: `functions/api/golf.js` (Cloudflare Pages Functions + **D1**). KV는 쓰기 반영이 느릴 수 있어 D1로 바꿨음. 테이블은 첫 요청 때 자동 생성. 카드는 방 seed+홀 번호로 결정적 셔플
    - 서버 응답이 없으면 "서버가 아직 연결되지 않았어요" 메시지만 뜨고 폰 하나 모드는 그대로 동작
    - 로컬 테스트: Node 22 `node:sqlite`로 D1 흉내 내는 서버를 만들어 4개 브라우저로 확인함 (저장소에는 안 넣음)
@@ -73,7 +73,7 @@
 ## 구조
 
 ```
-index.html            첫 화면. TOOLS 배열이 도구 목록. 제목 옆 "vN" = 도구함 버전: 어떤 도구든 고쳐서 push할 때마다 N 올리기 (현재 v10). trip 제목 옆도 vN (현재 v5, trip 고칠 때마다 올리기)
+index.html            첫 화면. TOOLS 배열이 도구 목록. 제목 옆 "vN" = 도구함 버전: 어떤 도구든 고쳐서 push할 때마다 N 올리기 (현재 v11). trip 제목 옆도 vN (현재 v5, trip 고칠 때마다 올리기)
 hub.js                모든 페이지 공통: 서비스 워커 등록 + 설치 앱일 때 홈 버튼(마이툴 안드로이드 앱 안에서도 — UA 'MytoolApp/' 이면 html.in-app, 2026-10-20 희수 "앱에서 일정밖에 안 보인다"). 앱 안이면 모든 페이지 오른쪽 아래에 "⬆ 앱 업데이트" (app/version.json versionName > UA 버전일 때, 일정은 자기 #updBtn 사용)
 sw.js                 오프라인 캐시. HTML은 네트워크 우선, 나머지는 저장본 우선
 manifest.webmanifest  앱 이름·아이콘·색
@@ -86,7 +86,7 @@ golf/                 골프 뽑기 (4인 팀 뽑기·배판·정산)
                       파 정보 없는 골프장은 "스코어카드 보고 파 입력"으로 직접 입력 → localStorage `gd2-courses`에 저장돼 COURSES에 합쳐짐 (기기별). 프린세스 = 포웰CC 프린세스(공주): COURSES에 이스트·웨스트(옛 파인·밸리) 파 들어감 (희수가 보낸 표 기준, 각 36. 공식 스코어카드로 한 번 확인 필요). 예전에 직접 입력한 파인/밸리 항목은 자동 삭제
                       뽑기 시점 설정 `order`: post(기본)=4명 스코어 먼저 입력 → 뽑기 → 결과, pre=뽑기 먼저. 함께하기 방도 동일(방 data.order)
                       진행 방식 `drawMode`: app(앱 뽑기) / rec(결과만 기록) / score(스코어만: 개인 기록용, 1~4명, 빈 이름 칸은 '' 로 두고 화면·스코어카드에서 뺌, 홀은 result 'N'). 저장 기록엔 mode 필드
-                      카드 뽑기(v17): 탭이 아니라 좌우로 밀어서(60px) 뒤집기 — swipeCard(), 넘어갈 때 짧은 진동, 탭하면 카드가 흔들려 안내. 키보드 Enter 는 바로 뒤집기
+                      카드 뽑기(v17): 탭이 아니라 좌우로 밀어서(60px) 뒤집기 — swipeCard(), 넘어갈 때 짧은 진동, 탭하면 카드가 흔들려 안내. 키보드 Enter 는 바로 뒤집기. v18: '한꺼번에 뽑기' 버튼 — 폰 하나 모드는 남은 사람 카드 한 번에 공개, 함께하기는 서버 op 'drawAll'(안 뽑은 사람까지 4명 drawn=1)
                       멀리건: 스코어 입력 줄의 "멀리건" 버튼(0→1→2개), history[].mull=[4] (있을 때만). 스코어카드 칸에 M 표시, 합계 아래 사람별 멀리건 개수
                       몸풀기 홀: result 'N' = 내기 없이 스코어만 (이월 계산에서 건너뜀). 함께하기는 op 'skip'
                       조커는 팀 계산에서 실제 타수와 상관없이 무조건 +1 (JOKER_VAL, 서버도 동일). 스코어카드엔 실제 ±. 조커 뽑으면 jokerBuzz(): navigator.vibrate + 화면 테두리 빨갛게 번쩍 (폰 하나 모드 pick, 함께하기는 renderRoom 에서 내 색이 J 면 홀마다 한 번)

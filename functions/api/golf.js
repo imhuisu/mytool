@@ -4,6 +4,7 @@
  * 테이블은 첫 요청 때 자동으로 만든다. 연결이 없으면 503 {error:'no_db'}.
  *
  * GET  ?code=1234                         방 상태
+ * POST {op:'drawAll', code, hole}  안 뽑은 사람까지 4명 카드 한꺼번에 공개
  * POST {op:'create', names, fee, date, course, front, back, order}   order: 'post'=스코어 먼저 후 뽑기, 'pre'=뽑기 먼저
  * POST {op:'draw',  code, hole, p}         p번 사람이 자기 카드 뒤집기
  * POST {op:'score', code, hole, p, score}  p번 사람이 자기 ± 확정. 4명 다 확정되면 홀 마감
@@ -135,13 +136,16 @@ export async function onRequest({ request, env }) {
   if (!Number.isInteger(hole) || hole !== room.hole) return state(db, code);   // 이미 넘어간 홀이면 최신 상태만
   if (hole >= 18 && b.op !== 'undo') return state(db, code);
 
-  if (b.op === 'draw' && intIn(b.p, 0, 3)) {
+  if ((b.op === 'draw' && intIn(b.p, 0, 3)) || b.op === 'drawAll') {
     if (room.data.order !== 'pre') {   // 스코어 먼저 방식: 4명 다 확정해야 뽑기
       const plays = await getPlays(db, code, hole);
       if (!plays.every(x => x.done)) return state(db, code);
     }
-    await db.prepare(`INSERT INTO golf_plays (code, hole, p, drawn) VALUES (?,?,?,1)
-      ON CONFLICT(code, hole, p) DO UPDATE SET drawn=1`).bind(code, hole, b.p).run();
+    // drawAll: 한 폰에서 아직 안 뽑은 사람까지 한꺼번에 뒤집기
+    for (const p of b.op === 'drawAll' ? [0, 1, 2, 3] : [b.p]) {
+      await db.prepare(`INSERT INTO golf_plays (code, hole, p, drawn) VALUES (?,?,?,1)
+        ON CONFLICT(code, hole, p) DO UPDATE SET drawn=1`).bind(code, hole, p).run();
+    }
     await tryFinish(db, code, hole);
   } else if (b.op === 'score' && intIn(b.p, 0, 3) && intIn(b.score, -3, 10)) {
     await db.prepare(`INSERT INTO golf_plays (code, hole, p, drawn, score, done) VALUES (?,?,?,0,?,1)
