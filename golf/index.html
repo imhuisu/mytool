@@ -144,6 +144,8 @@ body.jkflash{animation:jkflash .5s ease 3}
 .satedit[hidden]{display:none}
 .setip{font-size:13px; text-align:center; margin-bottom:2px}
 #setTee,#setGreen,#setReset,#setCopy,#setDone{flex:1; white-space:nowrap}
+#satAll,#satEdit{flex:1; font-size:13.5px; padding:8px 4px}
+#satAll.on{border-color:var(--flag); color:var(--flag)}
 #satPrev,#satNext{flex:1; font-family:"Jua",sans-serif; font-size:16px}
 .hmnav a{font-size:12px; color:var(--muted)}
 .hmtabs{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px}
@@ -297,7 +299,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v32</span>
+  <h1>골프 뽑기</h1><span class="ver">v33</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -499,7 +501,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
       <div class="satinfo" id="satInfo"></div>
       <div class="hmnav"><button class="btn ghost" id="satPrev">‹ 이전 홀</button><button class="btn ghost" id="satNext">다음 홀 ›</button></div>
       <div class="hmnav"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satClr">점 지우기</button></div>
-      <button class="btn ghost wide" id="satEdit" style="margin-top:8px">✎ 티·그린 위치 고치기</button>
+      <div class="hmnav"><button class="btn ghost" id="satAll">🗺 이 코스 9홀 전체 보기</button><button class="btn ghost" id="satEdit">✎ 티·그린 고치기</button></div>
       <small class="hmtip">위성 사진에서 그린 등을 누르면 내 위치부터 거리 · 한 번 더 누르면 두 점 사이 거리<br>위성 사진 © Esri, Maxar, Earthstar Geographics</small>
     </div>
   </div>
@@ -565,7 +567,7 @@ function showHoleMap(hole){
   $('satPrev').disabled=hole<=1; $('satNext').disabled=hole>=18;
   $('satPrev').dataset.h=hole-1; $('satNext').dataset.h=hole+1;
   $('holeMap').hidden=false;
-  hmHole=hole;
+  hmHole=hole; sat.all=null; sat.msg=''; $('satAll').classList.remove('on');
   sat.geo=holeGeoOf(c.cn,c.f,c.b,hole); sat.pts=[]; $('satHole').hidden=!sat.geo;
   $('satEdit').hidden=!courseKey(c.cn) || !(hole<=9?c.f:c.b);
   hmTab(m && hmTabCur!=='sat' ? 'map' : 'sat');
@@ -743,6 +745,17 @@ function satDraw(){
   let s='', info='';
   const lbl=(a,b,t)=>{ const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
     return '<text x="'+mx+'" y="'+(my-6)+'" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">'+t+'</text>'; };
+  if(sat.all){ // 🗺 9홀 전체: T1~T9(흰), G1~G9(빨강) — 이상한 홀은 그 홀로 가서 ✎ 로 고치기
+    const tag=(p,t,fill,col)=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="5" fill="'+fill+'" stroke="#000" stroke-width="1"/>'+
+      '<text x="'+(p[0]+7)+'" y="'+(p[1]+4)+'" font-size="12" font-weight="800" fill="'+col+'" stroke="#000" stroke-width="3" paint-order="stroke">'+t+'</text>';
+    sat.all.forEach((h,k)=>{ if(!h) return; const T=toS(h.tee), G=toS(h.green);
+      s+='<line x1="'+T[0]+'" y1="'+T[1]+'" x2="'+G[0]+'" y2="'+G[1]+'" stroke="rgba(255,224,138,.85)" stroke-width="1.6"/>'+
+        tag(T,'T'+(k+1)+(h.fixed?'*':''),'#fff','#fff')+tag(G,'G'+(k+1),'#d1493a','#ffe08a'); });
+    if(sat.me){ const M=toS(sat.me); s+='<circle cx="'+M[0]+'" cy="'+M[1]+'" r="6" fill="#4285f4" stroke="#fff" stroke-width="2"/>'; }
+    $('satSvg').innerHTML=s;
+    $('satInfo').innerHTML='T = 티, G = 그린 (번호 = 이 코스 몇 번 홀, * = 고친 것)<br><small>위치가 이상한 <b>번호를 누르면</b> 그 자리로 가서 바로 고칠 수 있어요</small>';
+    return;
+  }
   const P=sat.pts.map(toS), M=sat.me?toS(sat.me):null, g=sat.geo;
   const GR=g?toS(g.green):null, TE=g?toS(g.tee):null;
   if(GR){ // 코스 사진처럼 그린에서 50m 간격 거리 호 (티 쪽으로 ±40°)
@@ -777,7 +790,7 @@ function satDraw(){
   if(!info) info = sat.me ? '그린 등 가고 싶은 곳을 누르세요'
     : sat.pts[0] ? '내 위치를 아직 못 받았어요 — 한 번 더 누르면 두 점 사이 거리' : (sat.err||'내 위치 찾는 중…');
   if(sat.me && sat.acc>20) info+='<br><small>위치 오차 약 '+Math.round(sat.acc)+'m</small>';
-  $('satInfo').innerHTML=info;
+  $('satInfo').innerHTML=sat.msg||info;   // 고치기 안내가 있으면 그걸 계속 보여 줌
 }
 (function(){
   const box=$('sat'), pts=new Map(); let moved=0, t0=0, pinch=null;
@@ -807,6 +820,7 @@ function satDraw(){
   const up=e=>{ const had=pts.has(e.pointerId); pts.delete(e.pointerId); if(pts.size<2) pinch=null;
     if(!had || e.type!=='pointerup' || pts.size) return;
     if(moved<10 && Date.now()-t0<600){
+      if(sat.all){ const hit=satAllHit(e.clientX,e.clientY); if(hit) satAllPick(hit); return; }   // 전체 보기: 번호 누르면 그 홀 고치기
       const now=Date.now();
       if(now-lastTap<300 && sat.pts.length){ sat.pts.pop(); satDraw(); lastTap=0; smoothZoomAt(e.clientX,e.clientY,sat.z+1); return; }   // 두 번 톡 = 확대
       lastTap=now;
@@ -843,10 +857,43 @@ function setHolePoint(which){
   ((holeGeoFix[key]=holeGeoFix[key]||{})[sub]=holeGeoFix[key][sub]||{})[i]=cur;
   saveHoleGeoFix();
   sat.geo=holeGeoOf(c.cn,c.f,c.b,hmHole); $('satHole').hidden=!sat.geo; satDraw();
-  $('satInfo').innerHTML=(which==='tee'?'티':'그린')+' 위치를 고쳤어요 (이 폰에 저장). 다 고치면 <b>고친 위치 복사</b> → 보내 주세요';
+  sat.msg=(which==='tee'?'티':'그린')+' 위치를 고쳤어요 (이 폰에 저장). 다른 것도 고치려면 🗺 전체 보기, 다 고치면 <b>복사</b> → 보내 주세요';
+  satDraw();
 }
-$('satEdit').onclick=()=>satEditMode(true);
-$('setDone').onclick=()=>{ satEditMode(false); satDraw(); };
+$('satEdit').onclick=()=>{ satAllOff(); satEditMode(true); };
+/* 🗺 이 코스 9홀 전체 보기 (지금 홀이 속한 전반/후반 코스) */
+function satAllHit(cx,cy){
+  const box=$('sat'), r=box.getBoundingClientRect(), W=box.clientWidth, H=box.clientHeight; let best=null, bd=30;
+  (sat.all||[]).forEach((h,k)=>{ if(!h) return; for(const which of ['tee','green']){
+    const w=ll2w(...h[which]), p=satToS(w[0],w[1],W,H), d=Math.hypot(p[0]-(cx-r.left), p[1]-(cy-r.top));
+    if(d<bd){ bd=d; best={k,which,ll:h[which]}; } } });
+  return best;
+}
+function satAllPick(hit){
+  const base=hmHole<=9?1:10;
+  sat.all=null; $('satAll').classList.remove('on');
+  showHoleMap(base+hit.k);
+  satStopAnim(); const w=ll2w(...hit.ll); satAnim({cx:w[0], cy:w[1], z:18.6, rot:0});
+  satEditMode(true);
+  $('setTee').classList.toggle('main',hit.which==='tee'); $('setGreen').classList.toggle('main',hit.which==='green');
+  sat.msg='<b>'+(hit.which==='tee'?'T':'G')+(hit.k+1)+'</b> 가 ＋ 에 있어요. 지도를 밀어 진짜 '+(hit.which==='tee'?'티':'그린 가운데')+'에 맞추고 <b>'+(hit.which==='tee'?'티를':'그린을')+' 여기로</b>';
+}
+function satAllOff(){ if(!sat.all) return; sat.all=null; $('satAll').classList.remove('on'); if(!satFrame(true)) satDraw(); }
+$('satAll').onclick=()=>{
+  if(sat.all){ satAllOff(); return; }
+  const c=holeMapCtx; if(!c||!hmHole) return;
+  const base=hmHole<=9?1:10, list=[];
+  for(let k=0;k<9;k++) list.push(holeGeoOf(c.cn,c.f,c.b,base+k));
+  if(!list.some(Boolean)){ $('satInfo').textContent='이 코스는 홀 위치 정보가 없어요'; return; }
+  sat.all=list; $('satAll').classList.add('on');
+  // 9홀이 다 들어오게 (북쪽 위)
+  const ws=list.filter(Boolean).flatMap(h=>[ll2w(...h.tee),ll2w(...h.green)]);
+  const xs=ws.map(w=>w[0]), ys=ws.map(w=>w[1]), box=$('sat'), W=box.clientWidth||360, H=box.clientHeight||400;
+  const spanX=Math.max(...xs)-Math.min(...xs), spanY=Math.max(...ys)-Math.min(...ys);
+  const z=Math.log2(Math.min(W*0.82/Math.max(spanX,1e-9), H*0.82/Math.max(spanY,1e-9)));
+  satAnim({cx:(Math.max(...xs)+Math.min(...xs))/2, cy:(Math.max(...ys)+Math.min(...ys))/2, z:Math.min(18,z), rot:0});
+};
+$('setDone').onclick=()=>{ satEditMode(false); sat.msg=''; $('setTee').classList.remove('main'); $('setGreen').classList.remove('main'); satDraw(); };
 $('setTee').onclick=()=>setHolePoint('tee');
 $('setGreen').onclick=()=>setHolePoint('green');
 $('setReset').onclick=()=>{ const g=sat.geo; if(!g||!g.fixed) return;
