@@ -123,6 +123,21 @@ body.sonly #totals, body.sonly #totals + .potline, body.sonly #switchBtn, body.s
 @keyframes jkflash{0%,100%{box-shadow:inset 0 0 0 0 rgba(209,73,58,0)}30%,70%{box-shadow:inset 0 0 0 10px rgba(209,73,58,.85)}}
 body.jkflash{animation:jkflash .5s ease 3}
 .card[disabled]{cursor:default}
+.hmap{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:12px}
+.hmap[hidden]{display:none}
+.hmbox{background:var(--surface); border-radius:14px; width:100%; max-width:420px; max-height:100%; overflow:auto; padding:12px}
+.hmhead{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+.hmhead b{font-family:"Jua",sans-serif; font-weight:400; font-size:19px}
+.hmx{border:0; background:none; font-size:22px; color:var(--muted); cursor:pointer; padding:4px 8px}
+.hmimg{background:#fff; border-radius:10px; text-align:center}
+.hmimg img{max-width:100%; max-height:62vh; display:block; margin:0 auto}
+.hmgreen{margin-top:8px; text-align:center; background:#fff; border-radius:10px; padding:4px}
+.hmgreen small{display:block; color:#666; font-size:11px}
+.hmgreen img{max-width:70%}
+.hmnav{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px}
+.hmnav .btn{padding:8px 10px; margin:0}
+.hmnav .btn[disabled]{opacity:.4}
+.hmnav a{font-size:12px; color:var(--muted)}
 .card.big{touch-action:pan-y; user-select:none; -webkit-user-select:none}
 .card.drag .inner{transition:none}
 @keyframes cardnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
@@ -250,9 +265,9 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v19</span>
+  <h1>골프 뽑기</h1><span class="ver">v20</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
-  <a class="scjump" id="holeLink" hidden target="_blank" rel="noopener" style="text-decoration:none">코스</a>
+  <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
 <div class="roundinfo" id="roundInfo" hidden></div>
@@ -432,6 +447,15 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 </section>
 </div>
 
+<div class="hmap" id="holeMap" hidden>
+  <div class="hmbox">
+    <div class="hmhead"><b id="hmTitle"></b><button class="hmx" id="hmClose" aria-label="닫기">✕</button></div>
+    <div class="hmimg"><img id="hmImg" alt="홀 지도"></div>
+    <div class="hmgreen"><small>그린 경사 (왼쪽 / 오른쪽 그린)</small><img id="hmGreen" alt="그린 경사"></div>
+    <div class="hmnav"><button class="btn ghost" id="hmPrev">‹ 이전 홀</button><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a><button class="btn ghost" id="hmNext">다음 홀 ›</button></div>
+  </div>
+</div>
+
 <script>
 const $=id=>document.getElementById(id);
 const fmt=n=>n.toLocaleString('ko-KR');
@@ -462,16 +486,34 @@ function parsOf(cn,f,b){
   const c=COURSES[courseKey(cn)]; if(!c||!c[f]||!c[b]) return null;
   return c[f].concat(c[b]);
 }
-/* 홀 안내 페이지 (골프장 공식 사이트). 떼제베: adtgv tgv1~9=동(한울), 10~18=서(가람), 19~27=남(누리), 28~36=북(마루) */
-const HOLE_LINKS={
-  '떼제베':{ url:n=>'https://www.adtgv.co.kr/course/tgv'+n+'.asp', start:{'한울':1,'가람':10,'누리':19,'마루':28} },
+/* 홀 지도 (골프장 공식 사이트 그림을 그대로 불러옴, 복사해 두지 않음)
+   떼제베 adtgv: 페이지 tgv1~9=동(한울) 10~18=서(가람) 19~27=남(누리) 28~36=북(마루), 그림 images/course/tgv/{e|w|s|n}{홀}.jpg, 그린 {..}_1.jpg */
+const HOLE_MAPS={
+  '떼제베':{ base:'https://www.adtgv.co.kr/', sub:{'한울':['e',1],'가람':['w',10],'누리':['s',19],'마루':['n',28]} },
 };
-function holeLinkOf(cn,f,b,hole){
-  const L=HOLE_LINKS[courseKey(cn)]; if(!L||!hole) return null;
-  const sub=hole<=9?f:b, i=(hole-1)%9;
-  return L.start[sub]!=null ? L.url(L.start[sub]+i) : null;
+function holeMapOf(cn,f,b,hole){
+  const L=HOLE_MAPS[courseKey(cn)]; if(!L||!hole) return null;
+  const sub=hole<=9?f:b, h=(hole-1)%9+1, s=L.sub[sub]; if(!s) return null;
+  return { hole, sub, h, img:L.base+'images/course/tgv/'+s[0]+h+'.jpg', green:L.base+'images/course/tgv/'+s[0]+h+'_1.jpg',
+    page:L.base+'course/tgv'+(s[1]+h-1)+'.asp' };
 }
-function setHoleLink(url){ const a=$('holeLink'); a.hidden=!url; if(url) a.href=url; }
+let holeMapCtx=null;   // {cn,f,b,hole}
+function setHoleLink(ctx){ holeMapCtx=ctx&&holeMapOf(ctx.cn,ctx.f,ctx.b,ctx.hole)?ctx:null; $('holeLink').hidden=!holeMapCtx; }
+function showHoleMap(hole){
+  const c=holeMapCtx; if(!c) return;
+  const m=holeMapOf(c.cn,c.f,c.b,hole); if(!m) return;
+  const ps=parsOf(c.cn,c.f,c.b), par=ps?ps[hole-1]:null;
+  $('hmTitle').textContent=hole+'번 홀 · '+m.sub+' '+m.h+'번'+(par?' · 파'+par:'');
+  $('hmImg').src=m.img; $('hmGreen').src=m.green; $('hmPage').href=m.page;
+  $('hmPrev').disabled=hole<=1; $('hmNext').disabled=hole>=18;
+  $('hmPrev').dataset.h=hole-1; $('hmNext').dataset.h=hole+1;
+  $('holeMap').hidden=false;
+}
+$('holeLink').onclick=()=>{ if(holeMapCtx) showHoleMap(holeMapCtx.hole); };
+$('hmClose').onclick=()=>{ $('holeMap').hidden=true; };
+$('holeMap').addEventListener('click',e=>{ if(e.target.id==='holeMap') $('holeMap').hidden=true; });
+$('hmPrev').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
+$('hmNext').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
 function parAt(hole){ const ps=parsOf(course,front,back); return ps ? ps[hole-1] : null; }
 let rounds=[];             // 저장된 라운드: {id, date, course, names, fee, history, savedAt}
 
@@ -1199,7 +1241,7 @@ function renderRoom(){
   // 머리 칩
   const hn=Math.min(rs.hole+1,18), par=pars?pars[hn-1]:null, m=multAtH(H,H.length);
   $('holeChip').hidden=done; $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
-  setHoleLink(done?null:holeLinkOf(rs.course,rs.front,rs.back,hn));
+  setHoleLink(done?null:{cn:rs.course,f:rs.front,b:rs.back,hole:hn});
   $('multChip').hidden=done||m<=1; $('multChip').textContent='이월 ×'+m;
   const info=roundTitle(rs.date,rs.course)+(rs.front?' · '+rs.front+' → '+rs.back:'');
   $('roundInfo').hidden=!info; $('roundInfo').textContent=info;
@@ -1296,7 +1338,7 @@ function render(){
   $('holeChip').hidden=!started || done;
   const hn=Math.min(curHole(),18), par=parAt(hn);
   $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
-  setHoleLink(started&&!done?holeLinkOf(course,front,back,hn):null);
+  setHoleLink(started&&!done?{cn:course,f:front,b:back,hole:hn}:null);
   const m=curMult();
   $('multChip').hidden=!started || done || m<=1;
   $('multChip').textContent='이월 ×'+m;
