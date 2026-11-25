@@ -265,7 +265,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v20</span>
+  <h1>골프 뽑기</h1><span class="ver">v21</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -473,7 +473,7 @@ const COURSES={
   '프린세스':{ '이스트':[4,4,4,3,5,4,5,3,4], '웨스트':[5,3,4,3,5,4,3,4,5] },
   /* 떼제베CC (청주 옥산, 올데이 청주떼제베). 새 이름 한울=동, 가람=서, 누리=남, 마루=북 (블로그 기준 대응).
      파: onetheclub.com/tgv/course + adtgv.co.kr 홀별 페이지 (2026-11-25). 누리는 9번 파5 라 37 */
-  '떼제베':{ '한울':[4,5,4,3,4,5,3,4,4], '가람':[4,3,4,4,5,3,4,4,5], '누리':[4,4,3,4,5,4,3,5,5], '마루':[4,3,4,4,4,3,4,5,5] },
+  '떼제베':{ '동(한울)':[4,5,4,3,4,5,3,4,4], '서(가람)':[4,3,4,4,5,3,4,4,5], '남(누리)':[4,4,3,4,5,4,3,5,5], '북(마루)':[4,3,4,4,4,3,4,5,5] },
 };
 /* 직접 입력한 골프장 파 (스코어카드 보고 입력) — 기본 COURSES 위에 덧붙임 */
 let myCourses={};
@@ -489,7 +489,7 @@ function parsOf(cn,f,b){
 /* 홀 지도 (골프장 공식 사이트 그림을 그대로 불러옴, 복사해 두지 않음)
    떼제베 adtgv: 페이지 tgv1~9=동(한울) 10~18=서(가람) 19~27=남(누리) 28~36=북(마루), 그림 images/course/tgv/{e|w|s|n}{홀}.jpg, 그린 {..}_1.jpg */
 const HOLE_MAPS={
-  '떼제베':{ base:'https://www.adtgv.co.kr/', sub:{'한울':['e',1],'가람':['w',10],'누리':['s',19],'마루':['n',28]} },
+  '떼제베':{ base:'https://www.adtgv.co.kr/', sub:{'동(한울)':['e',1],'서(가람)':['w',10],'남(누리)':['s',19],'북(마루)':['n',28]} },
 };
 function holeMapOf(cn,f,b,hole){
   const L=HOLE_MAPS[courseKey(cn)]; if(!L||!hole) return null;
