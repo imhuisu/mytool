@@ -250,8 +250,9 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v18</span>
+  <h1>골프 뽑기</h1><span class="ver">v19</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
+  <a class="scjump" id="holeLink" hidden target="_blank" rel="noopener" style="text-decoration:none">코스</a>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
 <div class="roundinfo" id="roundInfo" hidden></div>
@@ -461,6 +462,16 @@ function parsOf(cn,f,b){
   const c=COURSES[courseKey(cn)]; if(!c||!c[f]||!c[b]) return null;
   return c[f].concat(c[b]);
 }
+/* 홀 안내 페이지 (골프장 공식 사이트). 떼제베: adtgv tgv1~9=동(한울), 10~18=서(가람), 19~27=남(누리), 28~36=북(마루) */
+const HOLE_LINKS={
+  '떼제베':{ url:n=>'https://www.adtgv.co.kr/course/tgv'+n+'.asp', start:{'한울':1,'가람':10,'누리':19,'마루':28} },
+};
+function holeLinkOf(cn,f,b,hole){
+  const L=HOLE_LINKS[courseKey(cn)]; if(!L||!hole) return null;
+  const sub=hole<=9?f:b, i=(hole-1)%9;
+  return L.start[sub]!=null ? L.url(L.start[sub]+i) : null;
+}
+function setHoleLink(url){ const a=$('holeLink'); a.hidden=!url; if(url) a.href=url; }
 function parAt(hole){ const ps=parsOf(course,front,back); return ps ? ps[hole-1] : null; }
 let rounds=[];             // 저장된 라운드: {id, date, course, names, fee, history, savedAt}
 
@@ -1188,6 +1199,7 @@ function renderRoom(){
   // 머리 칩
   const hn=Math.min(rs.hole+1,18), par=pars?pars[hn-1]:null, m=multAtH(H,H.length);
   $('holeChip').hidden=done; $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
+  setHoleLink(done?null:holeLinkOf(rs.course,rs.front,rs.back,hn));
   $('multChip').hidden=done||m<=1; $('multChip').textContent='이월 ×'+m;
   const info=roundTitle(rs.date,rs.course)+(rs.front?' · '+rs.front+' → '+rs.back:'');
   $('roundInfo').hidden=!info; $('roundInfo').textContent=info;
@@ -1284,6 +1296,7 @@ function render(){
   $('holeChip').hidden=!started || done;
   const hn=Math.min(curHole(),18), par=parAt(hn);
   $('holeChip').textContent='HOLE '+hn+(par?' · 파'+par:'');
+  setHoleLink(started&&!done?holeLinkOf(course,front,back,hn):null);
   const m=curMult();
   $('multChip').hidden=!started || done || m<=1;
   $('multChip').textContent='이월 ×'+m;
