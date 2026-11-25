@@ -137,6 +137,7 @@ body.jkflash{animation:jkflash .5s ease 3}
 .hmnav{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px}
 .hmnav .btn{padding:8px 10px; margin:0}
 .hmnav .btn[disabled]{opacity:.4}
+#satPrev,#satNext{flex:1; font-family:"Jua",sans-serif; font-size:16px}
 .hmnav a{font-size:12px; color:var(--muted)}
 .hmtabs{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px}
 .hmtabs[hidden]{display:none}
@@ -286,7 +287,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v25</span>
+  <h1>골프 뽑기</h1><span class="ver">v26</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -481,6 +482,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
     <div id="hmSatPane" hidden>
       <div class="sat" id="sat"><div id="satTiles"></div><svg id="satSvg"></svg><button class="satbig" id="satBig" aria-label="지도 크게">⤢</button></div>
       <div class="satinfo" id="satInfo"></div>
+      <div class="hmnav"><button class="btn ghost" id="satPrev">‹ 이전 홀</button><button class="btn ghost" id="satNext">다음 홀 ›</button></div>
       <div class="hmnav"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satClr">점 지우기</button></div>
       <small class="hmtip">위성 사진에서 그린 등을 누르면 내 위치부터 거리 · 한 번 더 누르면 두 점 사이 거리<br>위성 사진 © Esri, Maxar, Earthstar Geographics</small>
     </div>
@@ -544,6 +546,8 @@ function showHoleMap(hole){
   }
   $('hmPrev').disabled=hole<=1; $('hmNext').disabled=hole>=18;
   $('hmPrev').dataset.h=hole-1; $('hmNext').dataset.h=hole+1;
+  $('satPrev').disabled=hole<=1; $('satNext').disabled=hole>=18;
+  $('satPrev').dataset.h=hole-1; $('satNext').dataset.h=hole+1;
   $('holeMap').hidden=false;
   sat.geo=holeGeoOf(c.cn,c.f,c.b,hole); sat.pts=[]; $('satHole').hidden=!sat.geo;
   hmTab(m && hmTabCur!=='sat' ? 'map' : 'sat');
@@ -562,6 +566,8 @@ $('hmClose').onclick=hmClose;
 $('holeMap').addEventListener('click',e=>{ if(e.target.id==='holeMap') hmClose(); });
 $('hmPrev').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
 $('hmNext').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
+$('satPrev').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
+$('satNext').onclick=e=>showHoleMap(+e.currentTarget.dataset.h);
 $('hmTabMap').onclick=()=>hmTab('map');
 $('hmTabSat').onclick=()=>hmTab('sat');
 
