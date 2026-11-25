@@ -324,7 +324,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v38</span>
+  <h1>골프 뽑기</h1><span class="ver">v39</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -525,7 +525,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
       <div class="satedit" id="satEditBar" hidden>
         <div class="hmnav"><button class="btn ghost" id="setTee">⛳ 티 지정</button><button class="btn ghost" id="setGreen">🚩 핀 지정</button><button class="btn ghost" id="setReset">원래대로</button><button class="btn main" id="setDone">완료</button></div>
       </div>
-      <div class="hmnav sattools"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satAll">🗺 9홀</button><button class="btn ghost" id="satEdit">✎ 고치기</button><button id="satClr" hidden></button></div>
+      <div class="hmnav sattools"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satAll">🗺 9홀</button><button class="btn ghost" id="satEdit">✎ 고치기</button><button class="btn ghost" id="satClr" hidden>✕ 점</button></div>
       </div>
     </div>
   </div>
@@ -804,6 +804,7 @@ function satDraw(){
         tag(T,'T'+(k+1)+(h.fixed?'*':''),'#fff','#fff')+tag(G,'G'+(k+1),'#d1493a','#ffe08a'); });
     if(sat.me){ const M=toS(sat.me); s+='<circle cx="'+M[0]+'" cy="'+M[1]+'" r="6" fill="#4285f4" stroke="#fff" stroke-width="2"/>'; }
     $('satSvg').innerHTML=s;
+    $('satClr').hidden=true;
     $('satInfo').innerHTML='T = 티, G = 그린 (번호 = 이 코스 몇 번 홀, * = 고친 것)<br><small>위치가 이상한 <b>번호를 누르면</b> 그 자리로 가서 바로 고칠 수 있어요</small>';
     return;
   }
@@ -842,6 +843,7 @@ function satDraw(){
     : sat.pts[0] ? '내 위치를 아직 못 받았어요 — 한 번 더 누르면 두 점 사이 거리' : (sat.err||'내 위치 찾는 중…');
   if(sat.me && sat.acc>20) info+='<br><small>위치 오차 약 '+Math.round(sat.acc)+'m</small>';
   $('satInfo').innerHTML=sat.msg||info;   // 고치기 안내가 있으면 그걸 계속 보여 줌
+  $('satClr').hidden=!sat.pts.length;     // 찍은 점이 있을 때만 '✕ 점'
 }
 (function(){
   const box=$('sat'), pts=new Map(); let moved=0, t0=0, pinch=null;
