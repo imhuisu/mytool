@@ -123,6 +123,10 @@ body.sonly #totals, body.sonly #totals + .potline, body.sonly #switchBtn, body.s
 @keyframes jkflash{0%,100%{box-shadow:inset 0 0 0 0 rgba(209,73,58,0)}30%,70%{box-shadow:inset 0 0 0 10px rgba(209,73,58,.85)}}
 body.jkflash{animation:jkflash .5s ease 3}
 .card[disabled]{cursor:default}
+.card.big{touch-action:pan-y; user-select:none; -webkit-user-select:none}
+.card.drag .inner{transition:none}
+@keyframes cardnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.card.nudge{animation:cardnudge .35s ease 2}
 .face{position:absolute; inset:0; border-radius:11px; backface-visibility:hidden;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px}
 .face.back{background:var(--surface);
@@ -246,7 +250,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v16</span>
+  <h1>골프 뽑기</h1><span class="ver">v17</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
@@ -346,7 +350,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
     <button class="btn ghost wide" id="freeBtn" style="margin-top:8px">내기 없이 스코어만 기록 (몸풀기 홀)</button>
   </div>
   <div id="drawArea">
-  <div class="turnline"><b id="turnName"></b><small id="turnHint">카드를 눌러 뽑으세요</small></div>
+  <div class="turnline"><b id="turnName"></b><small id="turnHint">카드를 좌우로 밀어 뒤집으세요</small></div>
   <div class="bigwrap" id="bigwrap"></div>
   <div class="drawnrow" id="drawnRow"></div>
   <button class="btn ghost wide" id="toFreeBtn" style="margin-top:12px">이 홀은 내기 없이 스코어만</button>
@@ -689,8 +693,44 @@ function renderBigCard(){
   b.setAttribute('aria-label','뽑기 카드');
   b.innerHTML='<span class="inner"><span class="face back"></span>'+
     '<span class="face front"><span class="who"></span><span class="ballspot"></span><span class="lab"></span></span></span>';
-  b.onclick=()=>pick(b);
+  swipeCard(b, ()=>pick(b));
   w.appendChild(b);
+}
+/* 카드는 좌우로 밀어서 뒤집기 (탭은 안내만). 키보드 Enter/Space 는 그대로 뒤집기 */
+function swipeCard(b, onFlip){
+  const inner=b.querySelector('.inner');
+  let x0=null, dx=0, pid=null, done=false;
+  const flip=dir=>{
+    if(done) return; done=true;
+    try{ navigator.vibrate && navigator.vibrate(25); }catch(e){}
+    b.classList.remove('drag');
+    inner.style.transform='rotateY('+(dir<0?-180:180)+'deg)';
+    b.style.transform='';
+    onFlip();
+  };
+  const reset=()=>{ b.classList.remove('drag'); inner.style.transform=''; b.style.transform=''; x0=null; };
+  b.addEventListener('pointerdown',e=>{
+    if(done||b.disabled) return;
+    x0=e.clientX; dx=0; pid=e.pointerId;
+    try{ b.setPointerCapture(pid); }catch(_){}
+    b.classList.add('drag');
+  });
+  b.addEventListener('pointermove',e=>{
+    if(x0==null||e.pointerId!==pid) return;
+    dx=e.clientX-x0;
+    const r=Math.max(-1,Math.min(1,dx/90));
+    inner.style.transform='rotateY('+(r*75)+'deg)';
+    b.style.transform='translateX('+(r*24)+'px)';
+    if(Math.abs(dx)>=60) flip(dx);
+  });
+  b.addEventListener('pointerup',()=>{ if(x0!=null && !done) reset(); x0=null; });
+  b.addEventListener('pointercancel',()=>{ if(!done) reset(); });
+  b.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(done) return;
+    if(e.detail===0){ flip(1); return; }       // 키보드
+    if(Math.abs(dx)<8){ b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); }
+  });
 }
 function renderDrawnRow(){
   // 스코어 먼저 방식이면 이번 홀 스코어를 사람별로 같이 보여줌
@@ -1158,7 +1198,7 @@ function renderRoom(){
       '<span class="val"><b>'+sgn(v)+'</b><small>'+(mine.color?scLabel(P.map(x=>x.color),me,v):(SCNAME[v]||''))+'</small></span>'+
       '<button class="stepbtn" data-my="1" aria-label="한 타 늘리기">＋</button></div>'+
       '<button class="btn main resbtn" id="scoreBtn">'+label+'</button></div>';
-    const myCard=()=>'<div class="turnline"><b>'+esc(nm[me])+' 차례</b><small>내 카드를 눌러 뽑으세요</small></div>'+
+    const myCard=()=>'<div class="turnline"><b>'+esc(nm[me])+' 차례</b><small>내 카드를 좌우로 밀어 뒤집으세요</small></div>'+
       '<div class="bigwrap"><button class="card big" id="myCard" aria-label="내 카드 뽑기"><span class="inner"><span class="face back"></span></span></button></div>';
     const teamsHTML=()=>{ const colors=P.map(x=>x.color), h={colors};
       const mem=c=>teamOf(h,c).map(p=>esc(nm[p])+(colors[p]==='J'?'<span class="jk">JOKER</span>':'')).join('<br>');
@@ -1184,6 +1224,8 @@ function renderRoom(){
     html+='<div class="stake">이번 홀: 진 팀 1인당 <b>'+fmt(rs.fee*m)+'원</b> 적립'+(m>1?' (이월 ×'+m+')':'')+'</div>';
   }
   $('roomBody').innerHTML=html;
+  const mc=$('myCard');
+  if(mc) swipeCard(mc, ()=>{ mc.classList.add('flipped'); roomPost({op:'draw', p:room.me}); });
 
   // 적립 현황
   $('roomScore').hidden=me==null;
@@ -1199,7 +1241,6 @@ function renderRoom(){
 $('roomBody').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||!rs) return;
   if(b.dataset.me!==undefined){ room.me=+b.dataset.me; saveRoom(); myScore={hole:-1,v:0}; rsKey=''; setRs(rs); return; }
-  if(b.id==='myCard'){ b.classList.add('flipped'); roomPost({op:'draw', p:room.me}); return; }
   if(b.dataset.my){ myScore.v=Math.max(-3,Math.min(10,myScore.v+(+b.dataset.my))); renderRoom(); return; }
   if(b.id==='scoreBtn'){ roomPost({op:'score', p:room.me, score:myScore.v}); return; }
   if(b.id==='unscoreBtn'){ roomPost({op:'unscore', p:room.me}); return; }
