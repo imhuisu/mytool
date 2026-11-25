@@ -143,7 +143,7 @@ body.jkflash{animation:jkflash .5s ease 3}
 .satedit{margin-top:8px; padding:10px; border:1.5px dashed var(--flag); border-radius:10px}
 .satedit[hidden]{display:none}
 .setip{font-size:13px; text-align:center; margin-bottom:2px}
-#setTee,#setGreen,#setReset,#setCopy,#setDone{flex:1; white-space:nowrap}
+#setTee,#setGreen,#setReset,#setDone{flex:1; white-space:nowrap}
 #satAll,#satEdit{flex:1; font-size:13.5px; padding:8px 4px}
 #satAll.on{border-color:var(--flag); color:var(--flag)}
 #satPrev,#satNext{flex:1; font-family:"Jua",sans-serif; font-size:16px}
@@ -299,7 +299,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v35</span>
+  <h1>골프 뽑기</h1><span class="ver">v36</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -492,18 +492,16 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
       <div class="hmnav"><button class="btn ghost" id="hmPrev">‹ 이전 홀</button><a id="hmPage" target="_blank" rel="noopener">골프장 페이지</a><button class="btn ghost" id="hmNext">다음 홀 ›</button></div>
     </div>
     <div id="hmSatPane" hidden>
-      <div class="sat" id="sat"><div id="satTiles"></div><svg id="satSvg"></svg><button class="satbig" id="satBig" aria-label="지도 크게">⤢</button><div class="satcross" id="satCross" hidden></div></div>
+      <div class="sat" id="sat"><div id="satTiles"></div><svg id="satSvg"></svg><button class="satbig" id="satBig" aria-label="지도 크게">⤢</button></div>
       <div class="satedit" id="satEditBar" hidden>
-        <div class="setip">지도를 움직여 가운데 <b>＋</b>를 진짜 티(또는 그린 가운데)에 맞추고 누르세요</div>
-        <div class="hmnav"><button class="btn ghost" id="setTee">티를 여기로</button><button class="btn ghost" id="setGreen">그린을 여기로</button></div>
-        <div class="hmnav"><button class="btn ghost" id="setReset">원래대로</button><button class="btn ghost" id="setCopy">복사</button><button class="btn main" id="setDone">완료</button></div>
+        <div class="setip">버튼을 누른 다음 지도에서 진짜 자리를 <b>톡</b> 누르세요</div>
+        <div class="hmnav"><button class="btn ghost" id="setTee">⛳ 티 위치 지정</button><button class="btn ghost" id="setGreen">🚩 핀 위치 지정</button></div>
+        <div class="hmnav"><button class="btn ghost" id="setReset">이 홀 원래대로</button><button class="btn main" id="setDone">완료</button></div>
       </div>
       <div class="satinfo" id="satInfo"></div>
       <div class="hmnav"><button class="btn ghost" id="satPrev">‹ 이전 홀</button><button class="btn ghost" id="satNext">다음 홀 ›</button></div>
       <div class="hmnav"><button class="btn ghost" id="satMe">◎ 내 위치</button><button class="btn ghost" id="satHole">⛳ 이 홀</button><button class="btn ghost" id="satClr">점 지우기</button></div>
-      <div class="hmnav"><button class="btn ghost" id="satAll">🗺 이 코스 9홀 전체 보기</button><button class="btn ghost" id="satEdit">✎ 티·그린 고치기</button></div>
-      <button class="btn main wide" id="satCopyFix" style="margin-top:8px" hidden></button>
-      <small class="hmtip">위성 사진에서 그린 등을 누르면 내 위치부터 거리 · 한 번 더 누르면 두 점 사이 거리<br>위성 사진 © Esri, Maxar, Earthstar Geographics</small>
+      <div class="hmnav"><button class="btn ghost" id="satAll">🗺 이 코스 9홀 전체 보기</button><button class="btn ghost" id="satEdit">✎ 티·그린 고치기</button></div>      <small class="hmtip">위성 사진에서 그린 등을 누르면 내 위치부터 거리 · 한 번 더 누르면 두 점 사이 거리<br>위성 사진 © Esri, Maxar, Earthstar Geographics</small>
     </div>
   </div>
 </div>
@@ -568,7 +566,7 @@ function showHoleMap(hole){
   $('satPrev').disabled=hole<=1; $('satNext').disabled=hole>=18;
   $('satPrev').dataset.h=hole-1; $('satNext').dataset.h=hole+1;
   $('holeMap').hidden=false;
-  hmHole=hole; sat.all=null; sat.msg=''; $('satAll').classList.remove('on'); syncCopyFix();
+  hmHole=hole; sat.all=null; sat.msg=''; $('satAll').classList.remove('on'); if(sat.pick) satArm(null);
   sat.geo=holeGeoOf(c.cn,c.f,c.b,hole); sat.pts=[]; $('satHole').hidden=!sat.geo;
   $('satEdit').hidden=!courseKey(c.cn) || !(hole<=9?c.f:c.b);
   hmTab(m && hmTabCur!=='sat' ? 'map' : 'sat');
@@ -641,7 +639,7 @@ const HOLE_GEO={
 /* 직접 고친 티·그린 위치 (이 기기에만, localStorage gd2-holegeo = {골프장:{코스:{0~8:[티위도,티경도,그린위도,그린경도]}}}) */
 let holeGeoFix={};
 try{ holeGeoFix=JSON.parse(localStorage.getItem('gd2-holegeo')||'{}')||{}; }catch(e){}
-function saveHoleGeoFix(){ try{ localStorage.setItem('gd2-holegeo', JSON.stringify(holeGeoFix)); }catch(e){} if(typeof syncCopyFix==='function') syncCopyFix(); }
+function saveHoleGeoFix(){ try{ localStorage.setItem('gd2-holegeo', JSON.stringify(holeGeoFix)); }catch(e){} }
 /* 서버(D1 golf_geo)와 같이 씀: 열 때 받아오고, 고치면 바로 올림. 서버에 없는 이 폰의 고친 것은 올려 줌 */
 function geoPost(course,sub,i,v){ return fetch('../api/golf',{method:'POST', headers:{'content-type':'application/json'},
   body:JSON.stringify({op:'geofix', course, sub, i, v})}).then(r=>r.ok).catch(()=>false); }
@@ -841,6 +839,7 @@ function satDraw(){
     if(!had || e.type!=='pointerup' || pts.size) return;
     if(moved<10 && Date.now()-t0<600){
       if(sat.all){ const hit=satAllHit(e.clientX,e.clientY); if(hit) satAllPick(hit); return; }   // 전체 보기: 번호 누르면 그 홀 고치기
+      if(sat.pick){ const w=scr2w(e.clientX,e.clientY), which=sat.pick; satArm(null); setHolePoint(which, w2ll(w[0],w[1])); return; }   // 티/핀 지정 중이면 누른 곳으로
       const now=Date.now();
       if(now-lastTap<300 && sat.pts.length){ sat.pts.pop(); satDraw(); lastTap=0; smoothZoomAt(e.clientX,e.clientY,sat.z+1); return; }   // 두 번 톡 = 확대
       lastTap=now;
@@ -867,11 +866,17 @@ $('satBig').onclick=e=>{ e.stopPropagation(); const b=document.querySelector('.h
 $('satClr').onclick=()=>{ sat.pts=[]; satDraw(); };
 /* ✎ 티·그린 위치 고치기: 지도 가운데 ＋ 를 맞추고 버튼 */
 let hmHole=0;
-function satEditMode(on){ $('satEditBar').hidden=!on; $('satCross').hidden=!on; $('satEdit').hidden=on; }
-function setHolePoint(which){
+function satEditMode(on){ $('satEditBar').hidden=!on; $('satEdit').hidden=on; if(!on) satArm(null); }
+/* 티/핀 지정: 버튼 누르면 대기 → 지도 톡 한 곳으로 */
+function satArm(which){
+  sat.pick=which||null;
+  $('setTee').classList.toggle('main',which==='tee'); $('setGreen').classList.toggle('main',which==='green');
+  if(which){ sat.msg='지도에서 진짜 <b>'+(which==='tee'?'티':'핀(그린 가운데)')+'</b> 자리를 톡 누르세요 · 확대·이동은 그대로 돼요'; satDraw(); }
+}
+function setHolePoint(which, at){
   const c=holeMapCtx; if(!c||!hmHole) return;
   const key=courseKey(c.cn), sub=hmHole<=9?c.f:c.b, i=(hmHole-1)%9; if(!key||!sub) return;
-  const here=w2ll(sat.cx,sat.cy).map(v=>Math.round(v*1e6)/1e6);
+  const here=(at||w2ll(sat.cx,sat.cy)).map(v=>Math.round(v*1e6)/1e6);
   const cur=sat.geo ? [...sat.geo.tee, ...sat.geo.green] : [...here, ...here];
   if(which==='tee'){ cur[0]=here[0]; cur[1]=here[1]; } else { cur[2]=here[0]; cur[3]=here[1]; }
   ((holeGeoFix[key]=holeGeoFix[key]||{})[sub]=holeGeoFix[key][sub]||{})[i]=cur;
@@ -894,9 +899,8 @@ function satAllPick(hit){
   sat.all=null; $('satAll').classList.remove('on');
   showHoleMap(base+hit.k);
   satStopAnim(); const w=ll2w(...hit.ll); satAnim({cx:w[0], cy:w[1], z:18.6, rot:0});
-  satEditMode(true);
-  $('setTee').classList.toggle('main',hit.which==='tee'); $('setGreen').classList.toggle('main',hit.which==='green');
-  sat.msg='<b>'+(hit.which==='tee'?'T':'G')+(hit.k+1)+'</b> 가 ＋ 에 있어요. 지도를 밀어 진짜 '+(hit.which==='tee'?'티':'그린 가운데')+'에 맞추고 <b>'+(hit.which==='tee'?'티를':'그린을')+' 여기로</b>';
+  satEditMode(true); satArm(hit.which);
+  sat.msg='<b>'+(hit.which==='tee'?'T':'G')+(hit.k+1)+'</b> 를 옮겨요. 지도에서 진짜 '+(hit.which==='tee'?'티':'핀(그린 가운데)')+' 자리를 <b>톡</b> 누르세요';
 }
 function satAllOff(){ if(!sat.all) return; sat.all=null; $('satAll').classList.remove('on'); if(!satFrame(true)) satDraw(); }
 $('satAll').onclick=()=>{
@@ -914,20 +918,11 @@ $('satAll').onclick=()=>{
   satAnim({cx:(Math.max(...xs)+Math.min(...xs))/2, cy:(Math.max(...ys)+Math.min(...ys))/2, z:Math.min(18,z), rot:0});
 };
 $('setDone').onclick=()=>{ satEditMode(false); sat.msg=''; $('setTee').classList.remove('main'); $('setGreen').classList.remove('main'); satDraw(); };
-$('setTee').onclick=()=>setHolePoint('tee');
-$('setGreen').onclick=()=>setHolePoint('green');
+$('setTee').onclick=()=>satArm(sat.pick==='tee'?null:'tee');
+$('setGreen').onclick=()=>satArm(sat.pick==='green'?null:'green');
 $('setReset').onclick=()=>{ const g=sat.geo; if(!g||!g.fixed) return;
   delete holeGeoFix[g.key][g.sub][g.i]; saveHoleGeoFix(); geoPost(g.key,g.sub,g.i,null);
   const c=holeMapCtx; sat.geo=holeGeoOf(c.cn,c.f,c.b,hmHole); $('satHole').hidden=!sat.geo; satDraw(); };
-/* 고친 개수 (홀 하나에 티·그린 같이 고쳐도 1) → 바깥 복사 버튼 */
-function fixCount(){ let n=0; for(const k in holeGeoFix) for(const s in holeGeoFix[k]) n+=Object.keys(holeGeoFix[k][s]).length; return n; }
-function syncCopyFix(){ const n=fixCount(), b=$('satCopyFix'); b.hidden=!n; b.textContent='📋 고친 위치 '+n+'홀 (서버에 저장됨 · 눌러서 복사)'; }
-$('satCopyFix').onclick=()=>$('setCopy').onclick();
-$('setCopy').onclick=async()=>{
-  const txt='골프 위치 고침 '+JSON.stringify(holeGeoFix);
-  try{ await navigator.clipboard.writeText(txt); sat.msg='<b>복사했어요.</b> Claude 대화(또는 카톡)에 붙여 넣어 보내 주세요'; satDraw(); }
-  catch(e){ prompt('아래 내용을 길게 눌러 복사하세요', txt); }
-};
 function parAt(hole){ const ps=parsOf(course,front,back); return ps ? ps[hole-1] : null; }
 let rounds=[];             // 저장된 라운드: {id, date, course, names, fee, history, savedAt}
 
