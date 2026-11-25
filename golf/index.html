@@ -170,11 +170,13 @@ body.jkflash{animation:jkflash .5s ease 3}
 .hmbox.satmode .hmgreen{margin:0; height:17vh; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:8px}
 .hmbox.satmode .hmgreen img{max-height:calc(17vh - 18px); max-width:100%}
 .hmfoot{display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted); margin-top:4px}
+body.hm-open .hub-home, body.hm-open .hub-reload{display:none !important}   /* 코스 창(화면 꽉)에선 도구함·새로고침 버튼 숨김 */
 .hmfoot a{color:var(--muted)}
 @media (min-width:640px){
   .hmbox.satmode #hmMapPane{flex-direction:row}
-  .hmside{width:260px; display:flex; flex-direction:column; justify-content:flex-end}
-  .hmbox.satmode .hmgreen{height:auto; flex:1; max-height:55%}
+  .hmside{width:260px; display:flex; flex-direction:column; justify-content:flex-start}   /* 그린 경사는 위쪽 */
+  .hmside .hmfoot{margin-top:auto}
+  .hmbox.satmode .hmgreen{height:auto; flex:none; max-height:55%; justify-content:flex-start; padding-top:6px}
   .hmbox.satmode .hmgreen img{max-height:calc(100% - 18px)}
 }
 /* 넓은 화면(폴드 펼침·PC): 버튼은 오른쪽 세로 줄, 지도는 위아래 끝까지 */
@@ -340,7 +342,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v41</span>
+  <h1>골프 뽑기</h1><span class="ver">v42</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -608,7 +610,7 @@ function showHoleMap(hole){
   $('hmPrev').dataset.h=hole-1; $('hmNext').dataset.h=hole+1;
   $('satPrev').disabled=hole<=1; $('satNext').disabled=hole>=18;
   $('satPrev').dataset.h=hole-1; $('satNext').dataset.h=hole+1;
-  $('holeMap').hidden=false;
+  $('holeMap').hidden=false; document.body.classList.add('hm-open');
   hmHole=hole; sat.all=null; sat.msg=''; $('satAll').classList.remove('on'); if(sat.pick) satArm(null);
   sat.geo=holeGeoOf(c.cn,c.f,c.b,hole); sat.pts=[]; $('satHole').hidden=!sat.geo;
   $('satEdit').hidden=!courseKey(c.cn) || !(hole<=9?c.f:c.b);
@@ -624,7 +626,7 @@ function hmTab(t){
   if(t==='sat') requestAnimationFrame(()=>{ if(sat.geo && !sat.all) satFrame(); satDraw(); });   // 크기 바뀐 뒤 다시 맞춤
   if(t==='sat') satOpen(wasHidden); else satStop();
 }
-function hmClose(){ $('holeMap').hidden=true; satStop(); satEditMode(false); }
+function hmClose(){ $('holeMap').hidden=true; document.body.classList.remove('hm-open'); satStop(); satEditMode(false); }
 $('holeLink').onclick=()=>{ if(holeMapCtx) showHoleMap(holeMapCtx.hole); };
 $('hmClose').onclick=hmClose;
 $('holeMap').addEventListener('click',e=>{ if(e.target.id==='holeMap') hmClose(); });
