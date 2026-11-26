@@ -26,6 +26,23 @@
 body{background:var(--bg); color:var(--ink); margin:0;
   font-family:"IBM Plex Sans KR",-apple-system,"Malgun Gothic",sans-serif; font-size:15px; line-height:1.5}
 .wrap{max-width:520px; margin:0 auto; padding-inline:16px; padding-block:14px 40px}
+/* 넓은 화면(폴드 펼침 ~700px 이상): 왼쪽 = 설정·입력·뽑기·스코어카드, 오른쪽 = 함께하기·적립 현황·지난 기록
+   화면 높이에 딱 맞추고(페이지 스크롤 없음), 넘치는 표·스코어카드는 그 칸 안에서만 스크롤 */
+@media (min-width:640px){
+  html body:not(#x){padding-bottom:0 !important}   /* hub.js 의 바닥 여백 대신 왼쪽 칸 아래만 비움 */
+  .wrap{max-width:1100px; height:100vh; height:100dvh; display:flex; flex-direction:column; padding-block:12px 8px}
+  .wrap > header,.wrap > .roundinfo{flex:none}
+  .cols{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:12px}
+  .colL,.colR{min-height:0; display:flex; flex-direction:column}
+  .colL{padding-bottom:52px}                         /* 왼쪽 아래 도구함·⟳ 버튼 자리 */
+  .cols .panel{flex:none; margin-bottom:10px}
+  .cols .panel:last-child{margin-bottom:0}
+  #setupPanel,#cardPanel,#editPanel,#archPanel,#joinPanel,#roomPanel{flex:0 1 auto; min-height:0; overflow:auto}
+  #scorePanel,#roomScore{flex:0 1 auto; min-height:0; display:flex; flex-direction:column}
+  #scorePanel > *,#roomScore > *{flex:none}
+  #scorePanel .histwrap,#roomScore .histwrap{flex:0 1 auto; min-height:70px; overflow:auto}
+  .histwrap thead th{position:sticky; top:0; background:var(--surface); z-index:1}
+}
 header{display:flex; align-items:center; gap:10px; margin-bottom:12px}
 h1{font-family:"Jua",sans-serif; font-weight:400; font-size:25px; margin:0; letter-spacing:.5px; white-space:nowrap}
 .holechip,.multchip{white-space:nowrap}
@@ -342,13 +359,14 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v42</span>
+  <h1>골프 뽑기</h1><span class="ver">v43</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
 </header>
 <div class="roundinfo" id="roundInfo" hidden></div>
 
+<div class="cols"><div class="colL">
 <!-- 설정 -->
 <section class="panel" id="setupPanel">
   <div class="label">일자 · 골프장</div>
@@ -396,18 +414,6 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div style="margin-top:12px"><button class="btn main" id="startBtn">라운드 시작</button></div>
 </section>
 
-<!-- 함께하기: 각자 폰으로 -->
-<section class="panel" id="joinPanel">
-  <div class="label">함께하기 · 각자 자기 폰으로</div>
-  <button class="btn ghost wide" id="mkRoomBtn" style="margin-top:0">위 설정으로 방 만들기</button>
-  <div class="joinrow">
-    <input id="joinCode" inputmode="numeric" maxlength="4" placeholder="방 코드" autocomplete="off" aria-label="방 코드">
-    <button class="btn save" id="joinBtn">들어가기</button>
-  </div>
-  <div class="roommsg" id="roomMsg"></div>
-  <div class="hintline" style="margin-top:2px">방을 만들면 4자리 코드가 나와요. 다른 사람은 코드를 넣거나 공유 링크로 들어와 자기 이름을 고르고, 자기 카드 뽑기·자기 ± 입력을 해요.</div>
-</section>
-
 <!-- 함께하기 진행 -->
 <section class="panel" id="roomPanel" hidden>
   <div class="roomhead"><b id="roomTitle"></b>
@@ -416,23 +422,6 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   </div>
   <div id="roomBody"></div>
 </section>
-<section class="panel" id="roomScore" hidden>
-  <div class="label">적립 현황</div>
-  <div class="totals" id="rTotals"></div>
-  <div class="potline"><span>총 적립금</span><b id="rPot">0원</b></div>
-  <div class="histwrap" style="margin-top:10px">
-    <table id="rHistTable" hidden>
-      <thead><tr><th>홀</th><th>이월</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead>
-      <tbody id="rHistBody"></tbody>
-    </table>
-  </div>
-  <div id="rCard"></div>
-  <div class="toolrow">
-    <button class="btn save" id="rArchBtn">내 기록에 저장</button>
-    <button class="btn ghost" id="rUndoBtn">이전 홀 되돌리기</button>
-  </div>
-</section>
-
 <!-- 뽑기 -->
 <section class="panel" id="drawPanel" hidden>
  <div id="appDraw">
@@ -495,6 +484,36 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   </div>
 </section>
 
+</div><div class="colR">
+<!-- 함께하기: 각자 폰으로 -->
+<section class="panel" id="joinPanel">
+  <div class="label">함께하기 · 각자 자기 폰으로</div>
+  <button class="btn ghost wide" id="mkRoomBtn" style="margin-top:0">위 설정으로 방 만들기</button>
+  <div class="joinrow">
+    <input id="joinCode" inputmode="numeric" maxlength="4" placeholder="방 코드" autocomplete="off" aria-label="방 코드">
+    <button class="btn save" id="joinBtn">들어가기</button>
+  </div>
+  <div class="roommsg" id="roomMsg"></div>
+  <div class="hintline" style="margin-top:2px">방을 만들면 4자리 코드가 나와요. 다른 사람은 코드를 넣거나 공유 링크로 들어와 자기 이름을 고르고, 자기 카드 뽑기·자기 ± 입력을 해요.</div>
+</section>
+
+<section class="panel" id="roomScore" hidden>
+  <div class="label">적립 현황</div>
+  <div class="totals" id="rTotals"></div>
+  <div class="potline"><span>총 적립금</span><b id="rPot">0원</b></div>
+  <div class="histwrap" style="margin-top:10px">
+    <table id="rHistTable" hidden>
+      <thead><tr><th>홀</th><th>이월</th><th>결과</th><th>1인당</th><th>낸 사람</th></tr></thead>
+      <tbody id="rHistBody"></tbody>
+    </table>
+  </div>
+  <div id="rCard"></div>
+  <div class="toolrow">
+    <button class="btn save" id="rArchBtn">내 기록에 저장</button>
+    <button class="btn ghost" id="rUndoBtn">이전 홀 되돌리기</button>
+  </div>
+</section>
+
 <!-- 스코어보드 -->
 <section class="panel" id="scorePanel" hidden>
   <div class="label" id="scoreLabel">적립 현황</div>
@@ -522,6 +541,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
   <div class="label">지난 기록</div>
   <div id="archList"></div>
 </section>
+</div></div>
 </div>
 
 <div class="hmap" id="holeMap" hidden>
@@ -1437,14 +1457,14 @@ function renderScore(){
   const t=totals();
   $('totals').innerHTML=totalsHTML(t,names,history);
   $('potSum').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
-  $('histBody').innerHTML=histRows(history,fee,names,true);
+  $('histBody').innerHTML=histRows(history,fee,names,true); histEnd('histBody');
   $('histTable').hidden=!history.length;
   $('histEmpty').hidden=!!history.length;
   $('editHint').hidden=!history.length;
   const nSc=history.filter(h=>h.scores).length;
   $('cardPanel').hidden=!nSc; $('scJump').hidden=!nSc;
   $('cardSub').textContent=nSc?nSc+'홀까지':'';
-  if(nSc) $('cardWrap').innerHTML=scorecardHTML(history,names,parsOf(course,front,back));
+  if(nSc) $('cardWrap').innerHTML=scorecardHTML(history,names,parsOf(course,front,back)); { const cp=$('cardPanel'); requestAnimationFrame(()=>{ cp.scrollTop=cp.scrollHeight; }); }
 }
 
 /* ---------- 전체 스코어 (스코어카드) ---------- */
@@ -1787,7 +1807,7 @@ function renderRoom(){
   const t=calcTotals(H,rs.fee);
   $('rTotals').innerHTML=totalsHTML(t,nm,H);
   $('rPot').textContent=fmt(t.reduce((a,b)=>a+b,0))+'원';
-  $('rHistBody').innerHTML=histRows(H,rs.fee,nm);
+  $('rHistBody').innerHTML=histRows(H,rs.fee,nm); histEnd('rHistBody');
   $('rHistTable').hidden=!H.length;
   $('rCard').innerHTML=H.some(h=>h.scores)?'<div class="label" style="margin-top:14px">스코어카드 · '+H.filter(h=>h.scores).length+'홀까지</div>'+scorecardHTML(H,nm,pars):'';
   $('scJump').hidden=!H.some(h=>h.scores);
@@ -1802,6 +1822,9 @@ $('roomBody').addEventListener('click',e=>{
   if(b.id==='skipBtn'){ roomPost({op:'skip'}); return; }
   if(b.id==='drawAllBtn'){ roomPost({op:'drawAll'}); return; }
 });
+
+/* 넓은 화면: 기록 표가 칸 안에서 스크롤되면 마지막 홀이 보이게 */
+function histEnd(id){ const w=$(id).closest('.histwrap'); if(w) requestAnimationFrame(()=>{ w.scrollTop=w.scrollHeight; }); }
 
 /* ---------- 화면 전환 ---------- */
 function render(){
