@@ -54,7 +54,7 @@ class MainActivity : Activity() {
             val pw = EditText(this).apply { hint = "동기화 비밀번호"; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD }
             box.addView(pw, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
             box.addView(button("연결") {
-                val p = pw.text.toString(); if (p.length < 8) { status.text = "8자 이상이에요"; return@button }
+                val p = pw.text.toString(); if (p.isEmpty()) { status.text = "비밀번호를 넣어 주세요"; return@button }   // 길이 제한 없음 — 웹 일정과 같게(예전에 짧게 정한 비밀번호도 연결)
                 status.text = "연결 중… (몇 초 걸려요)"
                 Thread {
                     Sched.link(this, p)
