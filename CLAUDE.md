@@ -107,7 +107,7 @@ trip/                 여행 비용 (나트랑 여행용 2026-10-22). 지출: �
                       영수증 사진: 📷/🖼️ 로 지출에 첨부, 긴 변 1400px JPEG 로 줄여 IndexedDB `trip-receipts`(store r, key=지출 id)에 저장, 지출엔 rc=1. 자동 인식(OCR/AI)은 아직 없음 — 하려면 Claude API 키를 Cloudflare 에 두고 Function 으로 (여행 뒤 희수 결정)
 fx/                   환율 계산기 (베트남 동 기본, 달러·엔·바트·유로·위안·페소). 1원당 외화 환율을 open.er-api.com → 실패 시 jsDelivr currency-api 에서 받음 (6시간마다 자동), 마지막 값 저장으로 오프라인 계산. 직접 환율 입력 가능. 두 API 모두 이 클라우드 세션에선 접속이 막혀 응답 형식을 실제로 확인 못 함 → 폰에서 "기준 시각"이 뜨는지 확인
 functions/api/golf.js 골프 함께하기 서버 (Cloudflare Pages Functions, D1 바인딩 GOLF_DB)
-sched/                일정 (달력·할 일·위젯 모드). 자체 manifest가 있어 "일정" 앱으로 따로 설치 가능 (예외적으로 ../manifest 대신 sched/manifest.webmanifest)
+sched/                일정 (달력·할 일·위젯 모드). 제목 옆 "vN · 앱 x.y" (vN = 웹 일정 버전, sched 고칠 때마다 +1, 현재 v1. 앱 버전은 UA MytoolApp/ 에서) 자체 manifest가 있어 "일정" 앱으로 따로 설치 가능 (예외적으로 ../manifest 대신 sched/manifest.webmanifest)
                       폰에 이미 설치된 도구함 앱이 계속 일정으로 열리면: 홈 화면의 도구함·일정 아이콘을 지우고 크롬에서 다시 설치 (설치된 앱 정보는 저절로 잘 안 바뀜)
                       **주의**: sched manifest의 id는 반드시 "/sched/". id는 start_url이 아니라 사이트 루트(origin) 기준으로 풀려서 "./"로 두면 도구함 앱(id "/")과 같은 앱이 돼 도구함 아이콘이 일정으로 열렸음 (2026-10-16 수정)
                       위젯 모드 = body.mini (?mini=1 / ?mini=0 로 전환, 기기별 기억). 폰 홈 화면 진짜 위젯은 아래 android/ 앱으로

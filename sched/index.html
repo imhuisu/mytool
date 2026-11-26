@@ -27,6 +27,7 @@ body{background:var(--bg); color:var(--ink);
 button,input,select,textarea{font:inherit; color:inherit}
 header{display:flex; align-items:center; gap:8px; margin-bottom:10px}
 h1{font-size:21px; margin:0}
+.ver{font-size:11px; font-weight:700; opacity:.55; align-self:flex-end; margin:0 0 3px 5px; white-space:nowrap}
 header .sp{flex:1}
 .sync{font-size:12px; font-weight:700; border-radius:999px; padding:3px 9px; background:var(--soft); color:var(--muted); white-space:nowrap; border:0; cursor:pointer}
 .upd{font-size:12px; font-weight:800; border-radius:999px; padding:3px 10px; background:var(--ng); color:#fff; border:0; cursor:pointer; white-space:nowrap}
@@ -158,7 +159,7 @@ body.mini .quick input{padding:7px 10px}
     <button class="ib" id="bigBtn" title="큰 화면으로">⤢</button>
   </div>
   <header class="full">
-    <h1>일정</h1><span class="sp"></span>
+    <h1>일정</h1><span class="ver" id="verTag">v1</span><span class="sp"></span>
     <button class="upd" id="updBtn" hidden>⬆ 업데이트</button><button class="sync" id="syncBtn"></button>
     <button class="ib" id="miniBtn" title="위젯 모드">위젯</button>
     <button class="ib" id="setBtn" aria-label="설정">⚙</button>
@@ -596,6 +597,8 @@ let syncState='', syncT=null, syncing=false, again=false;
 const PLAY_URL='market://details?id=com.imhuisu.mytool.sched';
 const APP_VER=((/MytoolApp\/([\d.]+)/.exec(navigator.userAgent)||[])[1]||'').replace(/^1$/,'1.5');
 let appNew='';
+// 제목 옆 버전: 웹 일정 vN (sched 고칠 때마다 +1) · 앱 안이면 앱 버전도
+if(APP_VER) document.getElementById('verTag').textContent+=' · 앱 '+APP_VER;
 const verGt=(a,b)=>{ const x=a.split('.').map(Number), y=b.split('.').map(Number);
   for(let i=0;i<Math.max(x.length,y.length);i++){ const d=(x[i]||0)-(y[i]||0); if(d) return d>0; } return false; };
 async function checkAppUpdate(){
