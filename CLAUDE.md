@@ -128,6 +128,7 @@ android/              일정 홈 화면 위젯 안드로이드 앱 (Kotlin, Andr
                       v1.10(code 12): VIBRATE 권한 (WebView 에서 navigator.vibrate 쓰려면 필요 — 골프 조커 진동)
                       v1.12(code 14): 위치 권한(FINE/COARSE) + WebChromeClient.onGeolocationPermissionsShowPrompt — 골프 위성 지도 GPS 거리
                       v1.13(code 15): 앱 첫 연결 화면의 "8자 이상" 제한 없앰 (웹은 이미 없음, 희수 비밀번호는 짧음 — 태블릿 첫 연결이 막혔음 2026-11-26)
+                      v1.14(code 16): 뒤로가기 = 이전 페이지 → 없으면 도구함 첫 화면 → 첫 화면이면 앱 닫기 (위젯에서 일정 바로 열었을 때 꺼지던 문제). Android 13+ 는 OnBackInvokedCallback (targetSdk 36 은 onBackPressed 안 불림)
                       앱의 비밀번호 키를 웹 localStorage(sched-dev-v1.sync, JWK)에 넣어 줘서 웹에서 비밀번호 재입력 없음. 웹은 동기화 후 MytoolApp.synced() 로 위젯 새로고침
                       웹 설정의 mytool://settings 링크 → 앱 연결·버전 화면(MainActivity, extra settings=true). 크롬으로 설치한 "일정" 웹앱 아이콘은 이제 필요 없음
                       플레이스토어: Play Console 계정(이름 "플러스도어", 개인 계정 유형) 내부 테스트로 희수 혼자 사용, 앱 이름 "마이툴". 업로드는 GitHub Actions 가 자동 (아래). v1.4(code 5)까지는 Play Console 에 손으로 올렸음

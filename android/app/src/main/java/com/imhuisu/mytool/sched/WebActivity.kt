@@ -36,6 +36,7 @@ class WebActivity : Activity() {
     private val REQ_GEO = 42
     private var geoCb: GeolocationPermissions.Callback? = null
     private var geoOrigin: String? = null
+    private var clearHist = false   // 뒤로가기로 도구함 첫 화면에 왔을 때 기록을 비워, 거기서 뒤로가기 = 앱 닫기
 
     companion object {
         const val EXTRA_URL = "url"
@@ -83,9 +84,11 @@ class WebActivity : Activity() {
                 if (u.host != Uri.parse(Sched.BASE).host) { runCatching { startActivity(Intent(Intent.ACTION_VIEW, u)) }; return true }
                 return false
             }
-            override fun onPageFinished(v: WebView, url: String) { injectKey() }
+            override fun onPageFinished(v: WebView, url: String) { injectKey(); if (clearHist) { clearHist = false; v.clearHistory() } }
         }
         web.settings.setGeolocationEnabled(true)
+        // Android 13+ (targetSdk 36 은 onBackPressed 가 안 불림) → 뒤로가기 콜백
+        if (Build.VERSION.SDK_INT >= 33) onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) { goBack() }
         web.webChromeClient = object : WebChromeClient() {
             // 웹이 위치를 물으면(골프 위성 지도): 이미 허용이면 바로, 아니면 안드로이드 권한 창
             override fun onGeolocationPermissionsShowPrompt(origin: String, cb: GeolocationPermissions.Callback) {
@@ -171,6 +174,14 @@ class WebActivity : Activity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (web.canGoBack()) web.goBack() else super.onBackPressed()
+        goBack()
+    }
+
+    /* 뒤로가기: 이전 페이지 → (없으면) 도구함 첫 화면 → (첫 화면이면) 앱 닫기. 위젯에서 일정으로 바로 열었을 때도 도구함으로 */
+    private fun goBack() {
+        if (web.canGoBack()) { web.goBack(); return }
+        val here = (web.url ?: "").substringBefore("#").substringBefore("?")
+        if (here != Sched.BASE && here != Sched.BASE + "index.html") { clearHist = true; web.loadUrl(Sched.BASE); return }
+        finish()
     }
 }
