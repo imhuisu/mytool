@@ -359,7 +359,7 @@ td.res-W{font-weight:700} td.res-G{color:var(--green-deep); font-weight:700} td.
 
 <div class="wrap">
 <header>
-  <h1>골프 뽑기</h1><span class="ver">v43</span>
+  <h1>골프 뽑기</h1><span class="ver">v44</span>
   <span class="chips"><button class="scjump" id="scJump" hidden>스코어</button><span class="multchip" id="multChip" hidden>이월 ×2</span>
   <button class="scjump" id="holeLink" hidden>코스</button>
   <span class="holechip" id="holeChip" hidden>HOLE 1</span></span>
@@ -1263,7 +1263,7 @@ function swipeCard(b, onFlip){
   const inner=b.querySelector('.inner');
   let x0=null, dx=0, pid=null, done=false;
   const flip=dir=>{
-    if(done) return; done=true;
+    if(done) return; done=true; x0=null;   // 뒤집힌 뒤 손가락이 계속 움직여도 각도를 되돌리지 않게
     try{ navigator.vibrate && navigator.vibrate(25); }catch(e){}
     b.classList.remove('drag');
     inner.style.transform='rotateY('+(dir<0?-180:180)+'deg)';
@@ -1278,7 +1278,7 @@ function swipeCard(b, onFlip){
     b.classList.add('drag');
   });
   b.addEventListener('pointermove',e=>{
-    if(x0==null||e.pointerId!==pid) return;
+    if(done||x0==null||e.pointerId!==pid) return;
     dx=e.clientX-x0;
     const r=Math.max(-1,Math.min(1,dx/90));
     inner.style.transform='rotateY('+(r*75)+'deg)';

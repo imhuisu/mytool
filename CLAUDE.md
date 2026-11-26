@@ -32,7 +32,7 @@
    - Cloudflare: D1 데이터베이스 `mytool` (id d365edaf-4e8c-4433-956c-598e58bd8fd9, APAC), Pages 프로젝트 mytool에 production·preview 모두 `GOLF_DB`로 바인딩. 계정 id 7329d7fb645b557134a323309af8d05b
    - PC에는 `npx wrangler login` 되어 있음 → 배포 상태는 `npx wrangler pages deployment list --project-name mytool` 또는 Cloudflare API로 확인 가능
    - 참고 (2026-10-01 오해): 그때 "functions 넣고 배포 실패"라고 판단해 서버 코드를 뺐었는데, 실제로는 실패가 아니라 push를 몰아서 해 **빌드 대기 줄이 밀린 것**이었음 (모든 배포 success). push는 한 번에 모아서 하기
-   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v43)
+   - 골프 제목 옆 "vN" 숫자로 배포 반영 여부 확인. golf 수정할 때마다 N 올리기 (현재 v44)
    - 서버: `functions/api/golf.js` (Cloudflare Pages Functions + **D1**). KV는 쓰기 반영이 느릴 수 있어 D1로 바꿨음. 테이블은 첫 요청 때 자동 생성. 카드는 방 seed+홀 번호로 결정적 셔플
    - 서버 응답이 없으면 "서버가 아직 연결되지 않았어요" 메시지만 뜨고 폰 하나 모드는 그대로 동작
    - 로컬 테스트: Node 22 `node:sqlite`로 D1 흉내 내는 서버를 만들어 4개 브라우저로 확인함 (저장소에는 안 넣음)
